@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منصة - مدارس حديد عز الرقمية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
+<style>
+:root{--bg:#f2f4f8;--card:#fff;--text:#1e293b;--muted:#64748b;--acc:#ea7c0c;--acc2:#1e3a8a;--border:#e2e8f0;--shadow:0 2px 10px rgba(0,0,0,.07);--def:#fff7ed;--note:#ecfdf5}
+[data-theme=dark]{--bg:#0b1220;--card:#151f31;--text:#e2e8f0;--muted:#8fa3bf;--border:#2b3a52;--shadow:0 2px 12px rgba(0,0,0,.4);--def:#1d2a1a;--note:#12251c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);transition:background .3s}
+header{background:linear-gradient(135deg,#b45309,#ea7c0c);color:#fff;padding:22px 14px 14px;text-align:center}
+header h1{font-size:clamp(19px,3.6vw,28px);font-weight:800}
+header p{opacity:.9;font-size:13px;margin-top:4px}
+.btns{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.btn{border:none;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:700;padding:8px 16px;border-radius:10px;background:rgba(255,255,255,.94);color:#9a3412;transition:.15s}
+.btn:hover{transform:translateY(-2px)}
+.layout{display:flex;align-items:flex-start}
+#side{width:300px;flex-shrink:0;position:sticky;top:10px;max-height:calc(100vh - 24px);overflow-y:auto;background:var(--card);border-radius:16px 0 0 16px;box-shadow:var(--shadow);margin:14px;padding:14px 12px;scrollbar-width:thin}
+#side .ttl{font-weight:800;font-size:15px;margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+.prog{background:var(--bg);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:var(--muted)}
+.prog .pb{height:6px;background:var(--border);border-radius:99px;overflow:hidden;margin-top:5px}
+.prog .pf{height:100%;background:var(--acc);width:0;transition:width .3s;border-radius:99px}
+.subj-gt{width:100%;text-align:right;background:color-mix(in srgb,var(--sc) 15%,transparent);border:none;color:var(--text);font-family:inherit;font-weight:800;font-size:13.5px;padding:10px 12px;border-radius:10px;cursor:pointer;margin:6px 0 3px;display:flex;justify-content:space-between;align-items:center;border-right:4px solid var(--sc);transition:.15s}
+.subj-gt:hover{background:color-mix(in srgb,var(--sc) 25%,transparent)}
+.subj-gt .arw{transition:.2s;font-size:11px;color:var(--muted)}
+.subj-gt .cnt{background:var(--sc);color:#fff;font-size:10.5px;font-weight:700;border-radius:99px;padding:2px 8px;margin-right:6px}
+.subj-body{display:none;padding-right:4px;padding-bottom:4px}
+.subj-body.open{display:block}
+.unit-gt{width:100%;text-align:right;background:color-mix(in srgb,var(--sc) 8%,transparent);border:none;color:var(--text);font-family:inherit;font-weight:700;font-size:12.5px;padding:7px 10px;border-radius:8px;cursor:pointer;margin:4px 0 2px;display:flex;justify-content:space-between;align-items:center;transition:.15s}
+.unit-gt:hover{background:color-mix(in srgb,var(--sc) 16%,transparent)}
+.unit-gt .arw{font-size:10px;color:var(--muted)}
+.unit-body{display:none;padding-right:8px}
+.unit-body.open{display:block}
+.nav-i{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;text-align:right;background:none;border:none;font-family:inherit;font-size:12px;padding:5px 8px;border-radius:7px;color:var(--text);transition:.15s;line-height:1.5}
+.nav-i:hover{background:color-mix(in srgb,var(--sc) 14%,transparent)}
+.nav-i.on{background:color-mix(in srgb,var(--sc) 22%,transparent);font-weight:700}
+.nav-t{flex:1;text-align:right;cursor:pointer}
+.chk{border:none;background:var(--def);color:var(--acc);font-weight:800;cursor:pointer;border-radius:6px;width:22px;height:22px;font-size:12px;flex-shrink:0;line-height:1}
+.chk.done{background:var(--acc);color:#fff}
+.sideback{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:110}
+.sideback.show{display:block}
+.menubtn{display:none}
+@media(max-width:920px){
+ .layout{display:block}
+ #side{position:fixed;top:0;right:auto;bottom:0;width:min(320px,88vw);margin:0;border-radius:16px 0 0 16px;max-height:100vh;z-index:120;transform:translateX(100%);transition:transform .25s}
+ #side.open{transform:none}
+ .menubtn{display:inline-flex}
+}
+.mcol{flex:1;min-width:0;padding:0 14px 40px;max-width:1000px}
+.tabs{position:sticky;top:0;z-index:60;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:10px 0;background:var(--bg)}
+.tab{border:1.5px solid var(--border);background:var(--card);color:var(--text);font-family:inherit;font-size:13.5px;font-weight:700;padding:9px 18px;border-radius:12px 12px 0 0;cursor:pointer;transition:.2s}
+.tab.active{background:var(--acc);border-color:var(--acc);color:#fff}
+.pane{display:none}
+.pane.show{display:block}
+.sbox{display:flex;align-items:center;gap:10px;background:var(--card);border:2px solid var(--border);border-radius:14px;padding:9px 15px;box-shadow:var(--shadow);margin-bottom:14px}
+.sbox input{flex:1;border:none;outline:none;background:transparent;color:var(--text);font-family:inherit;font-size:15.5px}
+.count{font-size:12px;color:var(--muted);white-space:nowrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;justify-content:center}
+.chip{border:1.5px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-family:inherit;font-size:12px;padding:5px 12px;border-radius:99px;transition:.2s}
+.chip.active{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
+.sec{background:var(--card);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);border-right:5px solid var(--c);margin-bottom:14px}
+.sec-h{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer;gap:8px}
+.sec-h h2{font-size:16px;font-weight:800;color:var(--c)}
+.sec-h .rng{font-size:11.5px;color:var(--muted)}
+.sec.closed .sec-b{display:none}
+table{width:100%;border-collapse:collapse}
+th{background:color-mix(in srgb,var(--c) 13%,transparent);color:var(--c);font-size:12.5px;padding:8px 11px;text-align:right}
+td{padding:8px 11px;border-top:1px solid var(--border);font-size:14px;vertical-align:middle}
+td.num{color:var(--muted);font-size:11.5px;width:36px}
+td.en{direction:ltr;text-align:left;font-weight:600}
+td.pro{color:var(--muted)}
+tbody tr:nth-child(even){background:color-mix(in srgb,var(--c) 4%,transparent)}
+tbody tr:hover{background:color-mix(in srgb,var(--c) 8%,transparent)}
+.empty{text-align:center;color:var(--muted);padding:36px;font-size:15px;display:none}
+.subject-hdr{background:linear-gradient(90deg,var(--sc,#1e3a8a),color-mix(in srgb,var(--sc,#1e3a8a) 60%,#fff));color:#fff;padding:14px 20px;border-radius:14px;font-size:18px;font-weight:800;margin:22px 0 14px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow)}
+.subject-hdr .em{font-size:22px;margin-left:8px}
+.subject-hdr .badge{background:rgba(255,255,255,.22);font-size:12px;padding:4px 12px;border-radius:99px;font-weight:700}
+.unit{margin-bottom:22px}
+.unit>h2{background:linear-gradient(90deg,#ea7c0c,#f59e0b);color:#fff;font-size:16.5px;font-weight:800;padding:12px 18px;border-radius:14px}
+.sub{background:var(--card);border-radius:14px;box-shadow:var(--shadow);margin-top:10px;overflow:hidden;border-right:5px solid var(--c2,#1e3a8a);scroll-margin-top:80px}
+.sub-h{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;cursor:pointer;gap:8px}
+.sub-h h3{font-size:15px;font-weight:800;color:var(--c2,#1e3a8a)}
+.sub.closed .sub-b{display:none}
+.sub-b{padding:4px 16px 16px}
+.blk{margin-top:10px}
+.blk h4{font-size:14px;font-weight:800;color:var(--acc);margin-bottom:6px}
+.blk p{font-size:14.5px;line-height:1.9}
+.blk ul,.blk ol{padding-right:22px;font-size:14.5px;line-height:2}
+.defbox{background:var(--def);border:1.5px solid color-mix(in srgb,var(--acc) 45%,transparent);border-radius:12px;padding:12px 14px;margin-top:10px}
+.defbox .term{display:inline-block;background:var(--acc);color:#fff;font-weight:800;font-size:13px;padding:3px 12px;border-radius:99px;margin-bottom:7px}
+.defbox .x{font-size:15px;font-weight:600;line-height:1.9}
+.notebox{background:var(--note);border:1.5px dashed #10b981;border-radius:12px;padding:11px 14px;margin-top:10px;font-size:14.5px;line-height:1.9}
+.notebox .tag{display:inline-block;background:#10b981;color:#fff;font-weight:800;font-size:11.5px;padding:2px 10px;border-radius:99px;margin-left:6px}
+.chain{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--acc) 10%,transparent);border-radius:12px;padding:14px;margin-top:10px}
+.chain b{background:var(--acc);color:#fff;padding:8px 18px;border-radius:10px;font-size:14.5px}
+.chain span{font-size:20px;font-weight:800;color:var(--muted)}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.dcard{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:16px;cursor:pointer;border-top:4px solid var(--acc);min-height:130px}
+.dcard .q{font-size:16.5px;font-weight:800;color:var(--acc)}
+.dcard .q small{display:block;color:var(--muted);font-size:12px;font-weight:400;margin-top:2px}
+.dcard .a{display:none;font-size:14px;line-height:1.9;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+.dcard.flip .a{display:block}
+.dcard .hint{font-size:11.5px;color:var(--muted);margin-top:8px}
+.qb-les{margin-bottom:26px}
+.qb-les>h2{background:linear-gradient(90deg,#1e3a8a,#2563eb);color:#fff;font-size:16.5px;font-weight:800;padding:12px 18px;border-radius:14px;scroll-margin-top:80px}
+.qb-sec{margin-top:12px}
+.qb-sec>b{display:block;font-size:15px;color:var(--acc2);border-bottom:2px solid var(--acc);padding-bottom:5px;margin-bottom:4px}
+[data-theme=dark] .qb-sec>b{color:#93c5fd}
+.qcard{background:var(--card);border-radius:12px;box-shadow:var(--shadow);padding:12px 14px;margin-top:10px;border-right:4px solid var(--qc,#2563eb)}
+.qcard .qn{font-size:11px;font-weight:800;color:var(--muted)}
+.qcard .st{font-size:14.5px;line-height:1.8;font-weight:600;margin-top:3px}
+.tfrow{display:flex;gap:8px;margin-top:9px}
+.tfbtn{flex:1;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;font-weight:700;padding:9px;border-radius:9px;cursor:pointer;transition:.15s}
+.tfbtn:hover:not(:disabled){border-color:var(--acc)}
+.tfbtn.right{background:#dcfce7;border-color:#16a34a;color:#14532d}
+.tfbtn.wrong{background:#fee2e2;border-color:#dc2626;color:#7f1d1d}
+[data-theme=dark] .tfbtn.right{background:#12331f;color:#86efac}
+[data-theme=dark] .tfbtn.wrong{background:#331416;color:#fca5a5}
+.ansbox{display:none;background:var(--note);border-radius:10px;padding:10px 13px;font-size:13.5px;line-height:1.9;margin-top:9px}
+.ansbox.show{display:block}
+.reveal{border:none;background:var(--acc);color:#fff;font-family:inherit;font-size:13px;font-weight:700;padding:8px 18px;border-radius:9px;cursor:pointer;margin-top:9px}
+.flash{animation:fl 1.8s ease}
+@keyframes fl{0%,60%{outline:3px solid var(--acc);outline-offset:3px}100%{outline:0 solid transparent}}
+.qz{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:22px;max-width:640px;margin:0 auto}
+.pbar{height:8px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:16px}
+.pbar i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .3s}
+.qz .qn{font-size:12px;color:var(--muted)}
+.qz .qt{font-size:17px;font-weight:800;line-height:1.8;margin:10px 0 14px}
+.opt{display:block;width:100%;text-align:right;background:var(--bg);border:1.5px solid var(--border);color:var(--text);font-family:inherit;font-size:14px;padding:11px 14px;border-radius:11px;margin-bottom:8px;cursor:pointer;transition:.15s;line-height:1.7}
+.opt:hover:not(:disabled){border-color:var(--acc)}
+.opt.right{background:#dcfce7;border-color:#16a34a;font-weight:700}
+.opt.wrong{background:#fee2e2;border-color:#dc2626}
+[data-theme=dark] .opt.right{background:#12331f}[data-theme=dark] .opt.wrong{background:#331416}
+.exp{background:var(--note);border-radius:11px;padding:10px 14px;font-size:13.5px;line-height:1.8;margin:8px 0;display:none}
+.exp.show{display:block}
+.qrow{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.qbtn{border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:10px 22px;border-radius:10px;background:var(--acc);color:#fff}
+.result{text-align:center;padding:20px 0}
+.result .em{font-size:56px}
+.result h3{font-size:22px;margin:10px 0}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:18px}
+.ph{display:none}
+@page{size:A4;margin:12mm}
+@media print{header,.tabs,.btns,.sbox,.chips,#side,.menubtn,.sideback,.qz,footer,.tfrow,.reveal,.chk,.prog,#pdfPanel{display:none!important}
+body{background:#fff;color:#000}.layout{display:block}.mcol{max-width:none;padding:0}
+.pane{display:block!important}.ph{display:block;text-align:center;margin-bottom:10px}
+.sec,.sub,.unit>h2,.qcard{box-shadow:none;border:1px solid #999;page-break-inside:avoid}
+.sec.closed .sec-b,.sub.closed .sub-b{display:block!important}
+.ansbox{display:block!important}}
+.floating-button{position:fixed;bottom:20px;left:20px;width:50px;height:50px;background-color:#b45309;border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;opacity:.8;box-shadow:0 0 12px rgba(0,0,0,.5);transition:left .3s,opacity .3s,transform .2s;z-index:90}
+.floating-button:hover{background-color:#fbd034;transform:scale(1.1)}
+.arrow-up{width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:25px solid white;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+
+/* PDF Panel */
+#pdfPanel{background:var(--card);margin:14px;padding:14px;border-radius:14px;box-shadow:var(--shadow);border-right:5px solid #7c3aed}
+#pdfPanel h3{font-size:15px;font-weight:800;margin-bottom:10px;color:#7c3aed}
+.pdf-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+#pdfPanel input,#pdfPanel select{padding:9px 12px;border-radius:9px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;font-size:13.5px}
+#pdfPanel input#pdfUrl{direction:ltr}
+#addPdfBtn{padding:9px 20px;border-radius:9px;background:#7c3aed;color:#fff;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:13.5px;transition:.15s}
+#addPdfBtn:hover{background:#6d28d9}
+#addPdfBtn:disabled{opacity:.6;cursor:not-allowed}
+.pdf-clear{padding:8px 16px;border-radius:10px;background:#dc2626;color:#fff;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:13.5px;transition:.15s;margin-top:8px}
+.pdf-clear:hover{background:#b91c1c}
+#pdfStatus{margin-top:10px;font-size:13px;color:var(--muted);line-height:1.7}
+#pdfList{margin-top:10px;display:flex;flex-direction:column;gap:5px}
+.pdf-item{display:flex;justify-content:space-between;align-items:center;background:var(--bg);padding:8px 12px;border-radius:9px;font-size:12.5px;gap:8px}
+.pdf-item .del{background:#dc2626;color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;font-size:11px}
+.pdf-item .view{background:#7c3aed;color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700}
+
+/* ===== عارض PDF ===== */
+#pdfViewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:300;padding:14px;overflow:auto}
+#pdfViewer.show{display:flex;flex-direction:column;align-items:center}
+.pdf-viewer-bar{position:sticky;top:0;z-index:5;width:100%;max-width:1000px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);padding:10px 14px;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.3);margin-bottom:12px;flex-wrap:wrap}
+.pdf-viewer-bar .title{font-weight:800;font-size:14px;color:var(--text);flex:1;min-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdf-viewer-bar button{border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:13.5px;padding:8px 14px;border-radius:9px;background:var(--acc);color:#fff;transition:.15s}
+.pdf-viewer-bar button:hover{transform:translateY(-2px)}
+.pdf-viewer-bar button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.pdf-viewer-bar .close{background:#dc2626}
+.pdf-viewer-bar .pageinfo{font-size:13px;color:var(--muted);font-weight:700;padding:0 6px}
+#pdfCanvasWrap{width:100%;max-width:1000px;background:#fff;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.4);overflow:hidden;display:flex;justify-content:center;padding:8px;min-height:200px}
+#pdfCanvasWrap canvas{max-width:100%;height:auto;display:block;animation:fadePage .28s ease;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+@keyframes fadePage{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.pdf-loading{color:#333;font-size:15px;font-weight:700;padding:40px;text-align:center;line-height:1.8}
+.pdf-thumbs{display:flex;gap:6px;overflow-x:auto;padding:10px 4px;width:100%;max-width:1000px;background:rgba(255,255,255,.08);border-radius:10px;margin-top:12px;min-height:70px}
+.pdf-thumb{flex-shrink:0;cursor:pointer;border:2px solid transparent;border-radius:6px;background:#fff;overflow:hidden;transition:.15s}
+.pdf-thumb.on{border-color:var(--acc);transform:scale(1.05)}
+.pdf-thumb canvas{display:block;width:60px;height:auto}
+</style>
+</head>
+<body>
+<header>
+  <h1>منصة - مدارس حديد عز الرقمية</h1>
+  <p>منصة تعليمية متكاملة</p>
+  <div class="btns">
+    <button class="btn menubtn" onclick="openSide()">☰ فهرس المنهج</button>
+    <button class="btn" onclick="window.print()">🖨️ طباعة</button>
+    <button class="btn" id="thBtn" onclick="theme()">🌙 وضع ليلي</button>
+  </div>
+</header>
+
+<!-- ======== لوحة إضافة ملفات PDF ======== -->
+<div id="pdfPanel">
+  <h3>📥 إضافة ملفات PDF (عن طريق رابط GitHub)</h3>
+  <div class="pdf-row">
+    <select id="pdfSubject">
+      <option value="mech">⚙️ ميكاترونكس</option>
+      <option value="english">🇬🇧 لغة إنجليزية</option>
+      <option value="arabic">📗 لغة عربية</option>
+      <option value="math">🔢 رياضيات</option>
+      <option value="physics">⚛️ فيزياء</option>
+      <option value="chemistry">🧪 كيمياء</option>
+      <option value="biology">🧬 أحياء</option>
+      <option value="social">🌍 دراسات اجتماعية</option>
+      <option value="other">📁 مواد أخرى</option>
+    </select>
+    <select id="pdfType">
+      <option value="lessons">📖 دروس</option>
+      <option value="dict">📚 قاموس</option>
+      <option value="qbank">📝 بنك أسئلة</option>
+      <option value="defs">🃏 تعريفات</option>
+    </select>
+  </div>
+  <div class="pdf-row">
+    <input type="text" id="pdfName" placeholder="📝 اسم الملف (مثال: Unit 1 - Safety)" style="flex:1;min-width:200px">
+    <input type="text" id="pdfUrl" placeholder="🔗 الصق رابط GitHub Raw للملف PDF" style="flex:2;min-width:280px">
+    <button id="addPdfBtn">➕ إضافة</button>
+  </div>
+  <div id="pdfStatus">💡 ارفع ملف PDF على GitHub → انسخ رابط raw → الصقه هنا</div>
+  <div id="pdfList"></div>
+  <button class="pdf-clear" id="clearPdf">🗑️ حذف كل الملفات</button>
+</div>
+
+<div class="ph"><h2>إعداد وتصميم - مدارس حديد عز الرقمية</h2></div>
+<div class="sideback" id="sideback" onclick="closeSide()"></div>
+<div class="layout">
+<aside id="side">
+  <div class="ttl">🗂️ فهرس المنهج الدراسي</div>
+  <div class="prog">📊 تقدمك: <b id="progTxt">0 / 0</b><div class="pb"><div class="pf" id="progFill"></div></div></div>
+  <button class="nav-i" onclick="navGo('p1')" style="--sc:#ea7c0c"><span class="nav-t">📚 القاموس العام</span></button>
+  <button class="nav-i" onclick="navGo('p3')" style="--sc:#ea7c0c"><span class="nav-t">🃏 بطاقات التعريفات</span></button>
+  <button class="nav-i" onclick="navGo('p5')" style="--sc:#ea7c0c"><span class="nav-t">🎯 اختبار سريع</span></button>
+  <div id="navSubjects"></div>
+</aside>
+<div class="mcol">
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-p="p1">📚 القاموس</button>
+  <button class="tab" data-p="p2">📖 الدروس</button>
+  <button class="tab" data-p="p3">🃏 التعريفات</button>
+  <button class="tab" data-p="p4">📝 بنك الأسئلة</button>
+  <button class="tab" data-p="p5">🎯 اختبار سريع</button>
+</nav>
+<main>
+<section class="pane show" id="p1">
+  <div class="sbox"><span>🔍</span><input id="q1" placeholder="ابحث في المصطلحات…"><span class="count" id="c1"></span></div>
+  <div class="chips" id="chips"></div>
+  <div id="dict"></div><div class="empty" id="e1">😕 مفيش نتائج…</div>
+</section>
+<section class="pane" id="p2">
+  <div class="sbox"><span>🔍</span><input id="q2" placeholder="ابحث في الدروس…"><span class="count" id="c2"></span></div>
+  <div id="lessons"></div><div class="empty" id="e2">😕 مفيش نتائج…</div>
+</section>
+<section class="pane" id="p3">
+  <div class="sbox"><span>🔍</span><input id="q3" placeholder="ابحث في التعريفات…"><span class="count" id="c3"></span></div>
+  <div class="dgrid" id="defs"></div><div class="empty" id="e3">😕 مفيش نتائج…</div>
+</section>
+<section class="pane" id="p4">
+  <div class="sbox"><span>🔍</span><input id="q4" placeholder="ابحث في أسئلة البنك…"><span class="count" id="c4"></span></div>
+  <div id="qbank"></div><div class="empty" id="e4">😕 مفيش نتائج…</div>
+</section>
+<section class="pane" id="p5"><div class="qz" id="quiz"></div></section>
+</main>
+<footer>💾 يعمل أوفلاين 100% • اختر مادتك من القائمة الجانبية ☰</footer>
+<footer>
+    <span>منصة - مدارس حديد عز الرقمية</span> ·
+    <span>© جميع الحقوق محفوظة</span>
+</footer>
+</div>
+</div>
+<br><br><br><br>
+<div id="go-to-top-button" class="floating-button"><div class="arrow-up"></div></div>
+
+<!-- ===== عارض PDF ===== -->
+<div id="pdfViewer">
+  <div class="pdf-viewer-bar">
+    <span class="title" id="pvTitle">ملف PDF</span>
+    <button id="pvPrev" onclick="pvGo(-1)">◀ السابق</button>
+    <span class="pageinfo"><span id="pvCur">1</span> / <span id="pvTotal">1</span></span>
+    <button id="pvNext" onclick="pvGo(1)">التالي ▶</button>
+    <button class="close" onclick="pvClose()">✕ إغلاق</button>
+  </div>
+  <div id="pdfCanvasWrap"><div class="pdf-loading">⏳ جارٍ التحميل...</div></div>
+  <div class="pdf-thumbs" id="pdfThumbs"></div>
+</div>
+
+<script>
+/* =================================================================
+   1) المواد الدراسية الرئيسية
+   ================================================================= */
+const SUBJECTS = {
+  mech:      { name: "ميكاترونكس",       icon: "⚙️", color: "#2563eb" },
+  english:   { name: "لغة إنجليزية",      icon: "🇬🇧", color: "#16a34a" },
+  arabic:    { name: "لغة عربية",         icon: "📗", color: "#dc2626" },
+  math:      { name: "رياضيات",          icon: "🔢", color: "#7c3aed" },
+  physics:   { name: "فيزياء",           icon: "⚛️", color: "#0891b2" },
+  chemistry: { name: "كيمياء",           icon: "🧪", color: "#ea580c" },
+  biology:   { name: "أحياء",            icon: "🧬", color: "#059669" },
+  social:    { name: "دراسات اجتماعية",   icon: "🌍", color: "#a16207" },
+  other:     { name: "مواد أخرى",         icon: "📁", color: "#64748b" }
+};
+
+/* =================================================================
+   2) بيانات القاموس
+   ================================================================= */
+let SECTIONS = [
+{n:"أساسيات الميكاترونكس والتحكم",c:"#2563eb",subj:"mech",t:[[1,"Mechatronics","ميكاترونكس","الميكاترونكس"],[2,"Mechanical","ميكانيكال","ميكانيكي"],[3,"Electrical","إلكتريكال","كهربائي"],[4,"Electronics","إلكترونكس","إلكترونيات"],[5,"Automation","أوتوميشن","الأتمتة"],[6,"Control System","كنترول سيستم","نظام تحكم"],[7,"Industrial Automation","إندستريال أوتوميشن","الأتمتة الصناعية"],[8,"Machine","ماشين","ماكينة / آلة"],[9,"Process","بروسيس","عملية تشغيل"],[10,"System","سيستم","نظام"],[11,"Input","إنبوت","دخل"],[12,"Output","آوتبوت","خرج"],[13,"Signal","سيجنال","إشارة"],[14,"Analog","أنالوج","تماثلي"],[15,"Digital","ديجيتال","رقمي"],[16,"Control","كنترول","تحكم"],[17,"Controller","كنترولر","وحدة تحكم"],[18,"Feedback","فيدباك","تغذية راجعة"],[19,"Setpoint","سيت بوينت","القيمة المطلوبة"],[20,"Process Variable","بروسيس فاريابل","متغير العملية"]]},
+{n:"PLC والبرمجة الصناعية",c:"#ea580c",subj:"mech",t:[[21,"PLC","بي إل سي","متحكم منطقي مبرمج"],[22,"Programmable Logic Controller","بروجرامابل لوجيك كنترولر","المتحكم المنطقي المبرمج"],[23,"CPU","سي بي يو","وحدة المعالجة"],[24,"Input Module","إنبوت موديول","وحدة الإدخال"],[25,"Output Module","آوتبوت موديول","وحدة الإخراج"],[26,"Digital Input","ديجيتال إنبوت","دخل رقمي"],[27,"Digital Output","ديجيتال آوتبوت","خرج رقمي"],[28,"Analog Input","أنالوج إنبوت","دخل تماثلي"],[29,"Analog Output","أنالوج آوتبوت","خرج تماثلي"],[30,"Ladder Logic","لادر لوجيك","برمجة السلم"],[31,"Timer","تايمر","مؤقت"],[32,"Counter","كاونتر","عداد"],[33,"Sensor","سينسور","حساس"],[34,"Proximity Sensor","بروكسيميتي سينسور","حساس اقتراب"],[35,"Limit Switch","ليميت سويتش","مفتاح نهاية مشوار"],[36,"Encoder","إنكودر","حساس موضع/سرعة"],[37,"Motor","موتور","محرك"],[38,"VFD","في إف دي","مغير تردد وسرعة"],[39,"HMI","إتش إم آي","واجهة الإنسان والآلة"],[40,"SCADA","سكادا","مراقبة وتحكم"],[41,"Pneumatics","نيوماتكس","أنظمة الهواء المضغوط"],[42,"Hydraulics","هيدروليكس","الأنظمة الهيدروليكية"],[43,"Maintenance","مينتنانس","صيانة"],[44,"Safety","سيفتي","سلامة"],[45,"Calibration","كاليبريشن","معايرة"],[46,"Troubleshooting","تروبل شوتنج","اكتشاف الأعطال"],[47,"Gearbox","جيربوكس","علبة تروس"],[48,"Bearing","بيرنج","محمل"],[49,"Emergency Stop","إمرجنسي ستوب","إيقاف طوارئ"],[50,"Control Panel","كنترول بانل","لوحة تحكم"]]}
+];
+
+/* =================================================================
+   3) المنهج — مواد ← وحدات ← دروس
+   ================================================================= */
+let CURRICULUM = {
+  mech: [
+    { u: "UNIT 1 — Lesson 1", t: "Occupational Health and Safety", subs: [
+      { n: "1.1 What is Occupational Health and Safety?", i: "🦺", b: [
+        { t: "p", x: "Warm-up: الحافة الحادة لصفيحة معدن خلف حاجز مناسب — منطقة مسيطر عليها ✅. نفس الحافة مكشوفة في ممر يمر به الناس ⚠️. الخطر نفسه لكن التعرض مختلف!" },
+        { t: "def", term: "SAFETY — السلامة", x: "Safety is a condition in which people are not exposed to unacceptable levels of danger." },
+        { t: "list", x: ["Physical well-being — السلامة الجسدية","Mental well-being — السلامة النفسية","Social well-being — السلامة الاجتماعية"] },
+        { t: "def", term: "OCCUPATIONAL HEALTH — الصحة المهنية", x: "Occupational health is concerned with protecting and supporting physical, mental and social well-being in relation to work." },
+        { t: "note", tag: "THINK", x: "Worker finishes a shift without an accident — does this mean the workplace was safe?" }
+      ]},
+      { n: "1.2 From Hazard to Risk", i: "⚠️", b: [
+        { t: "def", term: "HAZARD — الخطر", x: "An inherent property or characteristic that has the potential to cause harm." },
+        { t: "def", term: "INCIDENT — حادث كاد يقع", x: "An unplanned event that COULD result in injury but no harm occurred." },
+        { t: "def", term: "ACCIDENT — حادثة", x: "An unplanned event that RESULTS in injury or ill health." },
+        { t: "def", term: "RISK — المخاطرة", x: "Risk = Likelihood + Severity." },
+        { t: "chain", x: ["Hazard","Exposure","Harm"] }
+      ]}
+    ]},
+    { u: "UNIT 1 — Lesson 2", t: "Legal Requirements & Responsibilities", subs: [
+      { n: "2.1 From National Law to Workplace Requirements", i: "⚖️", b: [
+        { t: "steps", x: ["Primary Legislation","Implementing Regulations","Secondary Legislation"] },
+        { t: "chain", x: ["National Law","Regulations","Safe Work"] }
+      ]},
+      { n: "2.2 Who is Responsible for Workplace Safety?", i: "👥", b: [
+        { t: "def", term: "THE EMPLOYER", x: "Holds overall legal responsibility; non-delegable duties." },
+        { t: "def", term: "THE SUPERVISOR", x: "Oversees day-to-day work execution." },
+        { t: "def", term: "Workers' Safety Representative (RLS)", x: "Represents workers' health and safety concerns." }
+      ]}
+    ]}
+  ],
+  english: [
+    { u: "Unit 1 — Grammar", t: "Present Tenses", subs: [
+      { n: "1.1 Present Simple", i: "📘", b: [
+        { t: "def", term: "Present Simple", x: "يُستخدم للحقائق والروتين اليومي: I go to school every day." },
+        { t: "list", x: ["Affirmative: Subject + V(s/es)","Negative: Subject + do/does + not + V","Question: Do/Does + Subject + V?"] },
+        { t: "note", tag: "EXAMPLE", x: "She studies English every morning." }
+      ]},
+      { n: "1.2 Present Continuous", i: "📗", b: [
+        { t: "def", term: "Present Continuous", x: "يُستخدم للأحداث الجارية الآن: I am studying right now." }
+      ]}
+    ]}
+  ],
+  arabic: [
+    { u: "الوحدة 1 — النحو", t: "المبتدأ والخبر", subs: [
+      { n: "1.1 تعريف المبتدأ والخبر", i: "📗", b: [
+        { t: "def", term: "المبتدأ", x: "اسم مرفوع يقع في أول الجملة الاسمية." },
+        { t: "def", term: "الخبر", x: "اسم مرفوع يكمل معنى المبتدأ ويُخبر عنه." },
+        { t: "note", tag: "مثال", x: "العلمُ نورٌ — العلم: مبتدأ، نور: خبر." }
+      ]}
+    ]}
+  ],
+  math: [
+    { u: "Unit 1 — Algebra", t: "Equations", subs: [
+      { n: "1.1 Linear Equations", i: "🔢", b: [
+        { t: "def", term: "Linear Equation", x: "معادلة من الدرجة الأولى على صورة ax + b = 0." },
+        { t: "note", tag: "EXAMPLE", x: "2x + 5 = 13 → 2x = 8 → x = 4" }
+      ]}
+    ]}
+  ],
+  physics: [
+    { u: "Unit 1 — Mechanics", t: "Motion & Forces", subs: [
+      { n: "1.1 Speed & Velocity", i: "⚛️", b: [
+        { t: "def", term: "Speed", x: "المسافة المقطوعة في وحدة الزمن — كمية قياسية." },
+        { t: "def", term: "Velocity", x: "الإزاحة في وحدة الزمن — كمية متجهة." }
+      ]}
+    ]}
+  ],
+  chemistry: [
+    { u: "Unit 1 — Atomic Structure", t: "Atoms & Elements", subs: [
+      { n: "1.1 The Atom", i: "🧪", b: [
+        { t: "def", term: "Atom", x: "أصغر وحدة بنائية للمادة تحتفظ بخصائص العنصر." },
+        { t: "list", x: ["بروتونات (موجبة)","نيوترونات (متعادلة)","إلكترونات (سالبة)"] }
+      ]}
+    ]}
+  ],
+  biology: [
+    { u: "Unit 1 — Cell Biology", t: "The Cell", subs: [
+      { n: "1.1 Cell Structure", i: "🧬", b: [
+        { t: "def", term: "Cell", x: "الوحدة الأساسية لبناء جميع الكائنات الحية." }
+      ]}
+    ]}
+  ],
+  social: [
+    { u: "الوحدة 1 — الجغرافيا", t: "الموقع والمناخ", subs: [
+      { n: "1.1 الموقع الجغرافي", i: "🌍", b: [
+        { t: "def", term: "الموقع الجغرافي", x: "الموضع الذي تشغله الدولة على سطح الأرض." }
+      ]}
+    ]}
+  ],
+  other: []
+};
+
+/* =================================================================
+   4) التعريفات
+   ================================================================= */
+let DEFS = [
+["Safety","السلامة","A condition in which people are not exposed to unacceptable levels of danger."],
+["Occupational Health","الصحة المهنية","Protecting physical, mental and social well-being in relation to work."],
+["Hazard","الخطر","Inherent property with potential to cause harm."],
+["Risk","المخاطرة","Likelihood + Severity."],
+["Incident","حادث كاد يقع","Unplanned event that COULD result in injury but no harm occurred."],
+["Accident","الحادثة","Unplanned event that RESULTED in injury or ill health."],
+["Prevention","الوقاية","Measures to anticipate harm and reduce its likelihood."],
+["CE Marking","علامة CE","Manufacturer's declaration that EU requirements addressed."]
+];
+
+/* =================================================================
+   5) بنك الأسئلة
+   ================================================================= */
+let QB = [
+{ les: "LESSON 1 — Foundations", subj: "mech", qs: [
+  { k: "tf", n: 1, s: "A hazard is the injury that happens to a worker.", a: false, c: "الخطر مصدر الضرر المحتمل — الإصابة نفسها هي الضرر." },
+  { k: "tf", n: 2, s: "Every incident results in an injury.", a: false, c: "الحادث الكاد يقع قد يقع دون أي ضرر فعلي." },
+  { k: "d", n: 3, s: "Hazard", a: "خطر: خاصية متأصلة لها القدرة على إحداث ضرر." },
+  { k: "w", n: 4, s: "Explain why the absence of an accident does not mean the workplace is safe.", a: "لأن الأخطار قد تبقى كامنة غير مكتشفة." }
+]}
+];
+
+/* =================================================================
+   6) الاختبار السريع
+   ================================================================= */
+let QUIZ = [
+{ q: "Which two responsibilities of the Employer cannot be delegated?", o: ["Conducting risk assessment and appointing Head of Prevention","Supervising daily work","Representing workers"], a: 0, e: "واجبات صاحب العمل غير القابلة للتفويض." },
+{ q: "What is the main role of the Supervisor?", o: ["Medical examinations","Oversee correct work execution","Represent worker interests"], a: 1, e: "المشرف يشرف على التنفيذ اليومي." },
+{ q: "A worker slips but stays on his feet. This is:", o: ["An accident","An incident","A hazard"], a: 1, e: "لا ضرر فعلي حدث = Incident." }
+];
+
+/* ================= أدوات ================= */
+const $=id=>document.getElementById(id);
+function esc(s){return String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
+
+/* ================= التبويبات ================= */
+function initTabs(){
+  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".pane").forEach(x=>x.classList.remove("show"));
+    b.classList.add("active");$(b.dataset.p).classList.add("show");window.scrollTo(0,0);
+  });
+}
+
+/* ================= القاموس ================= */
+function buildDict(){
+  const dict=$("dict");dict.innerHTML="";
+  SECTIONS.forEach((S,si)=>{
+    const sec=document.createElement("section");
+    sec.className="sec";sec.style.setProperty("--c",S.c);sec.dataset.si=si;
+    sec.dataset.subj=S.subj||"";
+    sec.innerHTML=`<div class="sec-h" onclick="this.parentElement.classList.toggle('closed')">
+      <h2>🗂️ ${esc(S.n)}</h2>
+      <span class="rng">${S.t[0][0]}–${S.t[S.t.length-1][0]}</span></div>
+      <div class="sec-b"><table><thead><tr><th>#</th><th>English</th><th>النطق</th><th>المعنى</th></tr></thead>
+      <tbody>${S.t.map(t=>`<tr data-f="${esc((t[1]+" "+t[2]+" "+t[3]).toLowerCase())}">
+        <td class="num">${t[0]}</td><td class="en">${esc(t[1])}</td>
+        <td class="pro">${esc(t[2])}</td><td>${esc(t[3])}</td></tr>`).join("")}
+      </tbody></table></div>`;
+    dict.appendChild(sec);
+  });
+  buildChips();
+}
+function buildChips(){
+  const chips=$("chips");chips.innerHTML="";
+  [{n:"الكل"}].concat(SECTIONS).forEach((S,i)=>{
+    const b=document.createElement("button");
+    b.className="chip"+(i?"":" active");
+    b.textContent=i?S.n:"📚 الكل";
+    b.dataset.si=i-1;
+    b.onclick=()=>{
+      chips.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+      b.classList.add("active");f1();
+    };
+    chips.appendChild(b);
+  });
+}
+function f1(){
+  const q=$("q1").value.trim().toLowerCase();
+  const act=chips.querySelector(".active");
+  const si=act?+act.dataset.si:-1;
+  let v=0;
+  $("dict").querySelectorAll(".sec").forEach(sec=>{
+    let s=0;
+    sec.querySelectorAll("tbody tr").forEach(tr=>{
+      const ok=(si===-1||si===+sec.dataset.si)&&(!q||tr.dataset.f.includes(q));
+      tr.style.display=ok?"":"none";if(ok)s++;
+    });
+    sec.style.display=s?"":"none";v+=s;
+  });
+  $("c1").textContent=q?v+" نتيجة":"";
+  $("e1").style.display=v?"none":"block";
+}
+
+/* ================= الدروس ================= */
+function blk(b){
+  if(b.t==="h")return `<div class="blk"><h4>${esc(b.x)}</h4></div>`;
+  if(b.t==="p")return `<div class="blk"><p>${esc(b.x)}</p></div>`;
+  if(b.t==="list")return `<div class="blk"><ul>${b.x.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>`;
+  if(b.t==="steps")return `<div class="blk"><ol>${b.x.map(i=>`<li>${esc(i)}</li>`).join("")}</ol></div>`;
+  if(b.t==="def")return `<div class="blk defbox"><span class="term">📖 ${esc(b.term)}</span><div class="x">${esc(b.x)}</div></div>`;
+  if(b.t==="note")return `<div class="blk notebox"><span class="tag">${esc(b.tag)}</span>${esc(b.x)}</div>`;
+  if(b.t==="chain")return `<div class="blk chain">${b.x.map((x,i)=>`<b>${esc(x)}</b>${i<b.x.length-1?"<span>←</span>":""}`).join("")}</div>`;
+  return "";
+}
+function buildLessons(){
+  const lessons=$("lessons");lessons.innerHTML="";
+  Object.keys(SUBJECTS).forEach(subjKey=>{
+    const units = CURRICULUM[subjKey] || [];
+    if(!units.length) return;
+    const subj = SUBJECTS[subjKey];
+    const hdr = document.createElement("div");
+    hdr.className = "subject-hdr";
+    hdr.id = "subj-hdr-"+subjKey;
+    hdr.style.setProperty("--sc", subj.color);
+    const totalSubs = units.reduce((a,u)=>a+u.subs.length,0);
+    hdr.innerHTML = `<span><span class="em">${subj.icon}</span>${esc(subj.name)}</span>
+      <span class="badge">${totalSubs} درس</span>`;
+    lessons.appendChild(hdr);
+    units.forEach((U, ui)=>{
+      const u = document.createElement("div");
+      u.className = "unit";
+      u.innerHTML = `<h2>📘 ${esc(U.u)} — ${esc(U.t)}</h2>`;
+      U.subs.forEach((sub, si)=>{
+        const s = document.createElement("div");
+        s.className = "sub";
+        s.style.setProperty("--c2", subj.color);
+        const key = subjKey + "-" + ui + "-" + si;
+        s.id = "les-" + key;
+        s.innerHTML = `<div class="sub-h" onclick="this.parentElement.classList.toggle('closed')">
+            <h3>${sub.i} ${esc(sub.n)}</h3>
+            <span style="color:var(--muted);font-size:12px">▾</span></div>
+            <div class="sub-b">${sub.b.map(blk).join("")}</div>`;
+        u.appendChild(s);
+      });
+      lessons.appendChild(u);
+    });
+  });
+}
+function f2(){
+  const q=$("q2").value.trim().toLowerCase();let v=0;
+  $("lessons").querySelectorAll(".sub").forEach(s=>{
+    const ok=!q||s.textContent.toLowerCase().includes(q);
+    s.style.display=ok?"":"none";
+    if(ok){v++;if(q)s.classList.remove("closed");}
+  });
+  $("lessons").querySelectorAll(".subject-hdr").forEach(h=>{
+    let any=false;let el=h.nextElementSibling;
+    while(el && !el.classList.contains("subject-hdr")){
+      if(el.querySelector(".sub") && [...el.querySelectorAll(".sub")].some(x=>x.style.display!=="none")){
+        any=true;break;
+      }
+      el=el.nextElementSibling;
+    }
+    h.style.display=any?"":"none";
+  });
+  $("c2").textContent=q?v+" درس":"";
+  $("e2").style.display=v?"none":"block";
+}
+
+/* ================= التعريفات ================= */
+function buildDefs(){
+  const defs=$("defs");defs.innerHTML="";
+  DEFS.forEach(d=>{
+    const c=document.createElement("div");
+    c.className="dcard";
+    c.dataset.f=esc((d[0]+" "+d[2]).toLowerCase());
+    c.innerHTML=`<div class="q">${esc(d[0])}<small>${esc(d[1])}</small></div>
+      <div class="a">${esc(d[2])}</div>
+      <div class="hint">👆 اضغط لكشف التعريف</div>`;
+    c.onclick=()=>c.classList.toggle("flip");
+    defs.appendChild(c);
+  });
+}
+function f3(){
+  const q=$("q3").value.trim().toLowerCase();let v=0;
+  $("defs").querySelectorAll(".dcard").forEach(c=>{
+    const ok=!q||c.dataset.f.includes(q);c.style.display=ok?"":"none";if(ok)v++;
+  });
+  $("c3").textContent=q?v+" بطاقة":"";
+  $("e3").style.display=v?"none":"block";
+}
+
+/* ================= بنك الأسئلة ================= */
+const secNames={tf:"A. صح أم خطأ",d:"B. تعريفات",w:"C. إجابات كتابية"};
+function buildQBank(){
+  const qbank=$("qbank");qbank.innerHTML="";
+  QB.forEach((L,li)=>{
+    const box=document.createElement("div");
+    box.className="qb-les";box.id="qb-"+li;
+    let html=`<h2>📝 ${esc(L.les)}</h2>`,last="";
+    L.qs.forEach(q=>{
+      if(q.k!==last){last=q.k;html+=`<div class="qb-sec"><b>${secNames[q.k]||q.k}</b></div>`;}
+      const col={tf:"#2563eb",d:"#16a34a",w:"#ea580c"}[q.k]||"#2563eb";
+      if(q.k==="tf"){
+        html+=`<div class="qcard" data-f="${esc(q.s.toLowerCase())}" data-c="${esc(q.c)}" data-a="${q.a?1:0}" style="--qc:${col}">
+          <div class="qn">سؤال ${q.n}</div><div class="st">${esc(q.s)}</div>
+          <div class="tfrow">
+            <button class="tfbtn" onclick="tfAns(this,true)">✅ صح</button>
+            <button class="tfbtn" onclick="tfAns(this,false)">❌ خطأ</button>
+          </div>
+          <div class="ansbox"></div></div>`;
+      }else{
+        html+=`<div class="qcard" data-f="${esc(q.s.toLowerCase())}" style="--qc:${col}">
+          <div class="qn">سؤال ${q.n}</div>
+          <div class="st">${esc(q.s)}</div>
+          <button class="reveal" onclick="toggleAns(this)">👁️ إظهار الإجابة</button>
+          <div class="ansbox">✍️ ${esc(q.a)}</div></div>`;
+      }
+    });
+    box.innerHTML=html;qbank.appendChild(box);
+  });
+}
+function toggleAns(btn){
+  const ab=btn.nextElementSibling;ab.classList.toggle("show");
+  btn.textContent=ab.classList.contains("show")?"🙈 إخفاء الإجابة":"👁️ إظهار الإجابة";
+}
+function tfAns(btn,pick){
+  const card=btn.closest(".qcard"),truth=card.dataset.a==="1";
+  card.querySelectorAll(".tfbtn").forEach(b=>b.disabled=true);
+  if(pick===truth)btn.classList.add("right");
+  else{btn.classList.add("wrong");card.querySelectorAll(".tfbtn")[truth?0:1].classList.add("right");}
+  const ab=card.querySelector(".ansbox");
+  ab.innerHTML=(truth?"✅ <b>الإجابة الصحيحة: صح</b><br>":"❌ <b>الإجابة الصحيحة: خطأ</b><br>")+esc(card.dataset.c);
+  ab.classList.add("show");
+}
+function f4(){
+  const q=$("q4").value.trim().toLowerCase();let v=0;
+  $("qbank").querySelectorAll(".qb-les").forEach(box=>{
+    let bv=0;
+    box.querySelectorAll(".qcard").forEach(c=>{
+      const ok=!q||c.dataset.f.includes(q);
+      c.style.display=ok?"":"none";if(ok){bv++;v++;}
+    });
+    box.style.display=bv?"":"none";
+  });
+  $("c4").textContent=q?v+" سؤال":"";
+  $("e4").style.display=v?"none":"block";
+}
+
+/* ================= الاختبار السريع ================= */
+let QI=[],QX=0,QS=0;
+function startQuiz(){
+  QI=[...QUIZ.keys()];
+  for(let i=QI.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[QI[i],QI[j]]=[QI[j],QI[i]]}
+  QX=0;QS=0;showQ();
+}
+function showQ(){
+  const q=QUIZ[QI[QX]],el=$("quiz");
+  el.innerHTML=`<div class="pbar"><i style="width:${QX/QUIZ.length*100}%"></i></div>
+  <div class="qn">سؤال ${QX+1} من ${QUIZ.length} • ✅ ${QS}</div>
+  <div class="qt">${esc(q.q)}</div>
+  ${q.o.map((o,i)=>`<button class="opt" onclick="ans(${i})">${esc(o)}</button>`).join("")}
+  <div class="exp" id="exp"></div><div class="qrow" id="qrow"></div>`;
+}
+function ans(i){
+  const q=QUIZ[QI[QX]],opts=$("quiz").querySelectorAll(".opt");
+  opts.forEach((b,j)=>{b.disabled=true;if(j===q.a)b.classList.add("right");else if(j===i)b.classList.add("wrong")});
+  if(i===q.a)QS++;
+  const e=$("exp");e.innerHTML=(i===q.a?"✅ <b>إجابة صحيحة!</b> ":"❌ <b>الإجابة الصحيحة موضحة بالأخضر.</b> ")+esc(q.e);
+  e.classList.add("show");
+  $("qrow").innerHTML=`<button class="qbtn" onclick="nextQ()">${QX+1<QUIZ.length?"التالي ←":"النتيجة 🏁"}</button>`;
+}
+function nextQ(){
+  QX++;
+  if(QX<QUIZ.length)showQ();
+  else{
+    const p=Math.round(QS/QUIZ.length*100);
+    const best=Math.max(p,+(localStorage.getItem("mech-best")||0));
+    localStorage.setItem("mech-best",best);
+    const em=p>=85?"🏆":p>=70?"🎉":p>=50?"👍":"💪";
+    $("quiz").innerHTML=`<div class="result"><div class="em">${em}</div>
+      <h3>نتيجتك: ${QS} / ${QUIZ.length} (${p}%)</h3>
+      <p style="color:var(--muted);font-size:14px">🏅 أفضل نتيجة: <b>${best}%</b></p>
+      <div class="qrow" style="margin-top:16px">
+        <button class="qbtn" onclick="startQuiz()">🔄 إعادة</button>
+      </div></div>`;
+  }
+}
+
+/* ================= القائمة الجانبية ================= */
+function getStudied(){try{return JSON.parse(localStorage.getItem("mech-studied")||"[]")}catch(e){return[]}}
+function updProg(){
+  const s=getStudied();
+  const total=Object.values(CURRICULUM).reduce((a,units)=>a+units.reduce((b,u)=>b+u.subs.length,0),0);
+  if(total===0){$("progTxt").textContent="0 / 0";return;}
+  $("progTxt").textContent=s.length+" / "+total;
+  $("progFill").style.width=(s.length/total*100)+"%";
+}
+function toggleStudied(k,ev){
+  if(ev)ev.stopPropagation();
+  const s=getStudied(),i=s.indexOf(k);
+  if(i<0)s.push(k);else s.splice(i,1);
+  localStorage.setItem("mech-studied",JSON.stringify(s));
+  const c=$("chk-"+k);
+  if(c){c.textContent=s.includes(k)?"✓":"○";c.classList.toggle("done",s.includes(k));}
+  updProg();
+}
+function buildNav(){
+  const navL = $("navSubjects");navL.innerHTML = "";
+  Object.keys(SUBJECTS).forEach(subjKey=>{
+    const units = CURRICULUM[subjKey] || [];
+    if(!units.length) return;
+    const subj = SUBJECTS[subjKey];
+    const totalSubs = units.reduce((a,u)=>a+u.subs.length,0);
+    const subjBtn = document.createElement("button");
+    subjBtn.className = "subj-gt";
+    subjBtn.style.setProperty("--sc", subj.color);
+    subjBtn.innerHTML = `<span>${subj.icon} ${esc(subj.name)}</span>
+      <span style="display:flex;align-items:center;gap:4px">
+        <span class="cnt">${totalSubs}</span><span class="arw">▾</span>
+      </span>`;
+    const subjBody = document.createElement("div");
+    subjBody.className = "subj-body";
+    units.forEach((U, ui)=>{
+      const unitBtn = document.createElement("button");
+      unitBtn.className = "unit-gt";
+      unitBtn.style.setProperty("--sc", subj.color);
+      unitBtn.innerHTML = `<span>📘 ${esc(U.u)}</span><span class="arw">▾</span>`;
+      const unitBody = document.createElement("div");
+      unitBody.className = "unit-body";
+      U.subs.forEach((sub, si)=>{
+        const key = subjKey + "-" + ui + "-" + si;
+        const it = document.createElement("div");
+        it.className = "nav-i";
+        it.id = "nav-"+key;
+        it.style.setProperty("--sc", subj.color);
+        it.innerHTML = `<span class="nav-t">${sub.i} ${esc(sub.n)}</span>
+          <button class="chk" id="chk-${key}" onclick="toggleStudied('${key}',event)" title="علّم كمذاكَر">○</button>`;
+        it.querySelector(".nav-t").onclick = ()=>navGo("p2","les-"+key,"nav-"+key);
+        unitBody.appendChild(it);
+      });
+      unitBtn.onclick = ()=>{
+        unitBody.classList.toggle("open");
+        unitBtn.querySelector(".arw").textContent = unitBody.classList.contains("open")?"▴":"▾";
+      };
+      subjBody.appendChild(unitBtn);
+      subjBody.appendChild(unitBody);
+    });
+    subjBtn.onclick = ()=>{
+      subjBody.classList.toggle("open");
+      subjBtn.querySelector(".arw").textContent = subjBody.classList.contains("open")?"▴":"▾";
+    };
+    navL.appendChild(subjBtn);
+    navL.appendChild(subjBody);
+  });
+  getStudied().forEach(k=>{const c=$("chk-"+k);if(c){c.textContent="✓";c.classList.add("done");}});
+  updProg();
+}
+
+/* ================= التنقل ================= */
+let activeNav=null;
+function navGo(tab,item,navId){
+  const tb=document.querySelector('.tab[data-p="'+tab+'"]');
+  if(tb)tb.click();
+  if(activeNav)activeNav.classList.remove("on");
+  if(navId){const n=$(navId);if(n){n.classList.add("on");activeNav=n;}}
+  closeSide();
+  if(item)setTimeout(()=>{
+    document.querySelectorAll("#lessons .sub").forEach(x=>x.classList.add("closed"));
+    document.querySelectorAll("#lessons .sub").forEach(x=>x.style.display="");
+    document.querySelectorAll("#lessons .subject-hdr").forEach(x=>x.style.display="");
+    const el=$(item);
+    if(el){
+      el.classList.remove("closed");
+      el.scrollIntoView({behavior:"smooth",block:"start"});
+      el.classList.add("flash");
+      setTimeout(()=>el.classList.remove("flash"),1900);
+    }
+  },120);
+}
+function openSide(){$("side").classList.add("open");$("sideback").classList.add("show")}
+function closeSide(){$("side").classList.remove("open");$("sideback").classList.remove("show")}
+
+/* ================= الوضع الليلي ================= */
+function theme(){
+  const d=document.documentElement.dataset.theme==="dark";
+  document.documentElement.dataset.theme=d?"":"dark";
+  $("thBtn").textContent=d?"🌙 وضع ليلي":"☀️ وضع نهاري";
+  localStorage.setItem("mech-theme",d?"":"dark");
+}
+
+/* ================= زر الصعود ================= */
+const goToTopButton=document.getElementById('go-to-top-button');
+window.addEventListener('scroll',()=>{
+  goToTopButton.style.display=window.scrollY>100?'flex':'none';
+});
+goToTopButton.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+/* =================================================================
+   نظام PDF — عن طريق روابط GitHub
+   ================================================================= */
+const LINKS_KEY = 'mech_pdf_links_v1';
+
+function getLinks(){
+  try{ return JSON.parse(localStorage.getItem(LINKS_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+function saveLinks(arr){ localStorage.setItem(LINKS_KEY, JSON.stringify(arr)); }
+function addLink(link){
+  const arr = getLinks();
+  link.id = 'lnk_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  arr.push(link);
+  saveLinks(arr);
+  return link.id;
+}
+function removeLink(id){
+  saveLinks(getLinks().filter(x => x.id !== id));
+}
+function clearAllLinks(){ saveLinks([]); }
+
+async function fetchPdfBuffer(url){
+  const resp = await fetch(url);
+  if(!resp.ok) throw new Error('HTTP ' + resp.status);
+  return await resp.arrayBuffer();
+}
+async function extractTextFromUrl(url){
+  const buf = await fetchPdfBuffer(url);
+  const u8 = new Uint8Array(buf);
+  const pdf = await pdfjsLib.getDocument({ data: u8 }).promise;
+  let fullText = '';
+  for(let i=1; i<=pdf.numPages; i++){
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    let lastY = null, line = '';
+    const lines = [];
+    content.items.forEach(item=>{
+      if(lastY !== null && Math.abs(item.transform[5]-lastY) > 5){
+        lines.push(line.trim()); line = '';
+      }
+      line += item.str + ' ';
+      lastY = item.transform[5];
+    });
+    if(line.trim()) lines.push(line.trim());
+    fullText += '\n' + lines.join('\n');
+  }
+  return fullText;
+}
+
+/* ================= تحليل النصوص ================= */
+function parseDict(text){
+  const rows=[];let counter=1;
+  text.split('\n').forEach(line=>{
+    line=line.trim();
+    if(!line||line.length<4)return;
+    if(/^[A-Z\s]{3,}$/.test(line)&&line.split(' ').length<4&&!/[a-z]/.test(line))return;
+    let parts=line.split(/\s*[|•\t]\s*/);
+    if(parts.length<2)parts=line.split(/\s+[-–—:]\s+/);
+    if(parts.length>=2){
+      const en=parts[0].trim();
+      const meaning=parts.slice(1).join(' | ').trim();
+      rows.push([counter++,en,en,meaning]);
+    }
+  });
+  return rows;
+}
+function parseLessons(text){
+  const lessons=[];const lines=text.split('\n');let current=null;
+  const titleRe=/^\s*(Unit|UNIT|Lesson|LESSON|Chapter|CHAPTER|الوحدة|الدرس|الباب|الفصل)\s*[\d\-\.:]*/;
+  lines.forEach(raw=>{
+    const line=raw.trim();if(!line)return;
+    if(titleRe.test(line)||(line.length<80&&/^[A-Z][A-Za-z\s\d\-:]{5,}$/.test(line)&&line===line.toUpperCase())){
+      if(current)lessons.push(current);
+      current={u:'PDF Lesson',t:line,subs:[{n:line,i:'📄',b:[]}]};
+    }else if(current){
+      current.subs[0].b.push({t:'p',x:line});
+    }else{
+      current={u:'PDF Lesson',t:'محتوى PDF',subs:[{n:'المحتوى',i:'📄',b:[]}]};
+      current.subs[0].b.push({t:'p',x:line});
+    }
+  });
+  if(current)lessons.push(current);
+  return lessons;
+}
+function parseQBank(text){
+  const questions=[];const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  let i=0,qNum=1;
+  while(i<lines.length){
+    const line=lines[i];
+    if(/^(True|False|صح|خطأ)\s*[:：\-]/i.test(line)||/\?\s*$/.test(line)){
+      const q=line;const opts=[];let j=i+1;
+      while(j<lines.length&&/^[a-dA-D1-4][\)\.\-:]\s*/.test(lines[j])){
+        opts.push(lines[j].replace(/^[a-dA-D1-4][\)\.\-:]\s*/,'').trim());j++;
+      }
+      let answer='يرجى مراجعة المصدر.';
+      const ansMatch=lines.slice(i,j).join(' ').match(/Answer|الإجابة\s*[:：]\s*(.+)/i);
+      if(ansMatch)answer=ansMatch[1];
+      questions.push({k:'w',n:qNum,s:q,a:answer});
+      qNum++;i=j;
+    }else i++;
+  }
+  return questions;
+}
+function parseDefs(text){
+  const defs=[];
+  text.split('\n').forEach(line=>{
+    line=line.trim();if(!line||line.length<8)return;
+    const m=line.match(/^(.{2,60}?)\s*[=:–—]\s*(.{5,})$/);
+    if(m)defs.push([m[1].trim(),m[1].trim(),m[2].trim()]);
+  });
+  return defs;
+}
+
+/* ================= إعادة البناء ================= */
+async function rebuildFromLinks(){
+  const links = getLinks();
+  pvFiles = links;
+  renderPdfList(links);
+  if(!links.length) return false;
+
+  const status = $('pdfStatus');
+  status.textContent = '⏳ جارٍ معالجة ' + links.length + ' ملف...';
+
+  SECTIONS = SECTIONS.filter(s => !s._fromPDF);
+  Object.keys(CURRICULUM).forEach(k => {
+    CURRICULUM[k] = CURRICULUM[k].filter(u => !u._fromPDF);
+  });
+  DEFS = DEFS.filter(d => !d._fromPDF);
+  QB = QB.filter(l => !l._fromPDF);
+
+  let dictCnt=0, lesCnt=0, qCnt=0, defCnt=0;
+
+  for(const f of links){
+    try{
+      const text = await extractTextFromUrl(f.url);
+      const subj = f.subj || 'other';
+
+      if(f.type === 'dict'){
+        const rows = parseDict(text);
+        if(rows.length){
+          const subjInfo = SUBJECTS[subj] || SUBJECTS.other;
+          SECTIONS.push({
+            n: '📄 ' + f.name + ' — ' + subjInfo.name,
+            c: subjInfo.color, subj, _fromPDF: true, t: rows
+          });
+          dictCnt += rows.length;
+        }
+      }
+      if(f.type === 'lessons'){
+        const lessons = parseLessons(text);
+        lessons.forEach(L=>{
+          L._fromPDF = true;
+          L.u = '📄 ' + f.name;
+        });
+        if(!CURRICULUM[subj]) CURRICULUM[subj] = [];
+        CURRICULUM[subj].push(...lessons);
+        lesCnt += lessons.length;
+      }
+      if(f.type === 'qbank'){
+        const questions = parseQBank(text);
+        if(questions.length){
+          QB.push({ les: '📝 ' + f.name, subj, _fromPDF: true, qs: questions });
+          qCnt += questions.length;
+        }
+      }
+      if(f.type === 'defs'){
+        const defs = parseDefs(text);
+        defs.forEach(d => d._fromPDF = true);
+        DEFS.push(...defs);
+        defCnt += defs.length;
+      }
+    }catch(err){ console.error('❌', f.name, err); }
+  }
+
+  buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
+
+  status.innerHTML = `✅ تم تحميل ${links.length} ملف — قاموس: ${dictCnt} • دروس: ${lesCnt} • أسئلة: ${qCnt} • تعريفات: ${defCnt}`;
+  return true;
+}
+
+function renderPdfList(links){
+  const list = $('pdfList');list.innerHTML = '';
+  if(!links.length) return;
+  const typeNames = {lessons:'📖',dict:'📚',qbank:'📝',defs:'🃏'};
+  links.forEach(f=>{
+    const subj = SUBJECTS[f.subj] || SUBJECTS.other;
+    const el = document.createElement('div');
+    el.className = 'pdf-item';
+    el.innerHTML = `<span>${typeNames[f.type]||'📄'} <b>${esc(f.name)}</b> 
+        <small style="color:${subj.color};font-weight:700">— ${subj.icon} ${esc(subj.name)}</small></span>
+      <span style="display:flex;gap:5px">
+        <button class="view" onclick="pvOpen('${f.id}')">👁️ عرض</button>
+        <button class="del" onclick="removePdf('${f.id}')">🗑️</button>
+      </span>`;
+    list.appendChild(el);
+  });
+}
+async function removePdf(id){
+  if(!confirm('حذف هذا الملف؟')) return;
+  removeLink(id);
+  await rebuildFromLinks();
+}
+
+/* =================================================================
+   عارض PDF — من الرابط مباشرة
+   ================================================================= */
+let pvPdf = null, pvPage = 1, pvId = null, pvFiles = null;
+
+async function pvOpen(id){
+  const files = pvFiles || getLinks();
+  pvFiles = files;
+  const f = files.find(x => x.id === id);
+  if(!f){ alert('الملف غير موجود'); return; }
+
+  pvId = id;pvPage = 1;
+  $('pvTitle').textContent = f.name;
+  $('pdfViewer').classList.add('show');
+  $('pdfCanvasWrap').innerHTML = '<div class="pdf-loading">⏳ جارٍ التحميل...</div>';
+  $('pdfThumbs').innerHTML = '';
+  document.body.style.overflow = 'hidden';
+
+  try{
+    console.log('📄 فتح:', f.name, '|', f.url);
+    const loadingTask = pdfjsLib.getDocument({
+      url: f.url,
+      cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+      cMapPacked: true
+    });
+    pvPdf = await loadingTask.promise;
+    console.log('✅ صفحات:', pvPdf.numPages);
+    $('pvTotal').textContent = pvPdf.numPages;
+    await pvRender(1);
+    pvBuildThumbs().catch(e => console.warn('thumbs', e));
+  }catch(err){
+    console.error('❌', err);
+    $('pdfCanvasWrap').innerHTML =
+      '<div class="pdf-loading">❌ فشل تحميل الملف<br>' +
+      '<small style="font-size:12px;opacity:.8;line-height:1.6">' +
+      'تأكد أن الرابط من نوع <b>raw.githubusercontent.com</b>' +
+      '</small></div>';
+  }
+}
+async function pvRender(n){
+  if(!pvPdf) return;
+  if(n<1 || n>pvPdf.numPages) return;
+  pvPage = n;
+  $('pvCur').textContent = n;
+  $('pvPrev').disabled = n <= 1;
+  $('pvNext').disabled = n >= pvPdf.numPages;
+
+  try{
+    const page = await pvPdf.getPage(n);
+    const containerW = Math.min(window.innerWidth - 60, 1000);
+    const containerH = window.innerHeight - 220;
+    const vp1 = page.getViewport({ scale: 1 });
+    const scale = Math.min(containerW / vp1.width, containerH / vp1.height, 2.5);
+    const vp = page.getViewport({ scale });
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(vp.width * dpr);
+    canvas.height = Math.floor(vp.height * dpr);
+    canvas.style.width = Math.floor(vp.width) + 'px';
+    canvas.style.height = Math.floor(vp.height) + 'px';
+    ctx.scale(dpr, dpr);
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+    $('pdfCanvasWrap').innerHTML = '';
+    $('pdfCanvasWrap').appendChild(canvas);
+    document.querySelectorAll('.pdf-thumb').forEach((t,i)=>{
+      t.classList.toggle('on', i+1 === n);
+    });
+    $('pdfViewer').scrollTop = 0;
+  }catch(err){
+    console.error('render', err);
+    $('pdfCanvasWrap').innerHTML = '<div class="pdf-loading">❌ فشل عرض الصفحة ' + n + '</div>';
+  }
+}
+async function pvBuildThumbs(){
+  const wrap = $('pdfThumbs');wrap.innerHTML = '';
+  const total = pvPdf.numPages;
+  for(let i=1; i<=total; i++){
+    try{
+      const page = await pvPdf.getPage(i);
+      const vp = page.getViewport({ scale: 0.18 });
+      const canvas = document.createElement('canvas');
+      canvas.width = vp.width;canvas.height = vp.height;
+      const ctx = canvas.getContext('2d');
+      await page.render({ canvasContext: ctx, viewport: vp }).promise;
+      const thumb = document.createElement('div');
+      thumb.className = 'pdf-thumb' + (i===pvPage?' on':'');
+      thumb.appendChild(canvas);
+      thumb.onclick = ()=> pvRender(i);
+      wrap.appendChild(thumb);
+    }catch(e){ console.warn('thumb '+i, e); }
+  }
+}
+function pvGo(dir){ pvRender(pvPage + dir); }
+function pvClose(){
+  $('pdfViewer').classList.remove('show');
+  document.body.style.overflow = '';
+  pvPdf = null;
+  $('pdfCanvasWrap').innerHTML = '<div class="pdf-loading">⏳ جارٍ التحميل...</div>';
+  $('pdfThumbs').innerHTML = '';
+}
+document.addEventListener('keydown', e=>{
+  if(!$('pdfViewer').classList.contains('show')) return;
+  if(e.key === 'ArrowRight' || e.key === 'ArrowDown'){ e.preventDefault(); pvGo(1); }
+  if(e.key === 'ArrowLeft'  || e.key === 'ArrowUp'){   e.preventDefault(); pvGo(-1); }
+  if(e.key === 'Escape') pvClose();
+});
+let pvResizeTimer;
+window.addEventListener('resize', ()=>{
+  if(!pvPdf) return;
+  clearTimeout(pvResizeTimer);
+  pvResizeTimer = setTimeout(()=> pvRender(pvPage), 250);
+});
+
+/* ================= أزرار الإضافة والحذف ================= */
+document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
+  const subj = $('pdfSubject').value;
+  const type = $('pdfType').value;
+  let name = $('pdfName').value.trim();
+  const url  = $('pdfUrl').value.trim();
+
+  if(!url){ alert('❌ لازم تلصق رابط PDF'); return; }
+  if(!/^https?:\/\//i.test(url)){ alert('❌ الرابط لازم يبدأ بـ http'); return; }
+  if(url.includes('github.com') && url.includes('/blob/') && !url.includes('raw.githubusercontent')){
+    const go = confirm('⚠️ الرابط من نوع blob مش Raw\nلازم تستخدم رابط "Raw"\nهل تكمل؟');
+    if(!go) return;
+  }
+  if(!name){
+    const parts = url.split('/');
+    name = decodeURIComponent(parts[parts.length-1] || 'ملف').replace(/\.pdf$/i,'');
+  }
+
+  $('addPdfBtn').disabled = true;
+  $('addPdfBtn').textContent = '⏳...';
+  $('pdfStatus').textContent = '⏳ جارٍ التحقق...';
+
+  try{
+    const test = await fetch(url, { method: 'HEAD' });
+    if(!test.ok) throw new Error('HTTP ' + test.status);
+  }catch(e){
+    alert('❌ الرابط مش شغال: ' + e.message + '\n\nتأكد:\n1. raw.githubusercontent.com\n2. الملف public');
+    $('addPdfBtn').disabled = false;
+    $('addPdfBtn').textContent = '➕ إضافة';
+    $('pdfStatus').textContent = '❌ فشل التحقق';
+    return;
+  }
+
+  addLink({ name, url, subj, type });
+  $('pdfName').value = '';
+  $('pdfUrl').value = '';
+  $('addPdfBtn').disabled = false;
+  $('addPdfBtn').textContent = '➕ إضافة';
+  await rebuildFromLinks();
+});
+
+document.getElementById('clearPdf').addEventListener('click', async ()=>{
+  if(!confirm('حذف كل الروابط؟')) return;
+  clearAllLinks();
+  location.reload();
+});
+
+/* ================= اختصارات ================= */
+document.addEventListener("keydown", e=>{
+  if(e.key === "Escape") closeSide();
+  if(e.key === "/" && !/input/i.test(document.activeElement.tagName)){
+    e.preventDefault();
+    const panes = [...document.querySelectorAll(".pane")];
+    const i = panes.findIndex(p=>p.classList.contains("show"));
+    const map = {0:"q1",1:"q2",2:"q3",3:"q4"};
+    const el = $(map[i]); if(el) el.focus();
+  }
+});
+
+/* ================= التهيئة ================= */
+async function init(){
+  initTabs();
+  buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
+
+  if(localStorage.getItem("mech-theme") === "dark"){
+    document.documentElement.dataset.theme = "dark";
+    $("thBtn").textContent = "☀️ وضع نهاري";
+  }
+
+  $("q1").oninput = f1;
+  $("q2").oninput = f2;
+  $("q3").oninput = f3;
+  $("q4").oninput = f4;
+
+  try{ await rebuildFromLinks(); }
+  catch(e){ console.warn('خطأ:', e); }
+}
+init();
+</script>
+</body>
+</html>
