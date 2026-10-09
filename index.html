@@ -192,6 +192,112 @@ body{background:#fff;color:#000}.layout{display:block}.mcol{max-width:none;paddi
 .pdf-thumb{flex-shrink:0;cursor:pointer;border:2px solid transparent;border-radius:6px;background:#fff;overflow:hidden;transition:.15s}
 .pdf-thumb.on{border-color:var(--acc);transform:scale(1.05)}
 .pdf-thumb canvas{display:block;width:60px;height:auto}
+
+/* النطق الصوتي */
+td.en, td.it{cursor:pointer;transition:background .15s}
+td.en:hover, td.it:hover{background:color-mix(in srgb,var(--c) 15%,transparent)}
+td.it{direction:ltr;text-align:left;font-weight:600;color:#009246}
+td.pro-it{color:#009246;font-size:12px;font-weight:600}
+.spk{opacity:.5;font-size:11px;margin-right:4px}
+td.en:hover .spk, td.it:hover .spk{opacity:1}
+.btn-speak{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:5px 11px;font-family:inherit;font-weight:700;font-size:11.5px;cursor:pointer;transition:.15s}
+.btn-speak:hover{transform:scale(1.05)}
+#soundBtn{background:linear-gradient(135deg,#009246,#16a34a)!important;color:#fff!important}
+
+/* ============ الجدول — الأساس ============ */
+.sec-b{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  padding-bottom:6px;
+}
+table{
+  width:100%;
+  min-width:720px;
+  border-collapse:collapse;
+  table-layout:auto;
+}
+
+/* ============ موبايل وتابلت ============ */
+@media(max-width:900px){
+  .sec-b table{
+    min-width:680px;
+    font-size:12px;
+  }
+  .sec-b th,
+  .sec-b td{
+    padding:7px 6px;
+    font-size:11.5px;
+    line-height:1.5;
+    vertical-align:middle;
+    white-space:normal;
+    word-break:break-word;
+  }
+  .sec-b th:first-child,
+  .sec-b td.num{
+    width:26px;
+    padding:6px 3px;
+    font-size:10.5px;
+    text-align:center;
+  }
+  .sec-b td.en,
+  .sec-b td.it{
+    font-size:11.5px;
+    font-weight:700;
+  }
+  .sec-b td.pro,
+  .sec-b td.pro-it{
+    font-size:10.5px;
+  }
+  .sec-b td:last-child{
+    font-size:11.5px;
+    font-weight:600;
+  }
+  .spk{font-size:9px}
+  .sec-h{padding:10px 12px;gap:6px;flex-wrap:wrap}
+  .sec-h h2{font-size:13.5px}
+  .sec-h .rng{font-size:10.5px}
+  .btn-speak{font-size:10px;padding:4px 9px}
+}
+
+/* ============ موبايل صغير (480px) ============ */
+@media(max-width:480px){
+  .sec-b table{
+    min-width:620px;
+    font-size:11px;
+  }
+  .sec-b th,
+  .sec-b td{
+    padding:6px 5px;
+    font-size:10.5px;
+  }
+  .sec-b td.en,
+  .sec-b td.it{font-size:11px}
+  .sec-b td.pro,
+  .sec-b td.pro-it{font-size:10px}
+  .sec-b td:last-child{font-size:11px}
+  .sec-h h2{font-size:13px}
+}
+
+/* ============ موبايل صغير جداً (380px) ============ */
+@media(max-width:380px){
+  .sec-b table{min-width:580px}
+  .sec-b th,
+  .sec-b td{
+    padding:5px 4px;
+    font-size:10px;
+  }
+  .sec-b td.en,
+  .sec-b td.it{font-size:10.5px}
+}
+
+/* ============ الطباعة ============ */
+@media print{
+  .sec-b{overflow:visible}
+  .sec-b table{min-width:0;width:100%;font-size:10px}
+  .sec-b th,
+  .sec-b td{padding:4px 5px;font-size:9.5px}
+}
 </style>
 </head>
 <body>
@@ -200,6 +306,7 @@ body{background:#fff;color:#000}.layout{display:block}.mcol{max-width:none;paddi
   <p>منصة تعليمية متكاملة</p>
   <div class="btns">
     <button class="btn menubtn" onclick="openSide()">☰ فهرس المنهج</button>
+    <button class="btn" id="soundBtn" onclick="toggleSound()">🔊 الصوت: مفعّل</button>
     <button class="btn" onclick="window.print()">🖨️ طباعة</button>
     <button class="btn" id="thBtn" onclick="theme()">🌙 وضع ليلي</button>
   </div>
@@ -212,6 +319,7 @@ body{background:#fff;color:#000}.layout{display:block}.mcol{max-width:none;paddi
     <select id="pdfSubject">
       <option value="mech">⚙️ ميكاترونكس</option>
       <option value="english">🇬🇧 لغة إنجليزية</option>
+	  <option value="italian">🇮🇹 لغة إيطالية</option>
       <option value="arabic">📗 لغة عربية</option>
       <option value="math">🔢 رياضيات</option>
       <option value="physics">⚛️ فيزياء</option>
@@ -237,7 +345,7 @@ body{background:#fff;color:#000}.layout{display:block}.mcol{max-width:none;paddi
   <button class="pdf-clear" id="clearPdf">🗑️ حذف كل الملفات</button>
 </div>
 
-<div class="ph"><h2>إعداد وتصميم - مدارس حديد عز الرقمية</h2></div>
+<div class="ph"><h2>إعداد وتصميم - الطالب / مروان مصطفى كمال</h2></div>
 <div class="sideback" id="sideback" onclick="closeSide()"></div>
 <div class="layout">
 <aside id="side">
@@ -300,12 +408,64 @@ body{background:#fff;color:#000}.layout{display:block}.mcol{max-width:none;paddi
 </div>
 
 <script>
+/* ================= النطق الصوتي ================= */
+let soundOn = localStorage.getItem('mech-sound') !== '0';
+
+function speak(text, lang = 'en-US', rate = 0.85) {
+  if (!soundOn) return;
+  if (!('speechSynthesis' in window)) { alert('المتصفح لا يدعم النطق'); return; }
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
+  utter.rate = rate;
+  utter.pitch = 1;
+  utter.volume = 1;
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.lang === lang)
+                 || voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+  if (preferred) utter.voice = preferred;
+  window.speechSynthesis.speak(utter);
+}
+
+function speakSection(si) {
+  if (!soundOn) return;
+  const words = SECTIONS[si].t;
+  let i = 0;
+  window.speechSynthesis.cancel();
+  function next() {
+    if (i >= words.length) return;
+    const uEN = new SpeechSynthesisUtterance(words[i][1]);
+    uEN.lang = 'en-US'; uEN.rate = 0.85;
+    uEN.onend = () => {
+      const uIT = new SpeechSynthesisUtterance(words[i][2]);
+      uIT.lang = 'it-IT'; uIT.rate = 0.85;
+      uIT.onend = () => { i++; setTimeout(next, 500); };
+      window.speechSynthesis.speak(uIT);
+    };
+    window.speechSynthesis.speak(uEN);
+  }
+  next();
+}
+
+function toggleSound() {
+  soundOn = !soundOn;
+  localStorage.setItem('mech-sound', soundOn ? '1' : '0');
+  const btn = $('soundBtn');
+  if (btn) btn.textContent = soundOn ? '🔊 الصوت: مفعّل' : '🔇 الصوت: مغلق';
+  if (!soundOn && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  window.speechSynthesis.getVoices();
+}
 /* =================================================================
    1) المواد الدراسية الرئيسية
    ================================================================= */
 const SUBJECTS = {
   mech:      { name: "ميكاترونكس",       icon: "⚙️", color: "#2563eb" },
   english:   { name: "لغة إنجليزية",      icon: "🇬🇧", color: "#16a34a" },
+  italian:   { name: "لغة إيطالية",       icon: "🇮🇹", color: "#009246" },
   arabic:    { name: "لغة عربية",         icon: "📗", color: "#dc2626" },
   math:      { name: "رياضيات",          icon: "🔢", color: "#7c3aed" },
   physics:   { name: "فيزياء",           icon: "⚛️", color: "#0891b2" },
@@ -318,15 +478,393 @@ const SUBJECTS = {
 /* =================================================================
    2) بيانات القاموس
    ================================================================= */
+/* بنية كل مصطلح: [الرقم, English, Italiano, نطق إنجليزي, نطق إيطالي, المعنى] */
 let SECTIONS = [
-{n:"أساسيات الميكاترونكس والتحكم",c:"#2563eb",subj:"mech",t:[[1,"Mechatronics","ميكاترونكس","الميكاترونكس"],[2,"Mechanical","ميكانيكال","ميكانيكي"],[3,"Electrical","إلكتريكال","كهربائي"],[4,"Electronics","إلكترونكس","إلكترونيات"],[5,"Automation","أوتوميشن","الأتمتة"],[6,"Control System","كنترول سيستم","نظام تحكم"],[7,"Industrial Automation","إندستريال أوتوميشن","الأتمتة الصناعية"],[8,"Machine","ماشين","ماكينة / آلة"],[9,"Process","بروسيس","عملية تشغيل"],[10,"System","سيستم","نظام"],[11,"Input","إنبوت","دخل"],[12,"Output","آوتبوت","خرج"],[13,"Signal","سيجنال","إشارة"],[14,"Analog","أنالوج","تماثلي"],[15,"Digital","ديجيتال","رقمي"],[16,"Control","كنترول","تحكم"],[17,"Controller","كنترولر","وحدة تحكم"],[18,"Feedback","فيدباك","تغذية راجعة"],[19,"Setpoint","سيت بوينت","القيمة المطلوبة"],[20,"Process Variable","بروسيس فاريابل","متغير العملية"]]},
-{n:"PLC والبرمجة الصناعية",c:"#ea580c",subj:"mech",t:[[21,"PLC","بي إل سي","متحكم منطقي مبرمج"],[22,"Programmable Logic Controller","بروجرامابل لوجيك كنترولر","المتحكم المنطقي المبرمج"],[23,"CPU","سي بي يو","وحدة المعالجة"],[24,"Input Module","إنبوت موديول","وحدة الإدخال"],[25,"Output Module","آوتبوت موديول","وحدة الإخراج"],[26,"Digital Input","ديجيتال إنبوت","دخل رقمي"],[27,"Digital Output","ديجيتال آوتبوت","خرج رقمي"],[28,"Analog Input","أنالوج إنبوت","دخل تماثلي"],[29,"Analog Output","أنالوج آوتبوت","خرج تماثلي"],[30,"Ladder Logic","لادر لوجيك","برمجة السلم"],[31,"Timer","تايمر","مؤقت"],[32,"Counter","كاونتر","عداد"],[33,"Sensor","سينسور","حساس"],[34,"Proximity Sensor","بروكسيميتي سينسور","حساس اقتراب"],[35,"Limit Switch","ليميت سويتش","مفتاح نهاية مشوار"],[36,"Encoder","إنكودر","حساس موضع/سرعة"],[37,"Motor","موتور","محرك"],[38,"VFD","في إف دي","مغير تردد وسرعة"],[39,"HMI","إتش إم آي","واجهة الإنسان والآلة"],[40,"SCADA","سكادا","مراقبة وتحكم"],[41,"Pneumatics","نيوماتكس","أنظمة الهواء المضغوط"],[42,"Hydraulics","هيدروليكس","الأنظمة الهيدروليكية"],[43,"Maintenance","مينتنانس","صيانة"],[44,"Safety","سيفتي","سلامة"],[45,"Calibration","كاليبريشن","معايرة"],[46,"Troubleshooting","تروبل شوتنج","اكتشاف الأعطال"],[47,"Gearbox","جيربوكس","علبة تروس"],[48,"Bearing","بيرنج","محمل"],[49,"Emergency Stop","إمرجنسي ستوب","إيقاف طوارئ"],[50,"Control Panel","كنترول بانل","لوحة تحكم"]]}
+{n:"أساسيات الميكاترونكس والتحكم",c:"#2563eb",subj:"mech",t:[
+  [1,"Mechatronics","Meccatronica","ميكاترونكس","ميكاترونيكا","الميكاترونكس"],
+  [2,"Mechanical","Meccanico","ميكانيكال","ميكانيكو","ميكانيكي"],
+  [3,"Electrical","Elettrico","إلكتريكال","إلِتريكو","كهربائي"],
+  [4,"Electronics","Elettronica","إلكترونكس","إلترونيكا","إلكترونيات"],
+  [5,"Automation","Automazione","أوتوميشن","أوتوماتسيوني","الأتمتة"],
+  [6,"Control System","Sistema di controllo","كنترول سيستم","سيستيما دي كونتروللو","نظام تحكم"],
+  [7,"Industrial Automation","Automazione industriale","إندستريال أوتوميشن","أوتوماتسيوني إندستريالي","الأتمتة الصناعية"],
+  [8,"Machine","Macchina","ماشين","ماكينا","ماكينة / آلة"],
+  [9,"Process","Processo","بروسيس","بروتشيسو","عملية تشغيل"],
+  [10,"System","Sistema","سيستم","سيستيما","نظام"],
+  [11,"Input","Ingresso","إنبوت","إنغريسو","دخل"],
+  [12,"Output","Uscita","آوتبوت","أوشيتا","خرج"],
+  [13,"Signal","Segnale","سيجنال","سينيالي","إشارة"],
+  [14,"Analog","Analogico","أنالوج","أنالوجيكو","تماثلي"],
+  [15,"Digital","Digitale","ديجيتال","ديجيتالي","رقمي"],
+  [16,"Control","Controllo","كنترول","كونتروللو","تحكم"],
+  [17,"Controller","Controllore","كنترولر","كونتروللوري","وحدة تحكم"],
+  [18,"Feedback","Retroazione","فيدباك","ريتروازيوني","تغذية راجعة"],
+  [19,"Setpoint","Valore impostato","سيت بوينت","فالوري إمبوستاتو","القيمة المطلوبة"],
+  [20,"Process Variable","Variabile di processo","بروسيس فاريابل","فاريابيلي دي بروتشيسو","متغير العملية"]
+]},
+{n:"PLC والبرمجة الصناعية",c:"#ea580c",subj:"mech",t:[
+  [21,"PLC","PLC","بي إل سي","بي إل سي","متحكم منطقي مبرمج"],
+  [22,"Programmable Logic Controller","Controllore Logico Programmabile","بروجرامابل لوجيك كنترولر","كونتروللوري لوجيكو بروجرامابيلي","المتحكم المنطقي المبرمج"],
+  [23,"CPU","CPU","سي بي يو","سي بي يو","وحدة المعالجة"],
+  [24,"Input Module","Modulo di ingresso","إنبوت موديول","مودولو دي إنغريسو","وحدة الإدخال"],
+  [25,"Output Module","Modulo di uscita","آوتبوت موديول","مودولو دي أوشيتا","وحدة الإخراج"],
+  [26,"Digital Input","Ingresso digitale","ديجيتال إنبوت","إنغريسو ديجيتالي","دخل رقمي"],
+  [27,"Digital Output","Uscita digitale","ديجيتال آوتبوت","أوشيتا ديجيتالي","خرج رقمي"],
+  [28,"Analog Input","Ingresso analogico","أنالوج إنبوت","إنغريسو أنالوجيكو","دخل تماثلي"],
+  [29,"Analog Output","Uscita analogica","أنالوج آوتبوت","أوشيتا أنالوجيكا","خرج تماثلي"],
+  [30,"Ladder Logic","Logica a scala","لادر لوجيك","لوجيكا آ سكالا","برمجة السلم"],
+  [31,"Timer","Timer","تايمر","تايمر","مؤقت"],
+  [32,"Counter","Contatore","كاونتر","كونتاتوري","عداد"],
+  [33,"Sensor","Sensore","سينسور","سينسوري","حساس"],
+  [34,"Proximity Sensor","Sensore di prossimità","بروكسيميتي سينسور","سينسوري دي بروسيميتا","حساس اقتراب"],
+  [35,"Limit Switch","Finecorsa","ليميت سويتش","فيني كورسا","مفتاح نهاية مشوار"],
+  [36,"Encoder","Encoder","إنكودر","إنكودر","حساس موضع/سرعة"],
+  [37,"Motor","Motore","موتور","موتوري","محرك"],
+  [38,"VFD","VFD","في إف دي","في إف دي","مغير تردد وسرعة"],
+  [39,"HMI","HMI","إتش إم آي","إتش إم آي","واجهة الإنسان والآلة"],
+  [40,"SCADA","SCADA","سكادا","سكادا","مراقبة وتحكم"],
+  [41,"Pneumatics","Pneumatica","نيوماتكس","بنوماتيكا","أنظمة الهواء المضغوط"],
+  [42,"Hydraulics","Idraulica","هيدروليكس","إدراوليكا","الأنظمة الهيدروليكية"],
+  [43,"Maintenance","Manutenzione","مينتنانس","مانوتنتسيوني","صيانة"],
+  [44,"Safety","Sicurezza","سيفتي","سيكورتسا","سلامة"],
+  [45,"Calibration","Taratura","كاليبريشن","تاراتورا","معايرة"],
+  [46,"Troubleshooting","Ricerca guasti","تروبل شوتنج","ريتشركا غواستي","اكتشاف الأعطال"],
+  [47,"Gearbox","Riduttore","جيربوكس","ريدوتوري","علبة تروس"],
+  [48,"Bearing","Cuscinetto","بيرنج","كوشينيتو","محمل"],
+  [49,"Emergency Stop","Arresto di emergenza","إمرجنسي ستوب","أريستو دي إميرجنتسا","إيقاف طوارئ"],
+  [50,"Control Panel","Pannello di controllo","كنترول بانل","بانيللو دي كونتروللو","لوحة تحكم"]
+]},
+{n:"الحساسات — Sensori",c:"#64748b",subj:"mech",t:[
+  [51,"Sensor","Sensore","سينسور","سينسوري","حساس"],
+  [52,"Inductive Sensor","Sensore induttivo","إندكتف سينسور","سينسوري إندوتيفو","حساس حثي"],
+  [53,"Capacitive Sensor","Sensore capacitivo","كاباسيتف سينسور","سينسوري كاباتشيتيفو","حساس سعوي"],
+  [54,"Photoelectric Sensor","Sensore fotoelettrico","فوتو إليكتريك سينسور","سينسوري فوتوإليتريكو","حساس ضوئي"],
+  [55,"Ultrasonic Sensor","Sensore a ultrasuoni","ألترا سونيك سينسور","سينسوري آ أولتراسوني","حساس فوق صوتي"],
+  [56,"Temperature Sensor","Sensore di temperatura","تيمبرتشر سينسور","سينسوري دي تيمبراتورا","حساس حرارة"],
+  [57,"Pressure Sensor","Sensore di pressione","بريشر سينسور","سينسوري دي بريسيوني","حساس ضغط"],
+  [58,"Level Sensor","Sensore di livello","ليفل سينسور","سينسوري دي ليفيللو","حساس مستوى"],
+  [59,"Flow Sensor","Sensore di flusso","فلو سينسور","سينسوري دي فلوسو","حساس تدفق"],
+  [60,"Thermocouple","Termocoppia","ثيرمو كوبل","تيرموكوبيا","مزدوج حراري"],
+  [61,"Load Cell","Cella di carico","لود سيل","تشيلا دي كاريكو","خلية قياس وزن"],
+  [62,"Accelerometer","Accelerometro","أكسيليروميتر","أتشيليروميترو","حساس تسارع"],
+  [63,"Gyroscope","Giroscopio","جايروسكوب","جيروسكوبيو","حساس دوران"]
+]},
+{n:"المحركات — Motori",c:"#d97706",subj:"mech",t:[
+  [64,"Motor","Motore","موتور","موتوري","محرك"],
+  [65,"Electric Motor","Motore elettrico","إليكتريك موتور","موتوري إليتريكو","محرك كهربائي"],
+  [66,"AC Motor","Motore AC","إيه سي موتور","موتوري إيه سي","محرك تيار متردد"],
+  [67,"DC Motor","Motore DC","دي سي موتور","موتوري دي سي","محرك تيار مستمر"],
+  [68,"Induction Motor","Motore a induzione","إندكشن موتور","موتوري آ إندوتسيوني","محرك حثي"],
+  [69,"Synchronous Motor","Motore sincrono","سينكرونس موتور","موتوري سينكرونو","محرك تزامني"],
+  [70,"Servo Motor","Servomotore","سيرفو موتور","سيرفوموتوري","محرك سيرفو"],
+  [71,"Stepper Motor","Motore passo-passo","ستيبر موتور","موتوري باسو-باسو","محرك خطوي"],
+  [72,"Brushless Motor","Motore brushless","براشليس موتور","موتوري براشليس","محرك بدون فرش"],
+  [73,"Rotor","Rotore","روتور","روتوري","الجزء الدوار"],
+  [74,"Stator","Statore","ستيتور","ستاتوري","الجزء الثابت"],
+  [75,"Shaft","Albero","شافت","ألبيرو","عمود دوران"],
+  [76,"Torque","Coppia","تورك","كوبيا","عزم الدوران"],
+  [77,"Speed","Velocità","سبيد","فيلوتشيتا","السرعة"],
+  [78,"RPM","Giri al minuto","آر بي إم","جيري آل مينوتو","عدد اللفات/دقيقة"],
+  [79,"Motor Starter","Avviatore motore","موتور ستارتر","أفياتوري موتوري","بادئ تشغيل المحرك"],
+  [80,"Motor Protection","Protezione motore","موتور بروتكشن","بروتيتسيوني موتوري","حماية المحرك"],
+  [81,"Overload","Sovraccarico","أوفرلود","سوفراكاريكو","زيادة الحمل"],
+  [82,"Motor Brake","Freno motore","موتور بريك","فرينو موتوري","فرامل المحرك"],
+  [83,"Motor Drive","Azionamento motore","موتور درايف","أتسيونامنتو موتوري","وحدة قيادة المحرك"]
+]},
+{n:"VFD والتحكم في السرعة",c:"#0284c7",subj:"mech",t:[
+  [84,"VFD","VFD","في إف دي","في إف دي","مغير تردد وسرعة"],
+  [85,"Variable Frequency Drive","Azionamento a frequenza variabile","فاريابل فريكونسي درايف","أتسيونامنتو آ فريكونتسا فاريابيلي","مغير التردد"],
+  [86,"Frequency","Frequenza","فريكونسي","فريكونتسا","التردد"],
+  [87,"Frequency Converter","Convertitore di frequenza","فريكونسي كونفرتر","كونفرتيتوري دي فريكونتسا","محول تردد"],
+  [88,"Inverter","Inverter","إنفيرتر","إنفرتير","عاكس"],
+  [89,"Acceleration","Accelerazione","أكسيليريشن","أتشيليرازيوني","تسارع"],
+  [90,"Deceleration","Decelerazione","ديسيليريشن","ديتشيليرازيوني","تباطؤ"],
+  [91,"Ramp Up","Rampa di accelerazione","رامب أب","رامبا دي أتشيليرازيوني","زمن التسارع"],
+  [92,"Ramp Down","Rampa di decelerazione","رامب داون","رامبا دي ديتشيليرازيوني","زمن التباطؤ"],
+  [93,"Speed Control","Controllo della velocità","سبيد كنترول","كونتروللو ديلا فيلوتشيتا","التحكم في السرعة"],
+  [94,"Variable Speed","Velocità variabile","فاريابل سبيد","فيلوتشيتا فاريابيلي","سرعة متغيرة"],
+  [95,"Motor Parameter","Parametro motore","موتور باراميتر","بارامترو موتوري","إعدادات المحرك"],
+  [96,"Drive Parameter","Parametro azionamento","درايف باراميتر","بارامترو أتسيونامنتو","إعدادات الدرايف"],
+  [97,"Fault","Guasto","فولت","غواستو","عطل"],
+  [98,"Alarm","Allarme","ألارم","ألارمي","إنذار"]
+]},
+{n:"الكهرباء والإلكترونيات",c:"#16a34a",subj:"mech",t:[
+  [99,"Voltage","Tensione","فولتج","تينسيوني","جهد كهربائي"],
+  [100,"Current","Corrente","كارنت","كورينتي","تيار كهربائي"],
+  [101,"Resistance","Resistenza","ريزيستانس","ريزيستنتسا","مقاومة"],
+  [102,"Power","Potenza","باور","بوتنتسا","قدرة"],
+  [103,"AC","CA","إيه سي","تشي إيه","تيار متردد"],
+  [104,"DC","CC","دي سي","تشي تشي","تيار مستمر"],
+  [105,"Power Supply","Alimentatore","باور سبلاي","أليمنتاتوري","مصدر تغذية"],
+  [106,"Transformer","Trasformatore","ترانسفورمر","تراسفورماتوري","محول"],
+  [107,"Rectifier","Raddrizzatore","ريكتيفاير","رادريتساتوري","مقوم"],
+  [108,"Diode","Diodo","دايود","ديودو","صمام ثنائي"],
+  [109,"Transistor","Transistor","ترانزيستور","ترانزيستور","ترانزستور"],
+  [110,"Resistor","Resistore","ريزيستور","ريزيستوري","مقاومة"],
+  [111,"Capacitor","Condensatore","كاباسيتور","كوندينساتوري","مكثف"],
+  [112,"Inductor","Induttore","إندكتور","إندوتوري","ملف حثي"],
+  [113,"Circuit","Circuito","سيركت","تشيركيتو","دائرة كهربائية"],
+  [114,"Circuit Breaker","Interruttore automatico","سيركت بريكر","إنتروتوري أوتوماتيكو","قاطع دائرة"],
+  [115,"Fuse","Fusibile","فيوز","فوزيبيلي","مصهر"],
+  [116,"Relay","Relè","ريلاي","ريليه","مرحل"],
+  [117,"Contactor","Contattore","كونتاكتور","كونتاتوري","كونتاكتور"]
+]},
+{n:"الحماية والتحكم الكهربائي",c:"#1e3a8a",subj:"mech",t:[
+  [118,"Overload Relay","Relè di sovraccarico","أوفرلود ريلاي","ريليه دي سوفراكاريكو","ريلاي حماية من زيادة الحمل"],
+  [119,"Thermal Overload","Sovraccarico termico","ثيرمال أوفرلود","سوفراكاريكو تيرميكو","حماية حرارية"],
+  [120,"Short Circuit","Cortocircuito","شورت سيركت","كورتوتشيركيتو","قصر كهربائي"],
+  [121,"Earth Fault","Guasto a terra","إيرث فولت","غواستو آ تيرا","عطل أرضي"],
+  [122,"Grounding","Messa a terra","جراوندنج","ميسا آ تيرا","تأريض"],
+  [123,"Emergency Stop","Arresto di emergenza","إمرجنسي ستوب","أريستو دي إميرجنتسا","إيقاف طوارئ"],
+  [124,"Push Button","Pulsante","بوش باتن","بولسانتي","زر ضغط"],
+  [125,"Selector Switch","Selettore","سيلكتور سويتش","سيليتوري","مفتاح اختيار"],
+  [126,"Pilot Lamp","Spia luminosa","بايلوت لامب","سبيا لومينوزا","لمبة بيان"],
+  [127,"Indicator","Indicatore","إنديكيتور","إنديكاتوري","مؤشر"],
+  [128,"Control Panel","Pannello di controllo","كنترول بانل","بانيللو دي كونتروللو","لوحة تحكم"],
+  [129,"Electrical Panel","Quadro elettrico","إلكتريكال بانل","كوادرو إليتريكو","لوحة كهرباء"],
+  [130,"Terminal Block","Morsettiera","تيرمنال بلوك","مورسيتييرا","ترامل توصيل"]
+]},
+{n:"HMI و SCADA",c:"#9a3412",subj:"mech",t:[
+  [131,"HMI","HMI","إتش إم آي","إتش إم آي","واجهة الإنسان والآلة"],
+  [132,"Human Machine Interface","Interfaccia Uomo-Macchina","هيومن ماشين إنترفيس","إنترفاتشا أومو-ماكينا","واجهة الإنسان والآلة"],
+  [133,"Touch Screen","Schermo tattile","تاتش سكرين","سكيرمو تاتيلي","شاشة لمس"],
+  [134,"SCADA","SCADA","سكادا","سكادا","مراقبة وتحكم وتجميع بيانات"],
+  [135,"Monitoring","Monitoraggio","مونيتورنج","مونيتوراجيو","مراقبة"],
+  [136,"Visualization","Visualizzazione","فيجوالايزيشن","فيزواليتساتسيوني","عرض مرئي للبيانات"],
+  [137,"Dashboard","Cruscotto","داشبورد","كروسكوتو","لوحة معلومات"],
+  [138,"Tag","Tag","تاج","تاغ","متغير/عنوان"],
+  [139,"Data Logging","Registrazione dati","داتا لوجنج","ريجيستراتسيوني داتي","تسجيل البيانات"],
+  [140,"Trend","Andamento","تريند","أندامنتو","منحنى تغير القيمة"]
+]},
+{n:"النيوماتكس — Pneumatica",c:"#475569",subj:"mech",t:[
+  [141,"Pneumatics","Pneumatica","نيوماتكس","بنوماتيكا","أنظمة الهواء المضغوط"],
+  [142,"Compressed Air","Aria compressa","كومبرست إير","آريا كومبريسا","هواء مضغوط"],
+  [143,"Compressor","Compressore","كمبريسور","كومبريسوري","ضاغط هواء"],
+  [144,"Pneumatic Cylinder","Cilindro pneumatico","نيوماتيك سيلندر","تشيليندرو بنوماتيكو","أسطوانة هوائية"],
+  [145,"Cylinder","Cilindro","سيلندر","تشيليندرو","أسطوانة"],
+  [146,"Piston","Pistone","بيستون","بيستوني","مكبس"],
+  [147,"Valve","Valvola","فالف","فالفولا","صمام"],
+  [148,"Solenoid Valve","Elettrovalvola","سولينويد فالف","إليتروفالفولا","صمام كهربائي"],
+  [149,"Directional Valve","Valvola direzionale","دايركشنال فالف","فالفولا ديريتسيونالي","صمام تحكم اتجاهي"],
+  [150,"Pressure Regulator","Regolatore di pressione","بريشر ريجوليتر","ريغولاتوري دي بريسيوني","منظم ضغط"],
+  [151,"Filter","Filtro","فلتر","فيلترو","مرشح"],
+  [152,"Lubricator","Lubrificatore","لوبركيتر","لوبريفيكاتوري","مزيت"],
+  [153,"FRL Unit","Gruppo FRL","إف آر إل يونت","غروببو إف آر إل","فلتر ومنظم ومزيت"],
+  [154,"Air Hose","Tubo dell'aria","إير هوز","توبو ديل آريا","خرطوم هواء"],
+  [155,"Air Pressure","Pressione dell'aria","إير بريشر","بريساوني ديل آريا","ضغط الهواء"]
+]},
+{n:"الهيدروليك — Idraulica",c:"#a16207",subj:"mech",t:[
+  [156,"Hydraulics","Idraulica","هيدروليكس","إدراوليكا","الأنظمة الهيدروليكية"],
+  [157,"Hydraulic Pump","Pompa idraulica","هيدروليك بامب","بومبا إدراوليكا","مضخة هيدروليكية"],
+  [158,"Hydraulic Cylinder","Cilindro idraulico","هيدروليك سيلندر","تشيليندرو إدراوليكو","أسطوانة هيدروليكية"],
+  [159,"Hydraulic Valve","Valvola idraulica","هيدروليك فالف","فالفولا إدراوليكا","صمام هيدروليكي"],
+  [160,"Hydraulic Oil","Olio idraulico","هيدروليك أويل","أوليو إدراوليكو","زيت هيدروليك"],
+  [161,"Hydraulic Pressure","Pressione idraulica","هيدروليك بريشر","بريساوني إدراوليكا","ضغط هيدروليكي"],
+  [162,"Reservoir","Serbatoio","ريزرفوار","سرباتويو","خزان الزيت"],
+  [163,"Pump","Pompa","بامب","بومبا","مضخة"],
+  [164,"Flow","Portata","فلو","بورتاتا","معدل التدفق"],
+  [165,"Hydraulic Hose","Tubo idraulico","هيدروليك هوز","توبو إدراوليكو","خرطوم هيدروليك"]
+]},
+{n:"الميكانيكا ونقل الحركة",c:"#0369a1",subj:"mech",t:[
+  [166,"Gear","Ingranaggio","جير","إنغراناجيو","ترس"],
+  [167,"Gearbox","Riduttore","جيربوكس","ريدوتوري","علبة تروس"],
+  [168,"Bearing","Cuscinetto","بيرنج","كوشينيتو","محمل"],
+  [169,"Coupling","Giunto","كوبلنج","جيونتو","وصلة"],
+  [170,"Belt","Cinghia","بيلت","تشينغيا","سير"],
+  [171,"Pulley","Puleggia","بولي","بوليجا","بكرة"],
+  [172,"Chain","Catena","تشين","كاتينا","سلسلة"],
+  [173,"Sprocket","Pignone","سبروكيت","بينييوني","ترس سلسلة"],
+  [174,"Lubrication","Lubrificazione","لوبركيشن","لوبريفيكاتسيوني","تشحيم"],
+  [175,"Friction","Attrito","فريكشن","أتريتو","احتكاك"],
+  [176,"Force","Forza","فورس","فورتسا","قوة"],
+  [177,"Motion","Moto","موشن","موتو","حركة"],
+  [178,"Linear Motion","Moto lineare","لينير موشن","موتو لينياري","حركة خطية"],
+  [179,"Rotary Motion","Moto rotatorio","روتاري موشن","موتو روتاتوريو","حركة دورانية"]
+]},
+{n:"الصيانة والسلامة",c:"#15803d",subj:"mech",t:[
+  [180,"Maintenance","Manutenzione","مينتنانس","مانوتنتسيوني","صيانة"],
+  [181,"Preventive Maintenance","Manutenzione preventiva","بريفنتف مينتنانس","مانوتنتسيوني بريفنتيفا","صيانة وقائية"],
+  [182,"Corrective Maintenance","Manutenzione correttiva","كوريكتف مينتنانس","مانوتنتسيوني كوريتيفا","صيانة تصحيحية"],
+  [183,"Predictive Maintenance","Manutenzione predittiva","بريدكتف مينتنانس","مانوتنتسيوني بريديتيفا","صيانة تنبؤية"],
+  [184,"Troubleshooting","Ricerca guasti","تروبل شوتنج","ريتشركا غواستي","اكتشاف الأعطال وإصلاحها"],
+  [185,"Calibration","Taratura","كاليبريشن","تاراتورا","معايرة"],
+  [186,"Inspection","Ispezione","إنسبكشن","إسبيتسيوني","فحص"],
+  [187,"Safety","Sicurezza","سيفتي","سيكورتسا","سلامة"],
+  [188,"Lockout/Tagout","Blocco/Etichettatura","لوك آوت / تاج آوت","بلوكو / إتيكيتاتورا","عزل وتأمين مصدر الطاقة"],
+  [189,"PPE","DPI","معدات الوقاية","ديس بوزيتيفي دي بروتيتسيوني إنديفيدوالي","معدات الوقاية الشخصية"]
+]},
+{n:"لغة إيطالية — أساسيات",c:"#009246",subj:"italian",t:[
+  [190,"Hello","Ciao","هالو","تشاو","مرحبا / سلام"],
+  [191,"Good morning","Buongiorno","جود مورنينج","بوون جورنو","صباح الخير"],
+  [192,"Good evening","Buonasera","جود إيفنينج","بوونا سيرا","مساء الخير"],
+  [193,"Goodbye","Arrivederci","جود باي","أريفيديرتشي","إلى اللقاء"],
+  [194,"Please","Per favore","بليز","بير فافوري","من فضلك"],
+  [195,"Thank you","Grazie","ثانك يو","غراتسيي","شكراً"],
+  [196,"Yes","Sì","يس","سي","نعم"],
+  [197,"No","No","نو","نو","لا"],
+  [198,"Excuse me","Scusi","إكسكيوز مي","سكوزي","عفواً"],
+  [199,"How are you?","Come stai?","هاو آر يو","كومي ستاي","كيف حالك؟"],
+  [200,"My name is…","Mi chiamo…","ماي نيم إز","مي كيامو","اسمي…"],
+  [201,"I am from Egypt","Vengo dall'Egitto","آي آم فروم إيجيبت","فينغو دال إيجيتو","أنا من مصر"],
+  [202,"Teacher","Insegnante","تيتشر","إنسينيانتيه","معلّم"],
+  [203,"Student","Studente","ستيودنت","ستودينتيه","طالب"],
+  [204,"School","Scuola","سكول","سكوولا","مدرسة"],
+  [205,"Book","Libro","بوك","ليبرو","كتاب"],
+  [206,"Friend","Amico","فريند","أميكو","صديق"],
+  [207,"Family","Famiglia","فاميلي","فاميليا","عائلة"],
+  [208,"Water","Acqua","ووتر","أكوا","ماء"],
+  [209,"Food","Cibo","فوود","تشيبو","طعام"]
+]}
 ];
 
 /* =================================================================
    3) المنهج — مواد ← وحدات ← دروس
    ================================================================= */
 let CURRICULUM = {
+  italian: [
+    { u: "Unità 1 — Grammatica", t: "Articoli e Nomi", subs: [
+      { n: "1.1 L'articolo determinativo", i: "🇮🇹", b: [
+        { t: "def", term: "Articolo Determinativo — أداة التعريف", x: "في الإيطالية: il, lo, la, l', i, gli, le — تقابل 'الـ' في العربية." },
+        { t: "h", x: "القواعد:" },
+        { t: "list", x: [
+          "il — للمذكر المفرد (il libro — الكتاب)",
+          "lo — للمذكر قبل z, s+ساكن, ps, gn (lo studente — الطالب)",
+          "la — للمؤنث المفرد (la casa — البيت)",
+          "l' — قبل حرف علة (l'amico — الصديق)",
+          "i — جمع المذكر (i libri — الكتب)",
+          "gli — جمع المذكر قبل حرف علة أو z (gli amici — الأصدقاء)",
+          "le — جمع المؤنث (le case — البيوت)"
+        ]},
+        { t: "note", tag: "ESEMPIO", x: "Il ragazzo legge un libro. — الفتى يقرأ كتاباً." }
+      ]},
+      { n: "1.2 L'articolo indeterminativo", i: "📘", b: [
+        { t: "def", term: "Articolo Indeterminativo — أداة النكرة", x: "في الإيطالية: un, uno, una, un' — تقابل 'واحد/ة' أو بدون أداة في العربية." },
+        { t: "list", x: [
+          "un — للمذكر (un libro — كتاب)",
+          "uno — للمذكر قبل z, s+ساكن, gn (uno studente — طالب)",
+          "una — للمؤنث (una casa — بيت)",
+          "un' — للمؤنث قبل حرف علة (un'amica — صديقة)"
+        ]},
+        { t: "note", tag: "ESEMPIO", x: "Ho una penna e un quaderno. — عندي قلم ودفتر." }
+      ]},
+      { n: "1.3 I nomi — الأسماء", i: "📗", b: [
+        { t: "def", term: "Il Nome — الاسم", x: "في الإيطالية كل اسم له جنس (مذكر/مؤنث) وعدد (مفرد/جمع)." },
+        { t: "table", h: ["المفرد", "الجمع", "القاعدة"], r: [
+          ["libro (كتاب)", "libri", "مذكر ← o ⟶ i"],
+          ["casa (بيت)", "case", "مؤنث ← a ⟶ e"],
+          ["chiave (مفتاح)", "chiavi", "مؤنث ← e ⟶ i"],
+          ["studente (طالب)", "studenti", "مذكر/مؤنث ← e ⟶ i"]
+        ]},
+        { t: "note", tag: "NOTA", x: "الاستثناءات كثيرة — احفظ الاسم بجنسه من البداية." }
+      ]}
+    ]},
+    { u: "Unità 2 — Lessico", t: "Saluti e Presentazioni", subs: [
+      { n: "2.1 I saluti — التحيات", i: "👋", b: [
+        { t: "def", term: "I Saluti — التحيات", x: "التعابير الأساسية للتحية في الإيطالية." },
+        { t: "list", x: [
+          "Ciao — مرحباً / سلام (غير رسمي)",
+          "Buongiorno — صباح الخير / نهاراً سعيداً",
+          "Buonasera — مساء الخير",
+          "Buonanotte — تصبح على خير",
+          "Arrivederci — إلى اللقاء (رسمي)",
+          "A presto — أراك قريباً",
+          "A domani — إلى الغد",
+          "Salve — تحية عامة"
+        ]},
+        { t: "note", tag: "NOTA", x: "Ciao تُستخدم للترحيب والوداع معاً في السياق غير الرسمي." }
+      ]},
+      { n: "2.2 Presentarsi — تقديم النفس", i: "🙋", b: [
+        { t: "def", term: "Presentarsi — التعريف بالنفس", x: "الجمل الأساسية للتعريف بنفسك." },
+        { t: "list", x: [
+          "Mi chiamo... — اسمي...",
+          "Sono... — أنا...",
+          "Ho... anni — عمري... سنة",
+          "Vengo dall'Egitto — أنا من مصر",
+          "Abito al Cairo — أسكن في القاهرة",
+          "Piacere! — تشرفنا!",
+          "Come ti chiami? — ما اسمك؟"
+        ]},
+        { t: "note", tag: "DIALOGO", x: "Ciao! Mi chiamo Ahmed. Sono egiziano. Ho 16 anni. Abito al Cairo. Piacere!" }
+      ]},
+      { n: "2.3 I numeri — الأرقام", i: "🔢", b: [
+        { t: "def", term: "I Numeri — الأرقام", x: "الأرقام من 1 إلى 20 بالإيطالية." },
+        { t: "table", h: ["الرقم", "Italiano", "النطق"], r: [
+          ["1", "uno", "أونو"],
+          ["2", "due", "دوويه"],
+          ["3", "tre", "تريه"],
+          ["4", "quattro", "كواترو"],
+          ["5", "cinque", "تشينكويه"],
+          ["6", "sei", "سيي"],
+          ["7", "sette", "سيتيه"],
+          ["8", "otto", "أوتو"],
+          ["9", "nove", "نوفيه"],
+          ["10", "dieci", "دييتشي"]
+        ]}
+      ]}
+    ]},
+    { u: "Unità 3 — Verbi", t: "I Verbi Essenziali", subs: [
+      { n: "3.1 Il verbo ESSERE", i: "🔵", b: [
+        { t: "def", term: "Essere — يكون", x: "أهم فعل في الإيطالية — يعني 'يكون/يوجد'." },
+        { t: "table", h: ["الضمير", "التصريف", "المعنى"], r: [
+          ["Io", "sono", "أنا"],
+          ["Tu", "sei", "أنت"],
+          ["Lui/Lei", "è", "هو/هي"],
+          ["Noi", "siamo", "نحن"],
+          ["Voi", "siete", "أنتم"],
+          ["Loro", "sono", "هم"]
+        ]},
+        { t: "note", tag: "ESEMPIO", x: "Io sono studente. — أنا طالب." }
+      ]},
+      { n: "3.2 Il verbo AVERE", i: "🟢", b: [
+        { t: "def", term: "Avere — يملك", x: "يعني 'يملك/عنده'، ويُستخدم أيضاً في الأزمنة المركبة." },
+        { t: "table", h: ["الضمير", "التصريف", "المعنى"], r: [
+          ["Io", "ho", "أنا عندي"],
+          ["Tu", "hai", "أنت عندك"],
+          ["Lui/Lei", "ha", "هو/هي عنده"],
+          ["Noi", "abbiamo", "نحن عندنا"],
+          ["Voi", "avete", "أنتم عندكم"],
+          ["Loro", "hanno", "هم عندهم"]
+        ]},
+        { t: "note", tag: "ESEMPIO", x: "Noi abbiamo un libro. — نحن عندنا كتاب." }
+      ]},
+      { n: "3.3 I verbi regolari -ARE", i: "🟡", b: [
+        { t: "def", term: "Verbi in -ARE", x: "أشهر مجموعة أفعال إيطالية (مثل: parlare — يتكلم)." },
+        { t: "table", h: ["الضمير", "parlare", "المعنى"], r: [
+          ["Io", "parlo", "أنا أتكلم"],
+          ["Tu", "parli", "أنت تتكلم"],
+          ["Lui/Lei", "parla", "هو/هي يتكلم"],
+          ["Noi", "parliamo", "نحن نتكلم"],
+          ["Voi", "parlate", "أنتم تتكلمون"],
+          ["Loro", "parlano", "هم يتكلمون"]
+        ]}
+      ]}
+    ]},
+    { u: "Unità 4 — Frasi Utili", t: "Frasi Quotidiane", subs: [
+      { n: "4.1 In classe — في الفصل", i: "🏫", b: [
+        { t: "def", term: "Frasi Scolastiche", x: "جمل مفيدة في الفصل الدراسي." },
+        { t: "list", x: [
+          "Buongiorno, professore! — صباح الخير يا أستاذ!",
+          "Posso entrare? — أستطيع الدخول؟",
+          "Non capisco. — لا أفهم.",
+          "Puoi ripetere? — تعيد من فضلك؟",
+          "Come si dice... in italiano? — كيف يُقال... بالإيطالية؟",
+          "Che significa? — ماذا يعني؟",
+          "Ho una domanda. — عندي سؤال."
+        ]}
+      ]},
+      { n: "4.2 Al bar — في المقهى", i: "☕", b: [
+        { t: "def", term: "Al Bar", x: "جمل عند طلب الطعام والشراب." },
+        { t: "list", x: [
+          "Vorrei un caffè. — أريد قهوة.",
+          "Un bicchiere d'acqua, per favore. — كوب ماء، من فضلك.",
+          "Il conto, per favore. — الحساب، من فضلك.",
+          "Quanto costa? — كم الثمن؟",
+          "Buon appetito! — بالهناء والشفاء!"
+        ]}
+      ]}
+    ]}
+  ],
+
   mech: [
     { u: "UNIT 1 — Lesson 1", t: "Occupational Health and Safety", subs: [
       { n: "1.1 What is Occupational Health and Safety?", i: "🦺", b: [
@@ -475,12 +1013,28 @@ function buildDict(){
     sec.dataset.subj=S.subj||"";
     sec.innerHTML=`<div class="sec-h" onclick="this.parentElement.classList.toggle('closed')">
       <h2>🗂️ ${esc(S.n)}</h2>
-      <span class="rng">${S.t[0][0]}–${S.t[S.t.length-1][0]}</span></div>
-      <div class="sec-b"><table><thead><tr><th>#</th><th>English</th><th>النطق</th><th>المعنى</th></tr></thead>
-      <tbody>${S.t.map(t=>`<tr data-f="${esc((t[1]+" "+t[2]+" "+t[3]).toLowerCase())}">
-        <td class="num">${t[0]}</td><td class="en">${esc(t[1])}</td>
-        <td class="pro">${esc(t[2])}</td><td>${esc(t[3])}</td></tr>`).join("")}
-      </tbody></table></div>`;
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="btn-speak" onclick="event.stopPropagation();speakSection(${si})" title="نطق القسم بالإنجليزية والإيطالية">🔊 نطق الكل</button>
+        <span class="rng">${S.t[0][0]}–${S.t[S.t.length-1][0]}</span>
+      </div>
+    </div>
+    <div class="sec-b"><table><thead><tr>
+      <th>#</th>
+      <th>English 🇬🇧</th>
+      <th>Italiano 🇮🇹</th>
+      <th>نطق إنجليزي</th>
+      <th>نطق إيطالي</th>
+      <th>المعنى</th>
+    </tr></thead>
+    <tbody>${S.t.map(t=>`<tr data-f="${esc((t[1]+" "+t[2]+" "+t[3]+" "+t[4]+" "+t[5]).toLowerCase())}">
+        <td class="num">${t[0]}</td>
+        <td class="en" onclick="speak('${esc(t[1].replace(/'/g,"\\'"))}','en-US')" title="اضغط للسماع">${esc(t[1])} <span class="spk">🔊</span></td>
+        <td class="it" onclick="speak('${esc(t[2].replace(/'/g,"\\'"))}','it-IT')" title="Clicca per ascoltare">${esc(t[2])} <span class="spk">🔊</span></td>
+        <td class="pro">${esc(t[3])}</td>
+        <td class="pro-it">${esc(t[4])}</td>
+        <td>${esc(t[5])}</td>
+      </tr>`).join("")}
+    </tbody></table></div>`;
     dict.appendChild(sec);
   });
   buildChips();
@@ -871,10 +1425,10 @@ function parseDict(text){
     let parts=line.split(/\s*[|•\t]\s*/);
     if(parts.length<2)parts=line.split(/\s+[-–—:]\s+/);
     if(parts.length>=2){
-      const en=parts[0].trim();
-      const meaning=parts.slice(1).join(' | ').trim();
-      rows.push([counter++,en,en,meaning]);
-    }
+  const en=parts[0].trim();
+  const meaning=parts.slice(1).join(' | ').trim();
+  rows.push([counter++, en, en, meaning, meaning, meaning]);
+}
   });
   return rows;
 }
@@ -950,16 +1504,18 @@ async function rebuildFromLinks(){
       const subj = f.subj || 'other';
 
       if(f.type === 'dict'){
-        const rows = parseDict(text);
-        if(rows.length){
-          const subjInfo = SUBJECTS[subj] || SUBJECTS.other;
-          SECTIONS.push({
-            n: '📄 ' + f.name + ' — ' + subjInfo.name,
-            c: subjInfo.color, subj, _fromPDF: true, t: rows
-          });
-          dictCnt += rows.length;
-        }
-      }
+  const raw = parseDict(text);
+  // نحوّل كل صف لـ 6 عناصر: [num, EN, IT, نطق EN, نطق IT, معنى]
+  const rows = raw.map(r => [r[0], r[1], r[2] || r[1], r[3] || '', r[4] || '', r[5] || r[3] || '']);
+  if(rows.length){
+    const subjInfo = SUBJECTS[subj] || SUBJECTS.other;
+    SECTIONS.push({
+      n: '📄 ' + f.name + ' — ' + subjInfo.name,
+      c: subjInfo.color, subj, _fromPDF: true, t: rows
+    });
+    dictCnt += rows.length;
+  }
+}
       if(f.type === 'lessons'){
         const lessons = parseLessons(text);
         lessons.forEach(L=>{
