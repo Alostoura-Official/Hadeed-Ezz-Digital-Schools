@@ -1,64 +1,14 @@
-/* ================= النطق الصوتي ================= */
-let soundOn = localStorage.getItem('mech-sound') !== '0';
-let currentSpokenEl = null;       // للكلمة الفردية
-let currentRowEl = null;          // للصف في "نطق الكل"
-let isSpeakingSection = false;    // هل "نطق الكل" شغال دلوقتي؟
-
-/* ---------- نطق كلمة فردية ---------- */
-function speak(text, lang = 'en-US', rate = 0.85, el = null) {
-  // 1) شيل تظليل الكلمة الفردية القديمة
-  if (currentSpokenEl) {
-    currentSpokenEl.classList.remove('speaking');
-    currentSpokenEl = null;
-  }
-  
-  // 2) لو فيه "نطق الكل" شغال، أوقفه الأول
-  if (isSpeakingSection) {
-    stopSpeaking();
-  }
-  
-  if (!soundOn) return;
-  if (!('speechSynthesis' in window)) { 
-    alert('المتصفح لا يدعم النطق'); 
-    return; 
-  }
-  
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = lang;
-  utter.rate = rate;
-  utter.pitch = 1;
-  utter.volume = 1;
-  
-  const voices = window.speechSynthesis.getVoices();
-  const preferred = voices.find(v => v.lang === lang)
-                 || voices.find(v => v.lang.startsWith(lang.split('-')[0]));
-  if (preferred) utter.voice = preferred;
-  
-  // 3) ظلل الكلمة
-  if (el) {
-    el.classList.add('speaking');
-    currentSpokenEl = el;
-  }
-  
-  // 4) شيل التظليل لما يخلص
-  utter.onend = () => {
-    if (currentSpokenEl) {
-      currentSpokenEl.classList.remove('speaking');
-      currentSpokenEl = null;
-    }
-  };
-  utter.onerror = utter.onend;
-  
-  window.speechSynthesis.speak(utter);
-}
-
 /* ---------- نطق القسم كامل (نطق الكل) ---------- */
 function speakSection(si) {
-  // لو شغال → أوقفه
-  if (isSpeakingSection) {
+  // لو نفس القسم شغال → أوقفه
+  if (isSpeakingSection && currentSectionSi === si) {
     stopSpeaking();
     return;
+  }
+  
+  // لو قسم تاني شغال → أوقفه وابدأ الجديد
+  if (isSpeakingSection) {
+    stopSpeaking();
   }
   
   if (!soundOn) return;
@@ -78,6 +28,8 @@ function speakSection(si) {
   if (!table) return;
   
   isSpeakingSection = true;
+  currentSectionSi = si;
+  
   const btn = table.querySelector('.btn-speak');
   if (btn) btn.innerHTML = '⏹️ إيقاف';
   
@@ -85,16 +37,11 @@ function speakSection(si) {
   let i = 0;
   
   window.speechSynthesis.cancel();
-  document.querySelectorAll('tr.speaking').forEach(el => el.classList.remove('speaking'));
+  // شيل أي تظليل قديم
+  document.querySelectorAll('.speaking').forEach(el => el.classList.remove('speaking'));
   
   function playNext() {
-    if (!isSpeakingSection) return;
-    
-    // شيل التظليل من الصف السابق
-    if (currentRowEl) {
-      currentRowEl.classList.remove('speaking');
-      currentRowEl = null;
-    }
+    if (!isSpeakingSection || currentSectionSi !== si) return;
     
     // خلص؟ نضّف واخرج
     if (i >= words.length) {
@@ -102,33 +49,59 @@ function speakSection(si) {
       return;
     }
     
-    // ظلل الصف الحالي
-    if (rows[i]) {
-      rows[i].classList.add('speaking');
-      currentRowEl = rows[i];
-      rows[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const row = rows[i];
+    if (!row) { i++; setTimeout(playNext, 300); return; }
+    
+    // هات خلايا الكلمة الإنجليزية والإيطالية
+    const enCell = row.querySelector('td.en');
+    const itCell = row.querySelector('td.it');
+    
+    // مرر الصف للشاشة
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // ===== 1) نطق الإنجليزي =====
+    if (enCell) {
+      enCell.classList.add('speaking');
+      currentSpokenEl = enCell;
     }
     
-    // نطق إنجليزي
     const uEN = new SpeechSynthesisUtterance(words[i][1]);
     uEN.lang = 'en-US';
     uEN.rate = 0.85;
     
     uEN.onend = () => {
-      if (!isSpeakingSection) return;
+      if (!isSpeakingSection || currentSectionSi !== si) return;
       
-      // نطق إيطالي
+      // شيل التظليل من الإنجليزي
+      if (enCell) enCell.classList.remove('speaking');
+      currentSpokenEl = null;
+      
+      // ===== 2) نطق الإيطالي =====
+      if (itCell) {
+        itCell.classList.add('speaking');
+        currentSpokenEl = itCell;
+      }
+      
       const uIT = new SpeechSynthesisUtterance(words[i][2]);
       uIT.lang = 'it-IT';
       uIT.rate = 0.85;
       
       uIT.onend = () => {
-        if (!isSpeakingSection) return;
+        if (!isSpeakingSection || currentSectionSi !== si) return;
+        
+        // شيل التظليل من الإيطالي
+        if (itCell) itCell.classList.remove('speaking');
+        currentSpokenEl = null;
+        
+        // انتقل للصف التالي
         i++;
         setTimeout(playNext, 400);
       };
+      
       uIT.onerror = () => {
-        if (!isSpeakingSection) return;
+        if (!isSpeakingSection || currentSectionSi !== si) return;
+        if (itCell) itCell.classList.remove('speaking');
+        currentSpokenEl = null;
         i++;
         setTimeout(playNext, 400);
       };
@@ -137,7 +110,9 @@ function speakSection(si) {
     };
     
     uEN.onerror = () => {
-      if (!isSpeakingSection) return;
+      if (!isSpeakingSection || currentSectionSi !== si) return;
+      if (enCell) enCell.classList.remove('speaking');
+      currentSpokenEl = null;
       i++;
       setTimeout(playNext, 400);
     };
@@ -147,9 +122,10 @@ function speakSection(si) {
   
   function finishSpeaking() {
     isSpeakingSection = false;
-    document.querySelectorAll('tr.speaking').forEach(el => el.classList.remove('speaking'));
+    currentSectionSi = null;
+    document.querySelectorAll('.speaking').forEach(el => el.classList.remove('speaking'));
     document.querySelectorAll('.btn-speak').forEach(b => b.innerHTML = '🔊 نطق الكل');
-    currentRowEl = null;
+    currentSpokenEl = null;
   }
   
   playNext();
@@ -158,10 +134,11 @@ function speakSection(si) {
 /* ---------- إيقاف النطق ---------- */
 function stopSpeaking() {
   isSpeakingSection = false;
+  currentSectionSi = null;
   window.speechSynthesis.cancel();
   
-  // شيل كل التظليل
-  document.querySelectorAll('tr.speaking, .speaking').forEach(el => {
+  // شيل كل التظليل (سواء على الكلمة أو الصف)
+  document.querySelectorAll('.speaking').forEach(el => {
     el.classList.remove('speaking');
   });
   document.querySelectorAll('.btn-speak').forEach(b => b.innerHTML = '🔊 نطق الكل');
