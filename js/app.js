@@ -1,3 +1,10 @@
+/* ================= متغيرات النطق ================= */
+let soundOn = localStorage.getItem('mech-sound') !== '0';
+let currentSpokenEl = null;
+let currentRowEl = null;
+let isSpeakingSection = false;
+let currentSectionSi = null;
+
 /* ---------- نطق القسم كامل (نطق الكل) ---------- */
 function speakSection(si) {
   // لو نفس القسم شغال → أوقفه
