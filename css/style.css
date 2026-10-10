@@ -292,12 +292,9 @@ table{
   background: linear-gradient(90deg, #fef08a, #fde047) !important;
   color: #000 !important;
   border-radius: 4px;
-  /* ⬅️ مفيش padding — بنستخدم box-shadow للتأثير */
-  box-shadow: 
-    0 0 0 2px #fbbf24,
-    0 0 15px rgba(253, 224, 71, 0.7);
+  /* ⬅️ مفيش padding — مهم جداً */
+  box-shadow: 0 0 0 2px #fbbf24, 0 0 15px rgba(253, 224, 71, 0.7);
   animation: pulse-speak 1.2s ease-in-out infinite;
-  transition: box-shadow 0.2s, background 0.2s;
   font-weight: 600;
 }
 
