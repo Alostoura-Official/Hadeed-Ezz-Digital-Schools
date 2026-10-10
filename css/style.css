@@ -286,3 +286,34 @@ table{
   .sec-b th,
   .sec-b td{padding:4px 5px;font-size:9.5px}
 }
+/* ⬅️ جديد: تظليل الكلمة أثناء النطق */
+.speaking {
+  background: linear-gradient(90deg, #fef08a, #fde047);
+  color: #000 !important;
+  border-radius: 6px;
+  padding: 2px 6px;
+  box-shadow: 0 0 12px rgba(253, 224, 71, 0.7);
+  animation: pulse-speak 1.2s ease-in-out infinite;
+  transition: all 0.2s;
+}
+
+.speaking .spk {
+  animation: blink 0.6s infinite;
+}
+
+@keyframes pulse-speak {
+  0%, 100% { box-shadow: 0 0 12px rgba(253, 224, 71, 0.7); }
+  50% { box-shadow: 0 0 20px rgba(253, 224, 71, 1); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* في الوضع الليلي — لون مختلف */
+[data-theme="dark"] .speaking {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  color: #000 !important;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.9);
+}
