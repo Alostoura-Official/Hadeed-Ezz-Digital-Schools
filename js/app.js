@@ -1,15 +1,26 @@
 /* ================= النطق الصوتي ================= */
 let soundOn = localStorage.getItem('mech-sound') !== '0';
-let currentSpokenEl = null;  // ⬅️ جديد: العنصر اللي بيتكلم حالياً
+let currentSpokenEl = null;       // للكلمة الفردية
+let currentRowEl = null;          // للصف في "نطق الكل"
+let isSpeakingSection = false;    // هل "نطق الكل" شغال دلوقتي؟
 
+/* ---------- نطق كلمة فردية ---------- */
 function speak(text, lang = 'en-US', rate = 0.85, el = null) {
-  if (!soundOn) return;
-  if (!('speechSynthesis' in window)) { alert('المتصفح لا يدعم النطق'); return; }
-  
-  // شيل التظليل من الكلمة القديمة
+  // 1) شيل تظليل الكلمة الفردية القديمة
   if (currentSpokenEl) {
     currentSpokenEl.classList.remove('speaking');
     currentSpokenEl = null;
+  }
+  
+  // 2) لو فيه "نطق الكل" شغال، أوقفه الأول
+  if (isSpeakingSection) {
+    stopSpeaking();
+  }
+  
+  if (!soundOn) return;
+  if (!('speechSynthesis' in window)) { 
+    alert('المتصفح لا يدعم النطق'); 
+    return; 
   }
   
   window.speechSynthesis.cancel();
@@ -24,29 +35,139 @@ function speak(text, lang = 'en-US', rate = 0.85, el = null) {
                  || voices.find(v => v.lang.startsWith(lang.split('-')[0]));
   if (preferred) utter.voice = preferred;
   
-  // ⬅️ جديد: ظلل الكلمة الجديدة
+  // 3) ظلل الكلمة
   if (el) {
     el.classList.add('speaking');
     currentSpokenEl = el;
   }
   
-  // ⬅️ جديد: شيل التظليل لما النطق يخلص
+  // 4) شيل التظليل لما يخلص
   utter.onend = () => {
     if (currentSpokenEl) {
       currentSpokenEl.classList.remove('speaking');
       currentSpokenEl = null;
     }
   };
-  
-  // ⬅️ جديد: لو حصل خطأ، شيل التظليل برضه
-  utter.onerror = () => {
-    if (currentSpokenEl) {
-      currentSpokenEl.classList.remove('speaking');
-      currentSpokenEl = null;
-    }
-  };
+  utter.onerror = utter.onend;
   
   window.speechSynthesis.speak(utter);
+}
+
+/* ---------- نطق القسم كامل (نطق الكل) ---------- */
+function speakSection(si) {
+  // لو شغال → أوقفه
+  if (isSpeakingSection) {
+    stopSpeaking();
+    return;
+  }
+  
+  if (!soundOn) return;
+  if (!('speechSynthesis' in window)) { 
+    alert('المتصفح لا يدعم النطق'); 
+    return; 
+  }
+  
+  // شيل أي تظليل فردي
+  if (currentSpokenEl) {
+    currentSpokenEl.classList.remove('speaking');
+    currentSpokenEl = null;
+  }
+  
+  const words = SECTIONS[si].t;
+  const table = document.querySelector(`.sec[data-si="${si}"]`);
+  if (!table) return;
+  
+  isSpeakingSection = true;
+  const btn = table.querySelector('.btn-speak');
+  if (btn) btn.innerHTML = '⏹️ إيقاف';
+  
+  const rows = table.querySelectorAll('tbody tr');
+  let i = 0;
+  
+  window.speechSynthesis.cancel();
+  document.querySelectorAll('tr.speaking').forEach(el => el.classList.remove('speaking'));
+  
+  function playNext() {
+    if (!isSpeakingSection) return;
+    
+    // شيل التظليل من الصف السابق
+    if (currentRowEl) {
+      currentRowEl.classList.remove('speaking');
+      currentRowEl = null;
+    }
+    
+    // خلص؟ نضّف واخرج
+    if (i >= words.length) {
+      finishSpeaking();
+      return;
+    }
+    
+    // ظلل الصف الحالي
+    if (rows[i]) {
+      rows[i].classList.add('speaking');
+      currentRowEl = rows[i];
+      rows[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    // نطق إنجليزي
+    const uEN = new SpeechSynthesisUtterance(words[i][1]);
+    uEN.lang = 'en-US';
+    uEN.rate = 0.85;
+    
+    uEN.onend = () => {
+      if (!isSpeakingSection) return;
+      
+      // نطق إيطالي
+      const uIT = new SpeechSynthesisUtterance(words[i][2]);
+      uIT.lang = 'it-IT';
+      uIT.rate = 0.85;
+      
+      uIT.onend = () => {
+        if (!isSpeakingSection) return;
+        i++;
+        setTimeout(playNext, 400);
+      };
+      uIT.onerror = () => {
+        if (!isSpeakingSection) return;
+        i++;
+        setTimeout(playNext, 400);
+      };
+      
+      window.speechSynthesis.speak(uIT);
+    };
+    
+    uEN.onerror = () => {
+      if (!isSpeakingSection) return;
+      i++;
+      setTimeout(playNext, 400);
+    };
+    
+    window.speechSynthesis.speak(uEN);
+  }
+  
+  function finishSpeaking() {
+    isSpeakingSection = false;
+    document.querySelectorAll('tr.speaking').forEach(el => el.classList.remove('speaking'));
+    document.querySelectorAll('.btn-speak').forEach(b => b.innerHTML = '🔊 نطق الكل');
+    currentRowEl = null;
+  }
+  
+  playNext();
+}
+
+/* ---------- إيقاف النطق ---------- */
+function stopSpeaking() {
+  isSpeakingSection = false;
+  window.speechSynthesis.cancel();
+  
+  // شيل كل التظليل
+  document.querySelectorAll('tr.speaking, .speaking').forEach(el => {
+    el.classList.remove('speaking');
+  });
+  document.querySelectorAll('.btn-speak').forEach(b => b.innerHTML = '🔊 نطق الكل');
+  
+  currentRowEl = null;
+  currentSpokenEl = null;
 }
 /* =================================================================
    1) المواد الدراسية الرئيسية
@@ -714,8 +835,8 @@ function buildDict(){
     </tr></thead>
     <tbody>${S.t.map(t=>`<tr data-f="${esc((t[1]+" "+t[2]+" "+t[3]+" "+t[4]+" "+t[5]).toLowerCase())}">
         <td class="num">${t[0]}</td>
-        <td class="en" onclick="speak('${esc(t[1].replace(/'/g,"\\'"))}','en-US')" title="اضغط للسماع">${esc(t[1])} <span class="spk">🔊</span></td>
-        <td class="it" onclick="speak('${esc(t[2].replace(/'/g,"\\'"))}','it-IT')" title="Clicca per ascoltare">${esc(t[2])} <span class="spk">🔊</span></td>
+        <td class="en" onclick="speak('${esc(t[1].replace(/'/g,"\\'"))}','en-US',0.85,this)" title="اضغط للسماع">${esc(t[1])} <span class="spk">🔊</span></td>
+<td class="it" onclick="speak('${esc(t[2].replace(/'/g,"\\'"))}','it-IT',0.85,this)" title="Clicca per ascoltare">${esc(t[2])} <span class="spk">🔊</span></td>
         <td class="pro">${esc(t[3])}</td>
         <td class="pro-it">${esc(t[4])}</td>
         <td>${esc(t[5])}</td>
