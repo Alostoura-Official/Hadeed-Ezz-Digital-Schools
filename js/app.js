@@ -549,37 +549,131 @@ let CURRICULUM = {
 /* =================================================================
    4) التعريفات
    ================================================================= */
-let DEFS = [
+const DEFS=[
 ["Safety","السلامة","A condition in which people are not exposed to unacceptable levels of danger."],
-["Occupational Health","الصحة المهنية","Protecting physical, mental and social well-being in relation to work."],
-["Hazard","الخطر","Inherent property with potential to cause harm."],
-["Risk","المخاطرة","Likelihood + Severity."],
-["Incident","حادث كاد يقع","Unplanned event that COULD result in injury but no harm occurred."],
-["Accident","الحادثة","Unplanned event that RESULTED in injury or ill health."],
-["Prevention","الوقاية","Measures to anticipate harm and reduce its likelihood."],
-["CE Marking","علامة CE","Manufacturer's declaration that EU requirements addressed."]
-];
+["Occupational Health","الصحة المهنية","Protecting and supporting physical, mental and social well-being in relation to the work performed and its conditions."],
+["Hazard","الخطر","Inherent property of an object, substance, activity or situation with potential to cause harm — exists even with no exposure."],
+["Risk","المخاطرة","Likelihood + Severity: احتمالية أن يُحدث الخطر ضررًا فعلًا في ظروف معينة."],
+["Incident","حادث كاد يقع","Unplanned event that COULD result in injury/damage but no actual harm occurred."],
+["Accident","الحادثة","Unplanned event that actually RESULTED in injury or ill health."],
+["Exposure","التعرض","The condition/event through which a person comes into contact with a hazard."],
+["Harm","الضرر","Injury, ill health, damage or loss resulting from exposure to a hazard."],
+["Prevention","الوقاية","Measures, procedures and organisational arrangements to anticipate harm and reduce its likelihood — act BEFORE it occurs."],
+["Non-compliance","عدم الامتثال","When an applicable requirement, instruction or authorized safety arrangement is not being followed."],
+["Corrective Action","إجراء تصحيحي","Eliminates or controls an unacceptable condition."],
+["Improvement Action","إجراء تحسيني","Reduces risk further when the existing arrangement is already acceptable."],
+["CE Marking","علامة CE","Manufacturer's declaration that applicable EU requirements have been addressed and conformity assessment completed — NOT a quality mark."],
+["EHSRs","المتطلبات الأساسية","Minimum health and safety outcomes that a product covered by a directive must satisfy."],
+["Technical Standard","معيار فني","Documented technical specification/method via recognized standardization — voluntary by default."],
+["Technical Regulation","لائحة فنية","Legally binding requirement imposed by law."],
+["Machinery Directive","توجيه الآلات 2006/42/EC","EU directive for machinery with connected components, at least one moving part and non-human drive system."],
+["Ex Marking (ATEX)","وسم البيئة الانفجارية","Special requirements for equipment in explosive atmospheres — NOT explosion-proof in every situation."],
+["Partly Completed Machinery","آلة غير مكتملة","Subassembly for incorporation into other machinery — needs Declaration of Incorporation."],
+["Health Surveillance","الرقابة الصحية","Medical exams/tests by the Occupational Health Doctor to monitor worker fitness."]];
+
 
 /* =================================================================
    5) بنك الأسئلة
    ================================================================= */
-let QB = [
-{ les: "LESSON 1 — Foundations", subj: "mech", qs: [
-  { k: "tf", n: 1, s: "A hazard is the injury that happens to a worker.", a: false, c: "الخطر مصدر الضرر المحتمل — الإصابة نفسها هي الضرر." },
-  { k: "tf", n: 2, s: "Every incident results in an injury.", a: false, c: "الحادث الكاد يقع قد يقع دون أي ضرر فعلي." },
-  { k: "d", n: 3, s: "Hazard", a: "خطر: خاصية متأصلة لها القدرة على إحداث ضرر." },
-  { k: "w", n: 4, s: "Explain why the absence of an accident does not mean the workplace is safe.", a: "لأن الأخطار قد تبقى كامنة غير مكتشفة." }
-]}
-];
+const QB=[
+{les:"LESSON 1 — Foundations of Occupational Health and Safety",qs:[
+{k:"tf",n:1,s:"A hazard is the injury that happens to a worker.",a:false,c:"الخطر (Hazard) هو مصدر الضرر المحتمل — الإصابة نفسها هي الضرر (Harm)."},
+{k:"tf",n:2,s:"Every incident results in an injury or ill health.",a:false,c:"الحادث الكاد يقع (Incident) قد يقع دون أي ضرر فعلي — الضرر الفعلي يجعله Accident."},
+{k:"tf",n:3,s:"The same hazard can remain while the level of risk changes.",a:true,c:"صحيح: الخطر ثابت لكن الاحتمالية/الخطورة تتغير فتتغير المخاطرة."},
+{k:"tf",n:4,s:"An accident is an unplanned event that may or may not cause harm.",a:false,c:"هذا وصف الـ Incident. الـ Accident حادث غير مخطط نتج عنه فعلًا إصابة أو ضرر."},
+{k:"tf",n:5,s:"Exposure describes how a person comes into contact with a hazard.",a:true,c:"صحيح — هذا تعريف التعرض."},
+{k:"tf",n:6,s:"Prevention should begin only after an accident has occurred.",a:false,c:"الوقاية تعني التصرف قبل وقوع الضرر (Act before harm occurs)."},
+{k:"tf",n:7,s:"Occupational health includes physical, mental and social well-being.",a:true,c:"صحيح — ثلاثة أبعاد للصحة المهنية."},
+{k:"tf",n:8,s:"If no accident has happened yet, the workplace is automatically safe and healthy.",a:false,c:"الخطر قد يظل كامنًا غير مكتشف؛ عدم وقوع حادث لا يعني أن المكان آمن."},
+{k:"d",n:9,s:"Hazard",a:"خطر: خاصية متأصلة في جسم أو مادة أو نشاط أو وضع له القدرة على إحداث ضرر للأشخاص أو الممتلكات أو البيئة؛ يمكن أن يوجد حتى دون تعرض حالي."},
+{k:"d",n:10,s:"Exposure",a:"تعرض: الحالة أو الحدث الذي يصل من خلاله الشخص إلى الخطر أو يتأثر به."},
+{k:"d",n:11,s:"Harm",a:"ضرر: الإصابة أو سوء الصحة أو الضرر أو الخسارة الناتجة عن التعرض للخطر."},
+{k:"d",n:12,s:"Risk",a:"مخاطرة: احتمالية أن يُحدث الخطر ضررًا فعلًا في ظروف معينة = Likelihood + Severity."},
+{k:"d",n:13,s:"Incident",a:"حادث كاد يقع: حدث غير مخطط كان قد يسبب ضررًا لكن لم يحدث ضرر فعلي."},
+{k:"d",n:14,s:"Accident",a:"حادثة: حدث غير مخطط نتج عنه فعلًا إصابة أو سوء صحة أو ضرر."},
+{k:"d",n:15,s:"Prevention",a:"وقاية: إجراءات وتنظيمات لاستباق حدث ضار وتقليل احتمالية وقوعه قبل حدوثه."},
+{k:"w",n:16,s:"Explain why the absence of an accident does not automatically mean that a workplace is healthy and safe.",a:"لأن الأخطار قد تبقى كامنة غير مكتشفة (ضجيج، أبخرة، إجهاد نفسي) وقد تظهر أضرار صحية طويلة الأمد دون أي حادث مفاجئ؛ فغياب الحادث لا يعني غياب الخطر."},
+{k:"w",n:17,s:"What is the main difference between an Incident and an Accident?",a:"Incident: قد يسبب ضررًا لكنه لم يسببه فعليًا. Accident: نتج عنه فعلًا إصابة أو ضرر. الفرق الجوهري = وقوع الضرر فعليًا."},
+{k:"w",n:18,s:"Why must prevention begin before work starts?",a:"لأن الضرر يحدث مرة واحدة؛ الوقاية تعمل قبل التعرض لإلغاء أو تقليل الاحتمالية — وبعد وقوع الحادث يكون الضرر قد حدث بالفعل ولا يمكن التراجع عنه."},
+{k:"w",n:19,s:"List the three ideas you must separate when describing a workplace condition: Hazard, Exposure and Harm.",a:"Hazard: ما الذي يمكن أن يسبب الضرر؟ | Exposure: كيف يصل الشخص إلى الخطر؟ | Harm: ما الإصابة أو الضرر الناتج؟"},
+{k:"c",n:20,s:"Compare Hazard and Risk.",a:"Hazard = إمكانية التسبب في ضرر (خاصية ثابتة). Risk = احتمالية + خطورة الضرر في ظروف معينة (متغيرة). مثال: شطبة حادة (Hazard) / ملامستها أثناء مناولة قرب ممر مزدحم (Risk)."},
+{k:"c",n:21,s:"Compare Incident and Accident with one industrial example for each.",a:"Incident: عامل يزلق على أرض مبللة لكنه لا يسقط — لا ضرر. Accident: يزلق ويسقط ويكسر ذراعه — ضرر فعلي."},
+{k:"sc",n:22,pre:"Scenario 1 — في ورشة صفيحة معدن، شطبة حادة بروز في ممر سير، عامل مرّ ولمسها بيده وتعرض لجرح عميق احتاج خياطة.",s:"Identify: (a) Hazard (b) Exposure (c) Harm (d) Incident or Accident? Why?",a:"(a) الشطبة المعدنية الحادة (b) ملامسة الحافة باليد أثناء المرور (c) جرح عميق يحتاج خياطة (d) Accident — لأن الضرر وقع فعلًا."},
+{k:"sc",n:23,pre:"Scenario 2 — انسكاب زيت على الأرضية، عامل مر وازلّق لكنه استعاد توازنه دون سقوط أو إصابة.",s:"Identify: (a) Hazard (b) Exposure (c) Harm (if any) (d) Incident or Accident? Why?",a:"(a) انسكاب الزيت على الأرضية (b) عبور المنطقة / الانزلاق (c) لا يوجد ضرر (d) Incident — لم يقع أي إصابة."},
+{k:"sc",n:24,pre:"Scenario 3 — سلم غير مثبت، تحرك والعامل سقط من نحو مترين وكسر ذراعه.",s:"Identify: (a) Hazard (b) Exposure (c) Harm (d) Incident or Accident? Why?",a:"(a) سلم غير مثبت / العمل على ارتفاع (b) السقوط من نحو 2 متر (c) كسر في الذراع (d) Accident — إصابة فعلية."},
+{k:"sc",n:25,pre:"Scenario 4 — Same Hazard, Different Risk: مذيب صناعي — الحالة A حاوية مغلقة مخزنة في مكان جيد التهوية، الحالة B حاوية مفتوحة بتهوية سيئة بدون ضوابط.",s:"(a) Is the chemical hazard different? (b) What has changed? (c) Where is exposure more likely? (d) Where is the risk greater? (e) Suggest one preventive action.",a:"(a) لا — نفس الخطر الكيميائي (b) تغيرت الظروف: مفتوح + تهوية سيئة + لا ضوابط (c) في B (d) في B — احتمالية وخطورة أعلى (e) إبقاء الحاوية مغلقة وتخزينها في مكان جيد التهوية مع حصر الوصول."},
+{k:"sc",n:26,pre:"Scenario 5 — مادة أكالة مخزنة على رف مرتفع، انزلق الوعاء ورشّ السائل على ذراع العامل فأحدث حرقًا كيميائيًا.",s:"Identify: (a) Hazard (b) Exposure (c) Harm (d) Incident or Accident?",a:"(a) مادة أكالة مخزنة على ارتفاع (b) رشاش السائل على الذراع (c) حرق كيميائي (d) Accident."}]},
+{les:"LESSON 2 — National Safety Legislation and Workplace Responsibilities",qs:[
+{k:"tf",n:27,s:"Being a learner or student means you do not need to follow workplace safety requirements.",a:false,c:"كل الموجودين في الموقع — بمن فيهم المتدربون والطلاب — ملزمون بمتطلبات السلامة."},
+{k:"tf",n:28,s:"The employer can fully delegate the workplace risk assessment to any manager.",a:false,c:"تقييم المخاطر (وتعيين رئيس خدمة الوقاية) من الواجبات غير القابلة للتفويض."},
+{k:"tf",n:29,s:"The supervisor represents workers' interests on health and safety matters.",a:false,c:"تمثيل العمال مهمة الـ RLS؛ المشرف يشرف على التنفيذ اليومي للعمل."},
+{k:"tf",n:30,s:"Occupational insurance systems may cover occupational diseases as well as sudden accidents.",a:true,c:"صحيح — التأمين قد يغطي الأمراض المهنية بجانب الحوادث المفاجئة."},
+{k:"tf",n:31,s:"If you notice an unsafe condition, you should immediately take over the employer's responsibilities and correct it yourself.",a:false,c:"تبلغ عبر القناة المصرح بها ولا تتحمل مسؤوليات صاحب العمل أو المتخصصين."},
+{k:"tf",n:32,s:"Specific training is the same as general information about workplace hazards.",a:false,c:"التدريب المحدد تعليمات عملية مصرح بها للمهام والمعدات عالية الخطورة — مختلف عن المعلومات العامة."},
+{k:"tf",n:33,s:"Non-compliance occurs when an applicable safety requirement or authorised instruction is not followed.",a:true,c:"صحيح — هذا تعريف عدم الامتثال."},
+{k:"d",n:34,s:"Primary legislation / Primary law",a:"قوانين أساسية يصدرها البرلمان الوطني وتضع المبادئ والمتطلبات القانونية العامة."},
+{k:"d",n:35,s:"Implementing regulation or decree",a:"لوائح أو قرارات حكومية/وزارية تحوّل المبادئ إلى متطلبات فنية وتشغيلية ملزمة."},
+{k:"d",n:36,s:"Employer (in the occupational safety system)",a:"يتحمل المسؤولية القانونية الشاملة عن السلامة؛ واجباته غير القابلة للتفويض: إجراء/توثيق تقييم المخاطر + تعيين رئيس خدمة الوقاية والحماية."},
+{k:"d",n:37,s:"Supervisor",a:"يشرف على التنفيذ اليومي الصحيح للعمل ويتأكد من اتباع تعليمات السلامة بدقة؛ جهة الاتصال الأولى عند عدم الوضوح أو الظروف غير الآمنة."},
+{k:"d",n:38,s:"Workers' Safety Representative",a:"يمثل مخاوف العمال في الصحة والسلامة ويشارك في مشاورات تقييم المخاطر — مختلف عن المشرف."},
+{k:"d",n:39,s:"Occupational disease",a:"مرض ناتج عن تعرض متكرر لظروف عمل ضارة (وليس حادثًا مفاجئًا)."},
+{k:"d",n:40,s:"Non-compliance",a:"عدم اتباع متطلب أو تعليمة أو ترتيب سلامة معمول به ومصرح به."},
+{k:"w",n:41,s:"Explain the sequence from national law to safe work in the workplace.",a:"National Law ← Implementing Regulations ← Workplace Safety Arrangements ← Safe Procedures & Instructions ← Safe Work (الممارسة اليومية الآمنة)."},
+{k:"w",n:42,s:"Name two responsibilities of the employer that cannot be delegated.",a:"① إجراء تقييم المخاطر وتوثيقه ② تعيين رئيس خدمة الوقاية والحماية."},
+{k:"w",n:43,s:"What is the difference between Information, Training and Specific training? Give one example of each.",a:"Information = ما يجب أن أعرفه (جهات الطوارئ، المخاطر العامة). Training = ما يجب أن أفهمه (مفاهيم الخطر، الحقوق والواجبات). Specific Training = ما يجب أن أُصرَّح به لأدائه (تشغيل ماكينة CNC، مناولة يدوية، مواد كيميائية خطرة)."},
+{k:"w",n:44,s:"Why must reporting of accidents and occupational diseases follow formal authorised routes?",a:"لأن الإبلاغ التزام قانوني بمدد محددة (48 ساعة / 24 ساعة / 5 أيام عمل) عبر قنوات مصرح بها تضمن التوثيق والمساءلة والتغطية التأمينية."},
+{k:"c",n:45,s:"Compare the roles of the Supervisor and the Workers' Safety Representative.",a:"Supervisor يشرف على كيفية تنفيذ العمل فعليًا ويضمن اتباع التعليمات؛ RLS يمثل العمال ويشارك في مشاورات تقييم المخاطر ولا يصدر تعليمات عمل مباشرة."},
+{k:"c",n:46,s:"Compare the roles of the Employer and the Manager in the safety system.",a:"Employer يملك المسؤولية القانونية الشاملة ويؤسس النظام (تقييم المخاطر، تعيين RSPP)؛ Manager يترجم المتطلبات إلى ممارسة بالتخطيط وتوفير الموارد وتنظيم العمل."},
+{k:"c",n:47,s:"Compare a workplace accident and an occupational disease.",a:"الحادث: حدث مفاجئ غير مخطط يؤدي إلى إصابة فورية. المرض المهني: مرض يتراكم تدريجيًا من التعرض المتكرر لظروف عمل ضارة."},
+{k:"sc",n:48,pre:"Scenario 6 — عامل جديد تلقى تعريفًا عامًا فقط؛ المشرف كلّفه بتشغيل ماكينة لم يتلقَّ لها تدريبًا محددًا، وضغط الإنتاج مرتفع.",s:"(a) Should the worker begin? (b) Who is responsible for organising safe work? (c) What preparation is missing? (d) What should the worker do?",a:"(a) لا — لا يملك التدريب المحدد والكفاءة المطلوبة (b) صاحب العمل / المدير / المشرف مسؤولون عن التنظيم والإشراف (c) الناقص = Specific Training (d) يرفض البدء ويستشير المشرف حتى يكتمل التدريب."},
+{k:"sc",n:49,pre:"Scenario 7 — فني لاحظ حالة غير آمنة معروفة لم تُصحَّح منذ أيام، وتعليمة العمل الآمن المصرح بها لا يتبعها بعض العمال.",s:"(a) Is this non-compliance? (b) Correct action regarding authority? (c) Report to whom first?",a:"(a) نعم — حالة غير آمنة معروفة لم تُصحح + تعليمة مصرح بها لا تُتبع (b) لا يصلحها بنفسه — يفحص ويسجل ويبلغ عبر القناة المصرح بها ضمن صلاحياته (c) المشرف أولًا."},
+{k:"sc",n:50,pre:"Scenario 8 — عامل أصيب بمرض ربطه طبيب الصحة المهنية بالتعرض المتكرر لمادة ضارة. زميله يقول: «التأمين يغطي الحوادث المفاجئة فقط».",s:"(a) Is the colleague correct? (b) What is the correct term?",a:"(a) خطأ — أنظمة التأمين قد تغطي الأمراض المهنية أيضًا (b) المسمى الصحيح: Occupational Disease (مرض مهني)."}]},
+{les:"LESSON 3 — European Directives and Technical Safety Standards",qs:[
+{k:"tf",n:51,s:"Product markings and technical information on machinery are only decorative.",a:false,c:"إنها معلومات سلامة أساسية تحدد الاحتياطات المطلوبة ومسؤوليات المستخدم."},
+{k:"tf",n:52,s:"The CE marking alone guarantees that a machine is safe for every possible task.",a:false,c:"CE إقرار مطابقة فقط — يلزم أيضًا تدريب وإجراءات وضوابط محلية وملاءمة المهمة."},
+{k:"tf",n:53,s:"A technician is expected to recognise important safety information and report anything missing, unclear or inconsistent.",a:true,c:"صحيح — هذا جوهر دور الفني: inspect — record — report."},
+{k:"tf",n:54,s:"Partly completed machinery is treated exactly the same as a complete machine ready for independent use.",a:false,c:"تحتاج Declaration of Incorporation وتُدمج في آلة أخرى — ليست جاهزة للاستخدام المستقل."},
+{k:"tf",n:55,s:"An Ex marking means the equipment is explosion-proof in every situation without further checks.",a:false,c:"تعني وجود متطلبات خاصة للمناطق الانفجارية؛ يلزم اتباع تصنيف المنطقة وتعليمات المنتج وإجراءات الموقع."},
+{k:"tf",n:56,s:"If the model number on the operating instructions is different from the model number on the machine, you should ignore the difference.",a:false,c:"سجّل الفارق وأبلغ للتحقق المصرح به — لا تتجاهل ولا تفترض."},
+{k:"tf",n:57,s:"The Machinery Directive applies to machinery that has a drive system other than direct human or animal effort.",a:true,c:"صحيح — آلات بمكونات متصلة وجزء متحرك ونظام إدارة غير جهد بشري/حيواني."},
+{k:"d",n:58,s:"CE marking",a:"علامة يضعها المنتِج لإقرار استيفاء متطلبات الاتحاد الأوروبي المنطبقة وإتمام إجراءات تقييم المطابقة — ليست علامة جودة."},
+{k:"d",n:59,s:"European Directive (product safety)",a:"تشريع أوروبي يضع متطلبات أساسية إلزامية (EHSRs) يجب أن تحققها المنتجات قبل طرحها في السوق."},
+{k:"d",n:60,s:"Partly completed machinery",a:"مجموعة فرعية تُدمج فقط داخل آلات أخرى؛ تُرفق بتعليمات تجميع وإقرار دمج (Declaration of Incorporation)."},
+{k:"d",n:61,s:"Declaration of Conformity",a:"وثيقة المنتِج تقر بمطابقة الآلة المكتملة للتوجيهات المنطبقة — مصاحبة لعلامة CE."},
+{k:"d",n:62,s:"Ex marking (ATEX context)",a:"وسم إضافي لمعدات المناطق ذات الأجواء الانفجارية — يعني تطبيق متطلبات خاصة، ولا يعني مقاومة انفجار مطلقة."},
+{k:"d",n:63,s:"Technical standard",a:"مواصفة فنية موثقة أو طريقة تقييم وُضعت عبر عملية معيارية معترف بها — طوعية افتراضيًا وتصبح إلزامية عند الإحالة إليها قانونًا أو في لوائح أو اشتراطات ملزمة."},
+{k:"w",n:64,s:"List at least four types of information you may find on industrial machinery that help you work safely.",a:"① بيانات التعريف (الاسم/الموديل/الرقم المسلسل) ② علامات المطابقة (CE) ③ حدود التشغيل (الحمل/السرعة/الضغط/الحرارة) ④ علامات التحذير والسلامة ⑤ تعليمات المنتِج والدليل."},
+{k:"w",n:65,s:"Why is it important that the model number on the instructions matches the machine?",a:"لضمان أن التعليمات تخص هذه الآلة بالذات؛ اختلاف الموديل يعني وجوب التحقق من الانطباق عبر مصدر مصرح به قبل الاعتماد عليها."},
+{k:"w",n:66,s:"What should a technician do if safety markings, labels or instructions are missing, unclear or inconsistent?",a:"يسجل الملاحظات ويبلغ عبر القناة المصرح بها — لا يستخدم المعدة ولا يفترض المطابقة حتى يتم التحقق المصرح به."},
+{k:"w",n:67,s:"Explain the difference between a Declaration of Conformity and a Declaration of Incorporation.",a:"Conformity: لآلة مكتملة جاهزة للاستخدام المستقل. Incorporation: لآلة غير مكتملة تُدمج في آلة أخرى، وتصاحبها تعليمات تجميع."},
+{k:"c",n:68,s:"Compare a complete machine and partly completed machinery. How do their documents differ?",a:"المكتملة: CE + Declaration of Conformity. غير المكتملة: Declaration of Incorporation + Assembly instructions — ولا يجوز استخدامها مستقلة."},
+{k:"c",n:69,s:"Compare the meaning of the CE marking and the Ex marking.",a:"CE: إقرار مطابقة مع متطلبات الاتحاد — لا يضمن الجودة ولا الأمان لكل مهمة. Ex: متطلبات خاصة للأجواء الانفجارية — لا يعني حماية مطلقة في كل المواقف."},
+{k:"sc",n:70,pre:"Scenario 9 — ماكينة عليها: اسم المنتِج، موديل، رقم مسلسل، CE، بيانات كهربائية، رمز تحذير. التعليمات المتوفرة موديلها مختلف قليلًا عن الموديل على الماكينة.",s:"(a) What to check first? (b) What does CE tell you? (c) Does CE alone mean safe for every task? (d) Why is the model difference important? (e) Assume instructions suitable?",a:"(a) بيانات التعريف ومطابقتها مع التعليمات (b) إقرار المنتِج باستيفاء متطلبات الاتحاد وإتمام تقييم المطابقة (c) لا (d) قد لا تنطبق التعليمات على هذه الآلة تحديدًا (e) لا — سجّل وأبلغ للتحقق المصرح به."},
+{k:"sc",n:71,pre:"Scenario 10 — وصل مكوّن (صمام سيرفو / وحدة طاقة هيدروليكية) بإقرار دمج وتعليمات تجميع. زميلك: «عنده أوراق CE يبقى نستخدمه كماكينة مستقلة».",s:"(a) Is the colleague correct? (b) What type of equipment is this? (c) What documents should accompany it?",a:"(a) لا — لا يجوز استخدامه كآلة مستقلة (b) على الأرجح Partly Completed Machinery (c) Declaration of Incorporation + Assembly instructions."},
+{k:"sc",n:72,pre:"Scenario 11 — معدّة في منطقة انفجارية محتملة عليها CE و Ex معًا. عامل: «علامة Ex تعني مقاومة انفجار في كل مكان — لا نحتاج أي فحوصات إضافية».",s:"(a) Is the worker correct? (b) What must still be followed? (c) What if unsure about suitability for the zone?",a:"(a) لا (b) معلومات المعدة + تصنيف المنطقة المصرح به + تعليمات المنتِج + إجراءات الموقع + ضوابط المهمة (c) يُبلغ ويستشير المشرف ويتحقق من الانطباق قبل الاستخدام."}]}];
+
 
 /* =================================================================
    6) الاختبار السريع
    ================================================================= */
-let QUIZ = [
-{ q: "Which two responsibilities of the Employer cannot be delegated?", o: ["Conducting risk assessment and appointing Head of Prevention","Supervising daily work","Representing workers"], a: 0, e: "واجبات صاحب العمل غير القابلة للتفويض." },
-{ q: "What is the main role of the Supervisor?", o: ["Medical examinations","Oversee correct work execution","Represent worker interests"], a: 1, e: "المشرف يشرف على التنفيذ اليومي." },
-{ q: "A worker slips but stays on his feet. This is:", o: ["An accident","An incident","A hazard"], a: 1, e: "لا ضرر فعلي حدث = Incident." }
-];
+const QUIZ=[
+{q:"Which two responsibilities of the Employer cannot be delegated?",o:["Conducting the risk assessment and appointing the Head of Prevention","Supervising daily work and buying safety equipment","Conducting health examinations and representing workers"],a:0,e:"واجبات صاحب العمل غير القابلة للتفويض: إجراء/توثيق تقييم المخاطر + تعيين رئيس خدمة الوقاية والحماية."},
+{q:"What is the main role of the Supervisor (Preposto)?",o:["To carry out medical examinations on workers","To oversee the correct execution of work and ensure instructions are followed","To represent worker interests during safety meetings"],a:1,e:"المشرف يشرف على التنفيذ اليومي الصحيح للعمل وضمان اتباع التعليمات."},
+{q:"How does the Workers' Safety Representative (RLS) differ from a Supervisor?",o:["The RLS gives direct work instructions to technicians","The RLS oversees daily production speed","The RLS represents worker safety concerns, while the Supervisor oversees work execution"],a:2,e:"RLS يمثل مخاوف العمال في السلامة، بينما المشرف يشرف على تنفيذ العمل."},
+{q:"Who performs Health Surveillance in the company?",o:["The Manager","The Occupational Health Doctor","The Head of the Prevention Service"],a:1,e:"الرقابة الصحية يقوم بها طبيب الصحة المهنية."},
+{q:"What is the primary purpose of Council Directive 89/391/EEC (Framework Directive)?",o:["To regulate the pricing of industrial goods in Europe","To establish a general framework for protecting workers' health and safety at work","To eliminate the need for CE marking on industrial machines"],a:1,e:"توجيه الإطار يضع إطارًا عامًا لحماية صحة العامل وسلامته في العمل."},
+{q:"Who holds primary responsibility under EU Product-Safety Directives?",o:["The Supervisor on the factory floor","The Occupational Health Doctor","The Manufacturer and economic operators placing the product on the market"],a:2,e:"مسؤولية سلامة المنتج تقع على المنتِج والمشغلين الاقتصاديين."},
+{q:"What is the relationship between a Product Directive and a Harmonised Standard (e.g., EN ISO 12100)?",o:["Directives specify WHAT safety outcomes are required; standards provide technical methods on HOW to achieve them","Directives apply to workers; standards apply only to employers","Standards replace the legal requirement of the directive"],a:0,e:"التوجيه يحدد «ماذا» والمعيار المنسق يحدد «كيف»."},
+{q:"Does buying a CE-marked machine mean no further safety measures are needed?",o:["Yes, CE marking guarantees no training is required","No, workplace safety controls, operator training and safe work procedures are still required","Yes, liability transfers fully to the manufacturer"],a:1,e:"CE لا يلغي واجب صاحب العمل: التدريب والإجراءات والضوابط المحلية ما زالت مطلوبة."},
+{q:"Which organization focuses on electrical/electronic standards at the INTERNATIONAL level?",o:["CEN","IEC","ETSI"],a:1,e:"IEC = International Electrotechnical Commission."},
+{q:"What makes a Technical Regulation different from a Technical Standard?",o:["Standards are always mandatory laws","Regulations are legally binding whereas standards are voluntary unless referenced by law","Regulations are published only by national companies"],a:1,e:"اللائحة ملزمة قانونًا، المعيار طوعي افتراضيًا."},
+{q:"Which machinery standard type deals with safety DEVICES such as Emergency Stop (EN ISO 13850)?",o:["Type A","Type B1","Type B2","Type C"],a:2,e:"Type B2 = أجهزة السلامة المحددة."},
+{q:"If a Type C standard conflicts with a Type A standard for a specific machine, which takes precedence?",o:["The Type A standard","The Type C standard","The employer chooses whichever is easier"],a:1,e:"قاعدة الأولوية: Type C يتفوق على A وB عند التعارض."},
+{q:"A flame-over-circle pictogram on a chemical label indicates:",o:["Flammable","Oxidizing","Pressurized gas","Acute toxicity"],a:1,e:"لهب فوق دائرة = مؤكسد Oxidizing."},
+{q:"A worker slips on a wet floor but stays on his feet. This is:",o:["An accident","An incident","A hazard"],a:1,e:"لا ضرر فعلي حدث = Incident. لو كسر ذراعه = Accident."},
+{q:"Machine label: ST-450 Serial 74218. Instructions: ST-450 Serial 74281. What should you do?",o:["Assume the instructions belong to the machine","Record and report the discrepancy for authorized verification before relying on the instructions","Use the machine without checking"],a:1,e:"الموديل متطابق لكن الرقم المسلسل لا — سجّل وأبلغ."},
+{q:"Non-compliance occurs when…",o:["An applicable requirement or authorised instruction is not being followed","An accident has already happened","A worker wears the wrong uniform color"],a:0,e:"عدم الامتثال = عدم اتباع متطلب أو تعليمة مصرح بها معمول به."}];
+
 
 /* ================= أدوات ================= */
 const $=id=>document.getElementById(id);
@@ -604,7 +698,10 @@ function buildDict(){
     sec.innerHTML=`<div class="sec-h" onclick="this.parentElement.classList.toggle('closed')">
       <h2>🗂️ ${esc(S.n)}</h2>
       <div style="display:flex;align-items:center;gap:6px">
-        <button class="btn-speak" onclick="event.stopPropagation();speakSection(${si})" title="نطق القسم بالإنجليزية والإيطالية">🔊 نطق الكل</button>
+        <button class="btn-speak" onclick="event.stopPropagation();speakSection(${si})" 
+        title="ينطق الكلمة إنجليزي ثم إيطالي بالتتابع">
+  🔊 نطق الكل
+</button>
         <span class="rng">${S.t[0][0]}–${S.t[S.t.length-1][0]}</span>
       </div>
     </div>
