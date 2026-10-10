@@ -713,8 +713,9 @@ function buildDict(){
       <th>المعنى</th>
     </tr></thead>
     <tbody>${S.t.map(t=>`<tr data-f="${esc((t[1]+" "+t[2]+" "+t[3]+" "+t[4]+" "+t[5]).toLowerCase())}">
-        <td class="en" onclick="speak('${esc(t[1].replace(/'/g,"\\'"))}','en-US',0.85,this)" title="اضغط للسماع">${esc(t[1])} <span class="spk">🔊</span></td>
-        <td class="it" onclick="speak('${esc(t[2].replace(/'/g,"\\'"))}','it-IT',0.85,this)" title="Clicca per ascoltare">${esc(t[2])} <span class="spk">🔊</span></td>
+        <td class="num">${t[0]}</td>
+        <td class="en" onclick="speak('${esc(t[1].replace(/'/g,"\\'"))}','en-US')" title="اضغط للسماع">${esc(t[1])} <span class="spk">🔊</span></td>
+        <td class="it" onclick="speak('${esc(t[2].replace(/'/g,"\\'"))}','it-IT')" title="Clicca per ascoltare">${esc(t[2])} <span class="spk">🔊</span></td>
         <td class="pro">${esc(t[3])}</td>
         <td class="pro-it">${esc(t[4])}</td>
         <td>${esc(t[5])}</td>
