@@ -4,7 +4,54 @@ let currentSpokenEl = null;
 let currentRowEl = null;
 let isSpeakingSection = false;
 let currentSectionSi = null;
-
+/* ---------- نطق كلمة فردية ---------- */
+function speak(text, lang = 'en-US', rate = 0.85, el = null) {
+  // 1) شيل تظليل الكلمة القديمة
+  if (currentSpokenEl) {
+    currentSpokenEl.classList.remove('speaking');
+    currentSpokenEl = null;
+  }
+  
+  // 2) لو "نطق الكل" شغال، أوقفه
+  if (isSpeakingSection) {
+    stopSpeaking();
+  }
+  
+  if (!soundOn) return;
+  if (!('speechSynthesis' in window)) { 
+    alert('المتصفح لا يدعم النطق'); 
+    return; 
+  }
+  
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
+  utter.rate = rate;
+  utter.pitch = 1;
+  utter.volume = 1;
+  
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.lang === lang)
+                 || voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+  if (preferred) utter.voice = preferred;
+  
+  // 3) ظلل الكلمة
+  if (el) {
+    el.classList.add('speaking');
+    currentSpokenEl = el;
+  }
+  
+  // 4) شيل التظليل لما النطق يخلص
+  utter.onend = () => {
+    if (currentSpokenEl) {
+      currentSpokenEl.classList.remove('speaking');
+      currentSpokenEl = null;
+    }
+  };
+  utter.onerror = utter.onend;
+  
+  window.speechSynthesis.speak(utter);
+}
 /* ---------- نطق القسم كامل (نطق الكل) ---------- */
 function speakSection(si) {
   // لو نفس القسم شغال → أوقفه
