@@ -1452,3 +1452,11 @@ async function init(){
   catch(e){ console.warn('خطأ:', e); }
 }
 init();
+/* ================= تسجيل Service Worker (PWA) ================= */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('✅ Service Worker مسجل بنجاح:', reg.scope))
+      .catch(err => console.warn('⚠️ فشل تسجيل Service Worker:', err));
+  });
+}
