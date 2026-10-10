@@ -1456,7 +1456,33 @@ init();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('✅ Service Worker مسجل بنجاح:', reg.scope))
+      .then(reg => {
+        console.log('✅ Service Worker مسجل بنجاح:', reg.scope);
+        
+        // الاستماع لتحديثات SW
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          if (!newSW) return;
+          
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              // فيه نسخة جديدة — اسأل المستخدم
+              if (confirm('🎉 فيه نسخة جديدة من الموقع!\nهل تريد تحديث الصفحة الآن؟')) {
+                newSW.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
+              }
+            }
+          });
+        });
+      })
       .catch(err => console.warn('⚠️ فشل تسجيل Service Worker:', err));
   });
 }
+
+// لما الـ SW الجديد ياخد السيطرة، اعمل reload
+let refreshing = false;
+navigator.serviceWorker?.addEventListener('controllerchange', () => {
+  if (refreshing) return;
+  refreshing = true;
+  window.location.reload();
+});
