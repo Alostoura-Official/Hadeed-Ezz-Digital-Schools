@@ -287,16 +287,18 @@ table{
   .sec-b td{padding:4px 5px;font-size:9.5px}
 }
 
-/* ============ تظليل الكلمة أثناء النطق ============ */
+/* ============ تظليل الكلمة أثناء النطق — بدون ما تتحرك ============ */
 .speaking {
   background: linear-gradient(90deg, #fef08a, #fde047) !important;
   color: #000 !important;
-  border-radius: 6px;
-  padding: 2px 8px;
-  box-shadow: 0 0 15px rgba(253, 224, 71, 0.8);
+  border-radius: 4px;
+  /* ⬅️ مفيش padding — بنستخدم box-shadow للتأثير */
+  box-shadow: 
+    0 0 0 2px #fbbf24,
+    0 0 15px rgba(253, 224, 71, 0.7);
   animation: pulse-speak 1.2s ease-in-out infinite;
-  transition: all 0.25s ease;
-  display: inline-block;
+  transition: box-shadow 0.2s, background 0.2s;
+  font-weight: 600;
 }
 
 .speaking .spk {
@@ -304,8 +306,12 @@ table{
 }
 
 @keyframes pulse-speak {
-  0%, 100% { box-shadow: 0 0 15px rgba(253, 224, 71, 0.8); }
-  50% { box-shadow: 0 0 25px rgba(253, 224, 71, 1); }
+  0%, 100% { 
+    box-shadow: 0 0 0 2px #fbbf24, 0 0 15px rgba(253, 224, 71, 0.7); 
+  }
+  50% { 
+    box-shadow: 0 0 0 3px #ea580c, 0 0 25px rgba(253, 224, 71, 1); 
+  }
 }
 
 @keyframes blink {
@@ -317,5 +323,7 @@ table{
 [data-theme="dark"] .speaking {
   background: linear-gradient(90deg, #fbbf24, #f59e0b) !important;
   color: #000 !important;
-  box-shadow: 0 0 20px rgba(251, 191, 36, 1);
+  box-shadow: 
+    0 0 0 2px #ea580c,
+    0 0 20px rgba(251, 191, 36, 0.9);
 }
