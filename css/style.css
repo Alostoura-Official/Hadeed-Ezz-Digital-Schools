@@ -324,3 +324,90 @@ table{
     0 0 0 2px #ea580c,
     0 0 20px rgba(251, 191, 36, 0.9);
 }
+
+
+/* ============ Splash Screen ============ */
+#splashScreen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #b45309, #ea7c0c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  overflow: hidden;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+#splashScreen.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#splashImg {
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;           
+  object-position: center;
+  display: block;
+  padding: 20px;                  
+  box-sizing: border-box;
+}
+
+/* على الشاشات الكبيرة (تابلت/كمبيوتر) */
+@media (min-width: 768px) {
+  #splashImg {
+    max-width: 500px;
+    max-height: 100vh;
+  }
+}
+
+/* ============ شريط التحميل ============ */
+#splashScreen::after {
+  content: '';
+  position: absolute;
+  bottom: 12%;                   
+  left: 50%;
+  transform: translateX(-50%);    
+  width: 140px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);  
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#splashScreen::before {
+  content: '';
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 4px;
+  background: #ffffff;          
+  border-radius: 4px;
+  z-index: 1;
+  animation: splashProgress 2.5s ease-out forwards;
+}
+
+@keyframes splashProgress {
+  0%   { width: 0; }
+  100% { width: 140px; }
+}
+
+/* ============ حركة ظهور الصورة ============ */
+#splashImg {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
