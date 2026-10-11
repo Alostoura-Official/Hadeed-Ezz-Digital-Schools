@@ -1637,3 +1637,32 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   refreshing = true;
   window.location.reload();
 });
+
+
+/* ============ Splash Screen Timer ============ */
+(function(){
+  const splash = document.getElementById('splashScreen');
+  if (!splash) return;
+  
+  // اخفي الصورة بعد 2.5 ثانية
+  const SPLASH_DURATION = 2500;
+  
+  // ابدأ المؤقت بعد ما الصفحة تحمّل
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      splash.classList.add('hide');
+      // امحي العنصر بعد الانيميشن
+      setTimeout(() => splash.remove(), 700);
+    }, SPLASH_DURATION);
+  });
+  
+  // حل احتياطي — لو الصفحة بطيئة
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      if (splash && !splash.classList.contains('hide')) {
+        splash.classList.add('hide');
+        setTimeout(() => splash.remove(), 700);
+      }
+    }, 5000);  // ⬅️ أقصى مدة 5 ثواني
+  });
+})();
