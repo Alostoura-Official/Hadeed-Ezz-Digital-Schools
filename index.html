@@ -42,6 +42,7 @@
   <button class="btn" onclick="window.print()">🖨️ طباعة</button>
   <button class="btn" id="thBtn" onclick="theme()">🌙 وضع ليلي</button>
   <button class="btn install-header-btn" id="installHeaderBtn" onclick="openInstallModal()" style="display:none">📲 تثبيت</button>
+  <button class="btn share-header-btn" onclick="openShareModal()">📤 مشاركة</button>
 </div>
 </header>
 
@@ -193,7 +194,81 @@
 
 <!-- ============ Overlay ============ -->
 <div id="installOverlay" class="install-overlay" style="display:none" onclick="closeIosModal()"></div>
-	
+
+<!-- ============ مودال المشاركة ============ -->
+<div id="shareModal" class="share-modal" style="display:none">
+  <div class="share-modal-content">
+    <button class="share-modal-close" onclick="closeShareModal()">✕</button>
+    
+    <div class="share-modal-icon">📤</div>
+    <h2>شارك التطبيق</h2>
+    <p class="share-subtitle">اختر طريقة المشاركة</p>
+    
+    <!-- معاينة الرابط -->
+    <div class="share-url-box">
+      <input type="text" id="shareUrlInput" readonly value="">
+      <button class="share-copy-inline" onclick="copyShareUrl()" title="نسخ">📋</button>
+    </div>
+    
+    <!-- خيارات المشاركة -->
+    <div class="share-options">
+      
+      <button class="share-option" onclick="shareNative()">
+        <span class="share-option-icon">📱</span>
+        <span class="share-option-label">مشاركة</span>
+      </button>
+      
+      <button class="share-option" onclick="shareWhatsApp()">
+        <span class="share-option-icon" style="background:#25D366">💬</span>
+        <span class="share-option-label">واتساب</span>
+      </button>
+      
+      <button class="share-option" onclick="shareTelegram()">
+        <span class="share-option-icon" style="background:#0088cc">✈️</span>
+        <span class="share-option-label">تيليجرام</span>
+      </button>
+      
+      <button class="share-option" onclick="shareFacebook()">
+        <span class="share-option-icon" style="background:#1877F2">f</span>
+        <span class="share-option-label">فيسبوك</span>
+      </button>
+      
+      <button class="share-option" onclick="shareTwitter()">
+        <span class="share-option-icon" style="background:#000">𝕏</span>
+        <span class="share-option-label">تويتر / X</span>
+      </button>
+      
+      <button class="share-option" onclick="showQRCode()">
+        <span class="share-option-icon" style="background:#ea7c0c">📷</span>
+        <span class="share-option-label">QR Code</span>
+      </button>
+      
+      <button class="share-option" onclick="copyShareUrl()">
+        <span class="share-option-icon" style="background:#6b7280">🔗</span>
+        <span class="share-option-label">نسخ الرابط</span>
+      </button>
+      
+    </div>
+    
+    <!-- رسالة النسخ -->
+    <div id="copyToast" class="copy-toast">✅ تم نسخ الرابط</div>
+    
+    <!-- QR Code Container -->
+    <div id="qrContainer" class="qr-container" style="display:none">
+      <h3>امسح الرمز لفتح التطبيق</h3>
+      <div id="qrcode"></div>
+      <p class="qr-hint">افتح كاميرا موبايلك ووجّهها للرمز</p>
+      <button class="qr-close-btn" onclick="hideQRCode()">إغلاق</button>
+    </div>
+    
+  </div>
+</div>
+
+<!-- Overlay -->
+<div id="shareOverlay" class="share-overlay" style="display:none" onclick="closeShareModal()"></div>
+
+<!-- مكتبة QR Code -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>	
   <script src="js/app.js" defer></script>
 </body>
 </html>
