@@ -1,8 +1,17 @@
-const CACHE = 'hadid-eez-v14';
+const CACHE = 'hadid-eez-v15';
 const ASSETS = [
   './',
   './index.html',
   './css/style.css',
+  './css/css2.css',  
+  './css/fonts/tajawal-400-arabic.woff2',
+  './css/fonts/tajawal-400-latin.woff2',
+  './css/fonts/tajawal-500-arabic.woff2',
+  './css/fonts/tajawal-500-latin.woff2',
+  './css/fonts/tajawal-700-arabic.woff2',
+  './css/fonts/tajawal-700-latin.woff2',
+  './css/fonts/tajawal-800-arabic.woff2',
+  './css/fonts/tajawal-800-latin.woff2',
   './js/app.js',
   './js/lib/pdf.min.js',
   './js/lib/pdf.worker.min.js',
