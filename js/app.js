@@ -1687,7 +1687,7 @@ async function pvOpen(id){
 
 async function pvRender(n){
   if(!pvPdf) return;
-  if(n<1 || n>pvPdf.numPages) return;
+  if(n < 1 || n > pvPdf.numPages) return;
   pvPage = n;
   $('pvCur').textContent = n;
   $('pvPrev').disabled = n <= 1;
@@ -1695,11 +1695,29 @@ async function pvRender(n){
 
   try{
     const page = await pvPdf.getPage(n);
-    const containerW = Math.min(window.innerWidth - 60, 1000);
-    const containerH = window.innerHeight - 220;
+    
+    // ⬅️ استخدم أبعاد الشاشة مباشرة (مش getBoundingClientRect)
+    const isFullscreen = !!document.fullscreenElement;
+    const containerW = isFullscreen 
+      ? window.innerWidth - 40 
+      : Math.min(window.innerWidth - 80, 1800);   // ⬅️ حد أقصى 1400px
+    const containerH = isFullscreen 
+      ? window.innerHeight - 100 
+      : window.innerHeight - 200;                 // ⬅️ أقل شوية عشان الشريط
+    
+    console.log('📐 العرض المتاح:', containerW, '×', containerH);
+    
     const vp1 = page.getViewport({ scale: 1 });
-    const scale = Math.min(containerW / vp1.width, containerH / vp1.height, 2.5);
+    
+    // ⬅️ احسب scale حسب المساحة المتاحة
+    const baseScale = Math.min(
+      containerW / vp1.width,
+      containerH / vp1.height
+    );
+    const scale = baseScale * pvZoomLevel;
     const vp = page.getViewport({ scale });
+
+    console.log('📏 Scale النهائي:', scale.toFixed(2));
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -1708,6 +1726,9 @@ async function pvRender(n){
     canvas.height = Math.floor(vp.height * dpr);
     canvas.style.width = Math.floor(vp.width) + 'px';
     canvas.style.height = Math.floor(vp.height) + 'px';
+    canvas.style.maxWidth = '100%';           // ⬅️ حماية إضافية
+    canvas.style.height = 'auto';
+    canvas.style.display = 'block';
     ctx.scale(dpr, dpr);
     await page.render({ canvasContext: ctx, viewport: vp }).promise;
 
@@ -1758,6 +1779,70 @@ document.addEventListener('keydown', e=>{
   if(e.key === 'ArrowRight' || e.key === 'ArrowDown'){ e.preventDefault(); pvGo(1); }
   if(e.key === 'ArrowLeft'  || e.key === 'ArrowUp'){   e.preventDefault(); pvGo(-1); }
   if(e.key === 'Escape') pvClose();
+});
+
+/* ---------- تحكم في الحجم ---------- */
+let pvZoomLevel = 1;   // ⬅️ مستوى التكبير
+
+window.pvZoom = function(dir) {
+  pvZoomLevel = Math.max(0.5, Math.min(3, pvZoomLevel + dir * 0.2));
+  console.log('🔍 مستوى التكبير:', pvZoomLevel.toFixed(1));
+  pvRender(pvPage);
+};
+
+window.pvToggleFullscreen = function() {
+  const viewer = $('pdfViewer');
+  if (!viewer) return;
+  
+  if (!document.fullscreenElement) {
+    // دخول ملء الشاشة
+    if (viewer.requestFullscreen) {
+      viewer.requestFullscreen();
+    } else if (viewer.webkitRequestFullscreen) {
+      viewer.webkitRequestFullscreen();
+    } else if (viewer.msRequestFullscreen) {
+      viewer.msRequestFullscreen();
+    }
+  } else {
+    // الخروج من ملء الشاشة
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  }
+};
+
+// تحديث الأيقونة عند تغيير حالة ملء الشاشة
+document.addEventListener('fullscreenchange', () => {
+  const btn = $('pvFullscreen');
+  if (btn) {
+    btn.textContent = document.fullscreenElement ? '⛶✕' : '⛶';
+    btn.title = document.fullscreenElement ? 'الخروج من ملء الشاشة' : 'ملء الشاشة';
+  }
+  // أعد عرض الصفحة عشان تتأقلم مع الحجم الجديد
+  if (pvPdf) setTimeout(() => pvRender(pvPage), 100);
+});
+
+// دعم اختصار F11 / Ctrl+F / زر Escape
+document.addEventListener('keydown', e => {
+  if (!$('pdfViewer').classList.contains('show')) return;
+  // Ctrl + F → ملء الشاشة
+  if (e.ctrlKey && e.key === 'f') {
+    e.preventDefault();
+    pvToggleFullscreen();
+  }
+  // + و - للتكبير
+  if (e.key === '+' || e.key === '=') {
+    e.preventDefault();
+    pvZoom(1);
+  }
+  if (e.key === '-') {
+    e.preventDefault();
+    pvZoom(-1);
+  }
 });
 
 let pvResizeTimer;
