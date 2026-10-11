@@ -1204,35 +1204,101 @@ window.addEventListener('scroll',()=>{
 goToTopButton.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
 
 /* =================================================================
-   نظام PDF — عن طريق روابط GitHub
+   نظام PDF — رفع الملفات من الجهاز
    ================================================================= */
-const LINKS_KEY = 'mech_pdf_links_v1';
+const DB_NAME = 'hadeed_eez_pdfs';
+const DB_VERSION = 1;
+const STORE_NAME = 'files';
 
-function getLinks(){
-  try{ return JSON.parse(localStorage.getItem(LINKS_KEY)||'[]'); }
-  catch(e){ return []; }
-}
-function saveLinks(arr){ localStorage.setItem(LINKS_KEY, JSON.stringify(arr)); }
-function addLink(link){
-  const arr = getLinks();
-  link.id = 'lnk_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-  arr.push(link);
-  saveLinks(arr);
-  return link.id;
-}
-function removeLink(id){
-  saveLinks(getLinks().filter(x => x.id !== id));
-}
-function clearAllLinks(){ saveLinks([]); }
+let dbInstance = null;
+let selectedFile = null;   // الملف المختار حالياً
 
-async function fetchPdfBuffer(url){
-  const resp = await fetch(url);
-  if(!resp.ok) throw new Error('HTTP ' + resp.status);
-  return await resp.arrayBuffer();
+/* ---------- فتح قاعدة البيانات ---------- */
+function openDB() {
+  return new Promise((resolve, reject) => {
+    if (dbInstance) return resolve(dbInstance);
+    
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+        store.createIndex('subj', 'subj', { unique: false });
+        store.createIndex('type', 'type', { unique: false });
+      }
+    };
+    
+    req.onsuccess = (e) => {
+      dbInstance = e.target.result;
+      resolve(dbInstance);
+    };
+    
+    req.onerror = (e) => reject(e.target.error);
+  });
 }
-async function extractTextFromUrl(url){
-  const buf = await fetchPdfBuffer(url);
-  const u8 = new Uint8Array(buf);
+
+/* ---------- إضافة ملف ---------- */
+async function addFileToDB(fileRecord) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.put(fileRecord);
+    req.onsuccess = () => resolve(fileRecord.id);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+/* ---------- جلب كل الملفات ---------- */
+async function getAllFiles() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+/* ---------- حذف ملف ---------- */
+async function deleteFileFromDB(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+/* ---------- حذف كل الملفات ---------- */
+async function clearAllFiles() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.clear();
+    req.onsuccess = () => resolve();
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+/* ---------- قراءة ملف كـ ArrayBuffer ---------- */
+function readFileAsArrayBuffer(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (e) => reject(e.target.error);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+/* ---------- استخراج النص من buffer ---------- */
+async function extractTextFromBuffer(arrayBuffer) {
+  const u8 = new Uint8Array(arrayBuffer);
   const pdf = await pdfjsLib.getDocument({ data: u8 }).promise;
   let fullText = '';
   for(let i=1; i<=pdf.numPages; i++){
@@ -1253,79 +1319,52 @@ async function extractTextFromUrl(url){
   return fullText;
 }
 
-/* ================= تحليل النصوص ================= */
-function parseDict(text){
-  const rows=[];let counter=1;
-  text.split('\n').forEach(line=>{
-    line=line.trim();
-    if(!line||line.length<4)return;
-    if(/^[A-Z\s]{3,}$/.test(line)&&line.split(' ').length<4&&!/[a-z]/.test(line))return;
-    let parts=line.split(/\s*[|•\t]\s*/);
-    if(parts.length<2)parts=line.split(/\s+[-–—:]\s+/);
-    if(parts.length>=2){
-  const en=parts[0].trim();
-  const meaning=parts.slice(1).join(' | ').trim();
-  rows.push([counter++, en, en, meaning, meaning, meaning]);
-}
-  });
-  return rows;
-}
-function parseLessons(text){
-  const lessons=[];const lines=text.split('\n');let current=null;
-  const titleRe=/^\s*(Unit|UNIT|Lesson|LESSON|Chapter|CHAPTER|الوحدة|الدرس|الباب|الفصل)\s*[\d\-\.:]*/;
-  lines.forEach(raw=>{
-    const line=raw.trim();if(!line)return;
-    if(titleRe.test(line)||(line.length<80&&/^[A-Z][A-Za-z\s\d\-:]{5,}$/.test(line)&&line===line.toUpperCase())){
-      if(current)lessons.push(current);
-      current={u:'PDF Lesson',t:line,subs:[{n:line,i:'📄',b:[]}]};
-    }else if(current){
-      current.subs[0].b.push({t:'p',x:line});
-    }else{
-      current={u:'PDF Lesson',t:'محتوى PDF',subs:[{n:'المحتوى',i:'📄',b:[]}]};
-      current.subs[0].b.push({t:'p',x:line});
-    }
-  });
-  if(current)lessons.push(current);
-  return lessons;
-}
-function parseQBank(text){
-  const questions=[];const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
-  let i=0,qNum=1;
-  while(i<lines.length){
-    const line=lines[i];
-    if(/^(True|False|صح|خطأ)\s*[:：\-]/i.test(line)||/\?\s*$/.test(line)){
-      const q=line;const opts=[];let j=i+1;
-      while(j<lines.length&&/^[a-dA-D1-4][\)\.\-:]\s*/.test(lines[j])){
-        opts.push(lines[j].replace(/^[a-dA-D1-4][\)\.\-:]\s*/,'').trim());j++;
-      }
-      let answer='يرجى مراجعة المصدر.';
-      const ansMatch=lines.slice(i,j).join(' ').match(/Answer|الإجابة\s*[:：]\s*(.+)/i);
-      if(ansMatch)answer=ansMatch[1];
-      questions.push({k:'w',n:qNum,s:q,a:answer});
-      qNum++;i=j;
-    }else i++;
+/* ---------- تحديث حالة اختيار الملف ---------- */
+function updateSelectedFileDisplay() {
+  const wrap = $('pdfSelectedFile');
+  if (!wrap) return;
+  
+  if (!selectedFile) {
+    wrap.style.display = 'none';
+    return;
   }
-  return questions;
+  
+  const sizeKB = (selectedFile.size / 1024).toFixed(1);
+  const sizeMB = (selectedFile.size / (1024 * 1024)).toFixed(2);
+  const displaySize = selectedFile.size > 1024 * 1024 ? sizeMB + ' MB' : sizeKB + ' KB';
+  
+  wrap.innerHTML = `
+    <div class="file-info">
+      <span>📄</span>
+      <span class="file-name">${esc(selectedFile.name)}</span>
+      <span class="file-size">${displaySize}</span>
+    </div>
+    <button class="remove-file" onclick="clearSelectedFile()" title="إزالة الملف">✕</button>
+  `;
+  wrap.style.display = 'flex';
 }
-function parseDefs(text){
-  const defs=[];
-  text.split('\n').forEach(line=>{
-    line=line.trim();if(!line||line.length<8)return;
-    const m=line.match(/^(.{2,60}?)\s*[=:–—]\s*(.{5,})$/);
-    if(m)defs.push([m[1].trim(),m[1].trim(),m[2].trim()]);
-  });
-  return defs;
-}
+
+window.clearSelectedFile = function() {
+  selectedFile = null;
+  const fileInput = $('pdfFile');
+  if (fileInput) fileInput.value = '';
+  updateSelectedFileDisplay();
+};
 
 /* ================= إعادة البناء ================= */
 async function rebuildFromLinks(){
-  const links = getLinks();
-  pvFiles = links;
-  renderPdfList(links);
-  if(!links.length) return false;
+  const files = await getAllFiles();
+  pvFiles = files;
+  renderPdfList(files);
+  
+  if(!files.length){
+    const status = $('pdfStatus');
+    if (status) status.textContent = '💡 اختر الملف من جهازك → اضغط إضافة';
+    return false;
+  }
 
   const status = $('pdfStatus');
-  status.textContent = '⏳ جارٍ معالجة ' + links.length + ' ملف...';
+  if (status) status.textContent = '⏳ جارٍ معالجة ' + files.length + ' ملف...';
 
   SECTIONS = SECTIONS.filter(s => !s._fromPDF);
   Object.keys(CURRICULUM).forEach(k => {
@@ -1336,24 +1375,23 @@ async function rebuildFromLinks(){
 
   let dictCnt=0, lesCnt=0, qCnt=0, defCnt=0;
 
-  for(const f of links){
+  for(const f of files){
     try{
-      const text = await extractTextFromUrl(f.url);
+      const text = await extractTextFromBuffer(f.data);
       const subj = f.subj || 'other';
 
       if(f.type === 'dict'){
-  const raw = parseDict(text);
-  // نحوّل كل صف لـ 6 عناصر: [num, EN, IT, نطق EN, نطق IT, معنى]
-  const rows = raw.map(r => [r[0], r[1], r[2] || r[1], r[3] || '', r[4] || '', r[5] || r[3] || '']);
-  if(rows.length){
-    const subjInfo = SUBJECTS[subj] || SUBJECTS.other;
-    SECTIONS.push({
-      n: '📄 ' + f.name + ' — ' + subjInfo.name,
-      c: subjInfo.color, subj, _fromPDF: true, t: rows
-    });
-    dictCnt += rows.length;
-  }
-}
+        const raw = parseDict(text);
+        const rows = raw.map(r => [r[0], r[1], r[2] || r[1], r[3] || '', r[4] || '', r[5] || r[3] || '']);
+        if(rows.length){
+          const subjInfo = SUBJECTS[subj] || SUBJECTS.other;
+          SECTIONS.push({
+            n: '📄 ' + f.name + ' — ' + subjInfo.name,
+            c: subjInfo.color, subj, _fromPDF: true, t: rows
+          });
+          dictCnt += rows.length;
+        }
+      }
       if(f.type === 'lessons'){
         const lessons = parseLessons(text);
         lessons.forEach(L=>{
@@ -1377,20 +1415,29 @@ async function rebuildFromLinks(){
         DEFS.push(...defs);
         defCnt += defs.length;
       }
-    }catch(err){ console.error('❌', f.name, err); }
+    }catch(err){ 
+      console.error('❌', f.name, err); 
+    }
   }
 
   buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
 
-  status.innerHTML = `✅ تم تحميل ${links.length} ملف — قاموس: ${dictCnt} • دروس: ${lesCnt} • أسئلة: ${qCnt} • تعريفات: ${defCnt}`;
+  if (status) {
+    status.innerHTML = `✅ تم تحميل ${files.length} ملف — قاموس: ${dictCnt} • دروس: ${lesCnt} • أسئلة: ${qCnt} • تعريفات: ${defCnt}`;
+  }
   return true;
 }
 
-function renderPdfList(links){
-  const list = $('pdfList');list.innerHTML = '';
-  if(!links.length) return;
+/* ---------- عرض قائمة الملفات ---------- */
+function renderPdfList(files){
+  const list = $('pdfList');
+  if (!list) return;
+  list.innerHTML = '';
+  if(!files.length) return;
+  
   const typeNames = {lessons:'📖',dict:'📚',qbank:'📝',defs:'🃏'};
-  links.forEach(f=>{
+  
+  files.forEach(f=>{
     const subj = SUBJECTS[f.subj] || SUBJECTS.other;
     const el = document.createElement('div');
     el.className = 'pdf-item';
@@ -1403,24 +1450,24 @@ function renderPdfList(links){
     list.appendChild(el);
   });
 }
+
 async function removePdf(id){
   if(!confirm('حذف هذا الملف؟')) return;
-  removeLink(id);
+  await deleteFileFromDB(id);
   await rebuildFromLinks();
 }
-
 /* =================================================================
-   عارض PDF — من الرابط مباشرة
+   عارض PDF — من الملف مباشرة
    ================================================================= */
 let pvPdf = null, pvPage = 1, pvId = null, pvFiles = null;
 
 async function pvOpen(id){
-  const files = pvFiles || getLinks();
+  const files = pvFiles || await getAllFiles();
   pvFiles = files;
   const f = files.find(x => x.id === id);
   if(!f){ alert('الملف غير موجود'); return; }
-
-  pvId = id;pvPage = 1;
+  
+  pvId = id; pvPage = 1;
   $('pvTitle').textContent = f.name;
   $('pdfViewer').classList.add('show');
   $('pdfCanvasWrap').innerHTML = '<div class="pdf-loading">⏳ جارٍ التحميل...</div>';
@@ -1428,9 +1475,10 @@ async function pvOpen(id){
   document.body.style.overflow = 'hidden';
 
   try{
-    console.log('📄 فتح:', f.name, '|', f.url);
+    console.log('📄 فتح:', f.name);
+    const u8 = new Uint8Array(f.data);
     const loadingTask = pdfjsLib.getDocument({
-      url: f.url,
+      data: u8,
       cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
       cMapPacked: true
     });
@@ -1442,9 +1490,9 @@ async function pvOpen(id){
   }catch(err){
     console.error('❌', err);
     $('pdfCanvasWrap').innerHTML =
-      '<div class="pdf-loading">❌ فشل تحميل الملف<br>' +
-      '<small style="font-size:12px;opacity:.8;line-height:1.6">' +
-      'تأكد أن الرابط من نوع <b>raw.githubusercontent.com</b>' +
+      '<div class="pdf-loading">❌ فشل عرض الملف<br>' +
+      '<small style="font-size:12px;opacity:.8">' +
+      'حاول تاني أو امسح الملف واعد رفعه' +
       '</small></div>';
   }
 }
@@ -1526,49 +1574,106 @@ window.addEventListener('resize', ()=>{
 });
 
 /* ================= أزرار الإضافة والحذف ================= */
+/* ================= أزرار الإضافة والحذف ================= */
+
+// اختيار ملف من الجهاز
+const pdfFileInput = document.getElementById('pdfFile');
+if (pdfFileInput) {
+  pdfFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) { selectedFile = null; updateSelectedFileDisplay(); return; }
+    
+    // التحقق من النوع
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('❌ لازم يكون الملف PDF');
+      e.target.value = '';
+      selectedFile = null;
+      updateSelectedFileDisplay();
+      return;
+    }
+    
+    // التحقق من الحجم (50 ميجا max)
+    const MAX_SIZE = 50 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      alert('❌ الملف كبير جداً (الحد الأقصى 50MB)');
+      e.target.value = '';
+      selectedFile = null;
+      updateSelectedFileDisplay();
+      return;
+    }
+    
+    selectedFile = file;
+    
+    // حط اسم الملف تلقائياً في حقل الاسم لو فاضي
+    const nameInput = $('pdfName');
+    if (nameInput && !nameInput.value.trim()) {
+      nameInput.value = file.name.replace(/\.pdf$/i, '');
+    }
+    
+    updateSelectedFileDisplay();
+  });
+}
+
+// زر الإضافة
 document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
   const subj = $('pdfSubject').value;
   const type = $('pdfType').value;
   let name = $('pdfName').value.trim();
-  const url  = $('pdfUrl').value.trim();
 
-  if(!url){ alert('❌ لازم تلصق رابط PDF'); return; }
-  if(!/^https?:\/\//i.test(url)){ alert('❌ الرابط لازم يبدأ بـ http'); return; }
-  if(url.includes('github.com') && url.includes('/blob/') && !url.includes('raw.githubusercontent')){
-    const go = confirm('⚠️ الرابط من نوع blob مش Raw\nلازم تستخدم رابط "Raw"\nهل تكمل؟');
-    if(!go) return;
-  }
+  if(!selectedFile){ alert('❌ لازم تختار ملف PDF أولاً'); return; }
   if(!name){
-    const parts = url.split('/');
-    name = decodeURIComponent(parts[parts.length-1] || 'ملف').replace(/\.pdf$/i,'');
+    name = selectedFile.name.replace(/\.pdf$/i, '');
   }
 
-  $('addPdfBtn').disabled = true;
-  $('addPdfBtn').textContent = '⏳...';
-  $('pdfStatus').textContent = '⏳ جارٍ التحقق...';
+  // تعطيل الزر
+  const btn = $('addPdfBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳...';
+  const status = $('pdfStatus');
+  if (status) status.textContent = '⏳ جارٍ إضافة الملف...';
 
-  try{
-    const test = await fetch(url, { method: 'HEAD' });
-    if(!test.ok) throw new Error('HTTP ' + test.status);
-  }catch(e){
-    alert('❌ الرابط مش شغال: ' + e.message + '\n\nتأكد:\n1. raw.githubusercontent.com\n2. الملف public');
-    $('addPdfBtn').disabled = false;
-    $('addPdfBtn').textContent = '➕ إضافة';
-    $('pdfStatus').textContent = '❌ فشل التحقق';
-    return;
+  try {
+    // اقرأ الملف كـ ArrayBuffer
+    const data = await readFileAsArrayBuffer(selectedFile);
+    
+    // أنشئ السجل
+    const fileRecord = {
+      id: 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      name: name,
+      subj: subj,
+      type: type,
+      size: selectedFile.size,
+      fileName: selectedFile.name,
+      data: data,
+      addedAt: Date.now()
+    };
+    
+    // خزن في IndexedDB
+    await addFileToDB(fileRecord);
+    
+    // نظف الحقول
+    selectedFile = null;
+    if ($('pdfFile')) $('pdfFile').value = '';
+    if ($('pdfName')) $('pdfName').value = '';
+    updateSelectedFileDisplay();
+    
+    // أعد بناء القوائم
+    await rebuildFromLinks();
+    
+  } catch(err){
+    console.error('❌', err);
+    alert('❌ فشل إضافة الملف: ' + err.message);
+    if (status) status.textContent = '❌ فشل الإضافة';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '➕ إضافة';
   }
-
-  addLink({ name, url, subj, type });
-  $('pdfName').value = '';
-  $('pdfUrl').value = '';
-  $('addPdfBtn').disabled = false;
-  $('addPdfBtn').textContent = '➕ إضافة';
-  await rebuildFromLinks();
 });
 
+// حذف كل الملفات
 document.getElementById('clearPdf').addEventListener('click', async ()=>{
-  if(!confirm('حذف كل الروابط؟')) return;
-  clearAllLinks();
+  if(!confirm('⚠️ حذف كل الملفات المرفوعة؟\nلا يمكن التراجع!')) return;
+  await clearAllFiles();
   location.reload();
 });
 
