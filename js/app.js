@@ -1666,10 +1666,35 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
 })();   
 
 /* ================================================
-   نظام تثبيت التطبيق — PWA Install Prompt
+   نظام تثبيت التطبيق — PWA Install Prompt (v2)
    ================================================ */
 (function(){
   'use strict';
+  
+  // ============ كشف التثبيت بطرق متعددة ============
+  const isStandalone = 
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.matchMedia('(display-mode: minimal-ui)').matches ||
+    window.navigator.standalone === true ||
+    document.referrer.includes('android-app://');
+  
+  // ============ فحص علامة التثبيت المحفوظة ============
+  const installedFlag = localStorage.getItem('app-installed') === 'true';
+  
+  // ============ لو التطبيق مثبت → اطلع فوراً ============
+  if (isStandalone || installedFlag) {
+    console.log('✅ التطبيق مثبت - لن يظهر بانر التثبيت');
+    
+    const b = document.getElementById('installBanner');
+    const h = document.getElementById('installHeaderBtn');
+    if (b) b.style.display = 'none';
+    if (h) h.style.display = 'none';
+    
+    return;  // ⬅️ اطلع فوراً
+  }
+  
+  console.log('⚠️ التطبيق غير مثبت - سيعرض البانر عند الإمكان');
   
   let deferredPrompt = null;
   const banner = document.getElementById('installBanner');
@@ -1686,16 +1711,8 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
   const isAndroid = /Android/.test(ua);
   const isDesktop = !isIOS && !isAndroid;
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
-                     || window.navigator.standalone === true;
   
-  // ============ لو التطبيق مثبت بالفعل → ما تعرضش حاجة ============
-  if (isStandalone) {
-    console.log('✅ التطبيق مثبت بالفعل');
-    return;
-  }
-  
-  // ============ لو المستخدم رفض البانر خلال 7 أيام ============
+  // ============ فحص رفض المستخدم للبانر خلال 7 أيام ============
   const dismissedTime = localStorage.getItem('install-dismissed');
   if (dismissedTime) {
     const daysSince = (Date.now() - +dismissedTime) / (1000 * 60 * 60 * 24);
@@ -1705,15 +1722,14 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     }
   }
   
-  // ============ لو التطبيق اتثبت 3 مرات قبل كده ما تعرضش ============
-  const installCount = +(localStorage.getItem('install-count') || 0);
-  if (installCount >= 3) return;
-  
   // ============ دوال التحكم ============
   function showBanner() {
+    // ⬅️ حماية إضافية
+    if (localStorage.getItem('app-installed') === 'true') return;
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+    
     if (banner) {
       banner.style.display = 'flex';
-      // تسجيل ظهور البانر
       const views = +(localStorage.getItem('install-banner-views') || 0);
       localStorage.setItem('install-banner-views', (views + 1).toString());
     }
@@ -1727,21 +1743,29 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   }
   
   function showHeaderBtn() {
+    // ⬅️ حماية إضافية
+    if (localStorage.getItem('app-installed') === 'true') return;
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+    
     if (headerBtn) headerBtn.style.display = 'inline-block';
   }
   
   // ============ دالة عامة لفتح البانر/المودال يدوياً ============
   window.openInstallModal = function() {
+    // ⬅️ لو التطبيق مثبت → رسالة
+    if (localStorage.getItem('app-installed') === 'true' || 
+        window.matchMedia('(display-mode: standalone)').matches) {
+      alert('✅ التطبيق مثبت بالفعل على جهازك');
+      return;
+    }
+    
     if (isIOS) {
-      // iOS → اعرض تعليمات
       if (iosModal) iosModal.style.display = 'block';
       if (installOverlay) installOverlay.style.display = 'block';
       document.body.style.overflow = 'hidden';
     } else if (deferredPrompt) {
-      // أندرويد/كمبيوتر → اعرض البانر
       showBanner();
     } else {
-      // حل احتياطي — المتصفح مش بيدعم التثبيت
       alert(
         '💡 لإضافة التطبيق:\n\n' +
         (isDesktop 
@@ -1757,29 +1781,25 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     document.body.style.overflow = '';
   };
   
-  // ============ حدث beforeinstallprompt (Chrome/Edge) ============
+  // ============ حدث beforeinstallprompt ============
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     console.log('📲 التطبيق قابل للتثبيت');
     
-    // أظهر زرار الهيدر فوراً
     showHeaderBtn();
     
-    // أظهر البانر بعد 3 ثواني (لو المستخدم لسه بيستكشف الموقع)
     setTimeout(() => {
-      // فقط لو المستخدم مش سكرول بعيد
       if (window.scrollY < 300) {
         showBanner();
       }
     }, 3000);
   });
   
-  // ============ دعم iOS — عرض التعليمات ============
-  if (isIOS && !isStandalone) {
+  // ============ دعم iOS ============
+  if (isIOS) {
     showHeaderBtn();
     
-    // عدّل نص البانر لـ iOS
     if (banner) {
       const bannerSubtitle = banner.querySelector('.install-text span');
       if (bannerSubtitle) {
@@ -1787,7 +1807,6 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
       }
     }
     
-    // أظهر البانر بعد 5 ثواني
     setTimeout(() => {
       if (window.scrollY < 300) {
         showBanner();
@@ -1795,29 +1814,29 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     }, 5000);
   }
   
-  // ============ لما المستخدم يضغط "تثبيت" في البانر ============
+  // ============ ضغط "تثبيت" في البانر ============
   if (installBtn) {
     installBtn.addEventListener('click', async () => {
-      // iOS → اعرض المودال
       if (isIOS) {
         window.openInstallModal();
         return;
       }
       
-      // أندرويد/كمبيوتر
       if (!deferredPrompt) {
         window.openInstallModal();
         return;
       }
       
-      // عرض نافذة التثبيت الأصلية
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       
       if (outcome === 'accepted') {
         console.log('✅ المستخدم وافق على التثبيت');
-        const count = +(localStorage.getItem('install-count') || 0);
-        localStorage.setItem('install-count', (count + 1).toString());
+        
+        // ⬅️ حفظ علامة التثبيت
+        localStorage.setItem('app-installed', 'true');
+        localStorage.setItem('app-installed-date', Date.now().toString());
+        
         hideBanner();
         if (headerBtn) headerBtn.style.display = 'none';
       } else {
@@ -1829,21 +1848,30 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     });
   }
   
-  // ============ لما المستخدم يضغط "✕" ============
+  // ============ ضغط "✕" ============
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
       hideBanner(true);
     });
   }
   
-  // ============ لما التطبيق يتثبت ============
+  // ============ لما التطبيق يتثبت فعلياً ============
   window.addEventListener('appinstalled', () => {
     console.log('🎉 التطبيق اتثبت بنجاح');
+    
+    // ⬅️ حفظ علامة التثبيت (مهم جداً)
+    localStorage.setItem('app-installed', 'true');
+    localStorage.setItem('app-installed-date', Date.now().toString());
+    
+    // ⬅️ نظف علامة الرفض لو كانت موجودة
+    localStorage.removeItem('install-dismissed');
+    
+    // ⬅️ اخفي كل حاجة
     hideBanner();
     if (headerBtn) headerBtn.style.display = 'none';
     deferredPrompt = null;
     
-    // عرض رسالة شكر
+    // ⬅️ رسالة شكر
     setTimeout(() => {
       const toast = document.createElement('div');
       toast.textContent = '🎉 تم تثبيت التطبيق بنجاح!';
@@ -1868,18 +1896,34 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     }, 500);
   });
   
-  // ============ حل احتياطي — لو المستخدم سكرول لأسفل ============
+  // ============ حل احتياطي — التمرير ============
   let scrollTriggered = false;
   window.addEventListener('scroll', () => {
+    // ⬅️ حماية
+    if (localStorage.getItem('app-installed') === 'true') return;
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+    
     if (scrollTriggered) return;
     if (window.scrollY > 500) {
       scrollTriggered = true;
-      // أظهر البانر لما المستخدم يتفاعل مع المحتوى
       if (!localStorage.getItem('install-dismissed')) {
         showBanner();
       }
     }
   }, { passive: true });
+  
+  // ============ فحص دوري كل 30 ثانية ============
+  setInterval(() => {
+    if (localStorage.getItem('app-installed') === 'true' ||
+        window.matchMedia('(display-mode: standalone)').matches) {
+      if (banner && banner.style.display !== 'none') {
+        banner.style.display = 'none';
+      }
+      if (headerBtn && headerBtn.style.display !== 'none') {
+        headerBtn.style.display = 'none';
+      }
+    }
+  }, 30000);
   
 })();
 
@@ -1909,7 +1953,6 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     if (shareOverlay) shareOverlay.style.display = 'block';
     document.body.style.overflow = 'hidden';
     
-    // حط الرابط في الـ input
     if (shareUrlInput) shareUrlInput.value = SHARE_URL;
   };
   
@@ -1919,7 +1962,6 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     if (shareOverlay) shareOverlay.style.display = 'none';
     document.body.style.overflow = '';
     
-    // اخفي QR لو مفتوح
     window.hideQRCode();
   };
   
@@ -1927,7 +1969,6 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   window.copyShareUrl = function() {
     const url = SHARE_URL;
     
-    // الطريقة الحديثة
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(() => {
         showCopyToast();
@@ -1961,7 +2002,7 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     setTimeout(() => copyToast.classList.remove('show'), 2000);
   }
   
-  // ============ المشاركة الأصلية (Native Share) ============
+  // ============ المشاركة الأصلية ============
   window.shareNative = async function() {
     if (navigator.share) {
       try {
@@ -1971,16 +2012,13 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
           url: SHARE_URL
         });
         console.log('✅ تمت المشاركة');
-        // أغلق المودال بعد المشاركة
         window.closeShareModal();
       } catch (err) {
-        // لو المستخدم ألغى → تجاهل
         if (err.name !== 'AbortError') {
           console.warn('خطأ:', err);
         }
       }
     } else {
-      // المتصفح مش بيدعم Native Share → انسخ الرابط
       window.copyShareUrl();
       alert('المتصفح لا يدعم المشاركة المباشرة.\nتم نسخ الرابط ✅');
     }
@@ -2016,7 +2054,6 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   window.showQRCode = function() {
     if (!qrContainer) return;
     
-    // لو لسه مش اتولد → ولّده
     if (!qrcodeGenerated) {
       const qrDiv = document.getElementById('qrcode');
       if (qrDiv && typeof QRCode !== 'undefined') {
@@ -2034,7 +2071,6 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     }
     
     qrContainer.style.display = 'block';
-    // اخفي الخيارات
     const options = document.querySelector('.share-options');
     if (options) options.style.display = 'none';
     const urlBox = document.querySelector('.share-url-box');
