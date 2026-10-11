@@ -1,4 +1,4 @@
-const CACHE = 'hadid-eez-v30';
+const CACHE = 'hadid-eez-v31';
 const ASSETS = [
   './',
   './index.html',
@@ -39,7 +39,6 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// استقبل أمر SKIP_WAITING من app.js
 self.addEventListener('message', e => {
   if (e.data && e.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
@@ -52,7 +51,6 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (url.origin !== location.origin) return;
 
-  // HTML: Network First
   if (e.request.mode === 'navigate' || e.request.destination === 'document') {
     e.respondWith(
       fetch(e.request)
@@ -66,7 +64,6 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // JS / CSS / Icons: Cache First
   e.respondWith(
     caches.match(e.request).then(r => {
       if (r) return r;
