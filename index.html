@@ -141,11 +141,15 @@
     <button id="pvPrev" onclick="pvGo(-1)">◀ السابق</button>
     <span class="pageinfo"><span id="pvCur">1</span> / <span id="pvTotal">1</span></span>
     <button id="pvNext" onclick="pvGo(1)">التالي ▶</button>
+	<button id="pvFullscreen" onclick="pvToggleFullscreen()" title="ملء الشاشة">⛶</button>
+  <button id="pvZoomOut" onclick="pvZoom(-1)" title="تصغير">➖</button>
+  <button id="pvZoomIn" onclick="pvZoom(1)" title="تكبير">➕</button>
     <button class="close" onclick="pvClose()">✕ إغلاق</button>
   </div>
   <div id="pdfCanvasWrap"><div class="pdf-loading">⏳ جارٍ التحميل...</div></div>
   <div class="pdf-thumbs" id="pdfThumbs"></div>
 </div>
+
 <!-- ============ بانر تثبيت التطبيق ============ -->
 <div id="installBanner" class="install-banner" style="display:none">
   <div class="install-content">
