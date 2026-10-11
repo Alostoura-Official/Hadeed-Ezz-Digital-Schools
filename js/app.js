@@ -700,7 +700,7 @@ let CURRICULUM = {
 /* =================================================================
    4) التعريفات
    ================================================================= */
-const DEFS=[
+let DEFS=[
 ["Safety","السلامة","A condition in which people are not exposed to unacceptable levels of danger."],
 ["Occupational Health","الصحة المهنية","Protecting and supporting physical, mental and social well-being in relation to the work performed and its conditions."],
 ["Hazard","الخطر","Inherent property of an object, substance, activity or situation with potential to cause harm — exists even with no exposure."],
@@ -726,7 +726,7 @@ const DEFS=[
 /* =================================================================
    5) بنك الأسئلة
    ================================================================= */
-const QB=[
+let QB=[
 {les:"LESSON 1 — Foundations of Occupational Health and Safety",qs:[
 {k:"tf",n:1,s:"A hazard is the injury that happens to a worker.",a:false,c:"الخطر (Hazard) هو مصدر الضرر المحتمل — الإصابة نفسها هي الضرر (Harm)."},
 {k:"tf",n:2,s:"Every incident results in an injury or ill health.",a:false,c:"الحادث الكاد يقع (Incident) قد يقع دون أي ضرر فعلي — الضرر الفعلي يجعله Accident."},
@@ -1318,7 +1318,113 @@ async function extractTextFromBuffer(arrayBuffer) {
   }
   return fullText;
 }
+/* ============ دوال تحليل النص ============ */
+function parseDict(text){
+  const rows=[]; let counter=1;
+  text.split('\n').forEach(line=>{
+    line = line.trim();
+    if(!line || line.length < 4) return;
+    if(/^[A-Z\s]{3,}$/.test(line) && line.split(' ').length < 4 && !/[a-z]/.test(line)) return;
+    let parts = line.split(/\s*[|•\t]\s*/);
+    if(parts.length < 2) parts = line.split(/\s+[-–—:]\s+/);
+    if(parts.length >= 2){
+      const en = parts[0].trim();
+      const meaning = parts.slice(1).join(' | ').trim();
+      rows.push([counter++, en, en, meaning, meaning, meaning]);
+    }
+  });
+  return rows;
+}
 
+function parseLessons(text){
+  const lessons = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  
+  if (!lines.length) return lessons;
+  
+  let current = null;
+  const titleRe = /^\s*(Unit|UNIT|Lesson|LESSON|Chapter|CHAPTER|Subtopic|SUBTOPIC|الوحدة|الدرس|الباب|الفصل|Section|SECTION|المبحث|المحاضرة)\s*[\d\-\.:أ-ي]*/i;
+  
+  lines.forEach((line) => {
+    if (!line || line.length < 3) return;
+    
+    const isTitle = titleRe.test(line);
+    
+    if (isTitle) {
+      if (current) lessons.push(current);
+      current = {
+        u: 'PDF Lesson',
+        t: line,
+        subs: [{ n: line, i: '📄', b: [] }]
+      };
+    } else if (current) {
+      current.subs[0].b.push({ t: 'p', x: line });
+    } else {
+      current = {
+        u: 'PDF Lesson',
+        t: 'محتوى PDF',
+        subs: [{ n: 'المحتوى', i: '📄', b: [] }]
+      };
+      current.subs[0].b.push({ t: 'p', x: line });
+    }
+  });
+  
+  if (current) lessons.push(current);
+  
+  // لو مفيش أي عنوان → قسم النص لدروس
+  if (!lessons.length && lines.length) {
+    const CHUNK_SIZE = 40;
+    for (let i = 0; i < lines.length; i += CHUNK_SIZE) {
+      const chunk = lines.slice(i, i + CHUNK_SIZE);
+      lessons.push({
+        u: 'PDF Lesson',
+        t: `المحتوى (${Math.floor(i / CHUNK_SIZE) + 1})`,
+        subs: [{
+          n: `صفحة ${Math.floor(i / CHUNK_SIZE) + 1}`,
+          i: '📄',
+          b: chunk.map(line => ({ t: 'p', x: line }))
+        }]
+      });
+    }
+  }
+  
+  return lessons;
+}
+
+function parseQBank(text){
+  const questions = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  let i = 0, qNum = 1;
+  while(i < lines.length){
+    const line = lines[i];
+    if(/^(True|False|صح|خطأ)\s*[:：\-]/i.test(line) || /\?\s*$/.test(line)){
+      const q = line;
+      const opts = [];
+      let j = i + 1;
+      while(j < lines.length && /^[a-dA-D1-4][\)\.\-:]\s*/.test(lines[j])){
+        opts.push(lines[j].replace(/^[a-dA-D1-4][\)\.\-:]\s*/,'').trim());
+        j++;
+      }
+      let answer = 'يرجى مراجعة المصدر.';
+      const ansMatch = lines.slice(i, j).join(' ').match(/Answer|الإجابة\s*[:：]\s*(.+)/i);
+      if(ansMatch) answer = ansMatch[1];
+      questions.push({ k: 'w', n: qNum, s: q, a: answer });
+      qNum++; i = j;
+    } else i++;
+  }
+  return questions;
+}
+
+function parseDefs(text){
+  const defs = [];
+  text.split('\n').forEach(line=>{
+    line = line.trim();
+    if(!line || line.length < 8) return;
+    const m = line.match(/^(.{2,60}?)\s*[=:–—]\s*(.{5,})$/);
+    if(m) defs.push([m[1].trim(), m[1].trim(), m[2].trim()]);
+  });
+  return defs;
+}
 /* ---------- تحديث حالة اختيار الملف ---------- */
 function updateSelectedFileDisplay() {
   const wrap = $('pdfSelectedFile');
