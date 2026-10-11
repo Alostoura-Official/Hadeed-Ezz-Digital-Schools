@@ -1644,25 +1644,23 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   const splash = document.getElementById('splashScreen');
   if (!splash) return;
   
-  // اخفي الصورة بعد 2.5 ثانية
-  const SPLASH_DURATION = 2500;
+  let hidden = false;
   
-  // ابدأ المؤقت بعد ما الصفحة تحمّل
+  function hideSplash() {
+    if (hidden) return;
+    hidden = true;
+    splash.classList.add('hide');
+    setTimeout(() => {
+      if (splash.parentNode) splash.remove();
+    }, 700);
+  }
+  
   window.addEventListener('load', () => {
-    setTimeout(() => {
-      splash.classList.add('hide');
-      // امحي العنصر بعد الانيميشن
-      setTimeout(() => splash.remove(), 700);
-    }, SPLASH_DURATION);
+    setTimeout(hideSplash, 1500);
   });
   
-  // حل احتياطي — لو الصفحة بطيئة
   document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-      if (splash && !splash.classList.contains('hide')) {
-        splash.classList.add('hide');
-        setTimeout(() => splash.remove(), 700);
-      }
-    }, 5000);  // ⬅️ أقصى مدة 5 ثواني
+    setTimeout(hideSplash, 5000);
   });
-})();
+  
+})();   
