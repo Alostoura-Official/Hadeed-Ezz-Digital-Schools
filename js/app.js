@@ -1357,21 +1357,24 @@ async function rebuildFromLinks(){
   pvFiles = files;
   renderPdfList(files);
   
-  if(!files.length){
-    const status = $('pdfStatus');
-    if (status) status.textContent = '💡 اختر الملف من جهازك → اضغط إضافة';
-    return false;
-  }
-
   const status = $('pdfStatus');
-  if (status) status.textContent = '⏳ جارٍ معالجة ' + files.length + ' ملف...';
-
+  
+  // ⬅️ المهم: نظف القوائم دايمًا (حتى لو مفيش ملفات)
   SECTIONS = SECTIONS.filter(s => !s._fromPDF);
   Object.keys(CURRICULUM).forEach(k => {
     CURRICULUM[k] = CURRICULUM[k].filter(u => !u._fromPDF);
   });
   DEFS = DEFS.filter(d => !d._fromPDF);
   QB = QB.filter(l => !l._fromPDF);
+  
+  // ⬅️ لو مفيش ملفات → أعد البناء عشان الملفات المحذوفة تختفي
+  if(!files.length){
+    if (status) status.textContent = '💡 اختر الملف من جهازك → اضغط إضافة';
+    buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
+    return false;
+  }
+
+  if (status) status.textContent = '⏳ جارٍ معالجة ' + files.length + ' ملف...';
 
   let dictCnt=0, lesCnt=0, qCnt=0, defCnt=0;
 
@@ -1574,14 +1577,29 @@ window.addEventListener('resize', ()=>{
 });
 
 /* ================= أزرار الإضافة والحذف ================= */
-/* ================= أزرار الإضافة والحذف ================= */
+
+// ⬅️ الحد الأقصى لحجم الملف — عدّل الرقم زي ما تحب
+const MAX_FILE_SIZE_MB = 500;
+const MAX_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+/* ---------- دالة تنسيق حجم الملف ---------- */
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
 
 // اختيار ملف من الجهاز
 const pdfFileInput = document.getElementById('pdfFile');
 if (pdfFileInput) {
   pdfFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
-    if (!file) { selectedFile = null; updateSelectedFileDisplay(); return; }
+    if (!file) { 
+      selectedFile = null; 
+      updateSelectedFileDisplay(); 
+      return; 
+    }
     
     // التحقق من النوع
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
@@ -1592,14 +1610,33 @@ if (pdfFileInput) {
       return;
     }
     
-    // التحقق من الحجم (50 ميجا max)
-    const MAX_SIZE = 50 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-      alert('❌ الملف كبير جداً (الحد الأقصى 50MB)');
+    // التحقق من الحجم
+    if (file.size > MAX_SIZE_BYTES) {
+      alert(
+        `❌ الملف كبير جداً\n\n` +
+        `📄 حجم الملف: ${formatFileSize(file.size)}\n` +
+        `✅ الحد الأقصى: ${MAX_FILE_SIZE_MB} MB\n\n` +
+        `جرب ضغط الملف أو تقسيمه`
+      );
       e.target.value = '';
       selectedFile = null;
       updateSelectedFileDisplay();
       return;
+    }
+    
+    // ⬅️ تحذير للملفات الكبيرة (> 100MB)
+    if (file.size > 100 * 1024 * 1024) {
+      const proceed = confirm(
+        `⚠️ الملف كبير (${formatFileSize(file.size)})\n\n` +
+        `قد ياخد وقت أطول للتحميل.\n` +
+        `هل تريد المتابعة؟`
+      );
+      if (!proceed) {
+        selectedFile = null;
+        e.target.value = '';
+        updateSelectedFileDisplay();
+        return;
+      }
     }
     
     selectedFile = file;
@@ -1620,7 +1657,10 @@ document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
   const type = $('pdfType').value;
   let name = $('pdfName').value.trim();
 
-  if(!selectedFile){ alert('❌ لازم تختار ملف PDF أولاً'); return; }
+  if(!selectedFile){ 
+    alert('❌ لازم تختار ملف PDF أولاً'); 
+    return; 
+  }
   if(!name){
     name = selectedFile.name.replace(/\.pdf$/i, '');
   }
@@ -1657,8 +1697,19 @@ document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
     if ($('pdfName')) $('pdfName').value = '';
     updateSelectedFileDisplay();
     
-    // أعد بناء القوائم
+    // ⬅️ إعادة بناء كل حاجة — بما فيها القائمة الجانبية
     await rebuildFromLinks();
+    
+    // ⬅️ رسالة نجاح
+    if (status) {
+      status.innerHTML = `✅ تمت إضافة "${name}" بنجاح إلى ${SUBJECTS[subj]?.name || subj}`;
+      setTimeout(() => {
+        if (status) status.textContent = `💡 الملف في: ${SUBJECTS[subj]?.name || subj} → ${type}`;
+      }, 3000);
+    }
+    
+    // ⬅️ عرض إشعار Toast
+    showAddSuccessToast(name, SUBJECTS[subj]?.name || subj);
     
   } catch(err){
     console.error('❌', err);
@@ -1670,9 +1721,62 @@ document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
   }
 });
 
+/* ---------- إشعار النجاح ---------- */
+function showAddSuccessToast(fileName, subjectName) {
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    padding: 16px 24px;
+    border-radius: 14px;
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4);
+    z-index: 100002;
+    opacity: 0;
+    transition: all 0.4s ease;
+    text-align: center;
+    max-width: 90vw;
+    min-width: 250px;
+    line-height: 1.5;
+  `;
+  toast.innerHTML = `
+    <div style="font-size: 28px; margin-bottom: 6px;">✅</div>
+    <div style="font-weight: 800; margin-bottom: 4px;">تمت الإضافة بنجاح</div>
+    <div style="font-size: 12px; opacity: 0.9;">📄 ${fileName}</div>
+    <div style="font-size: 12px; opacity: 0.9;">📚 ${subjectName}</div>
+  `;
+  document.body.appendChild(toast);
+  
+  // أنيميشن الدخول
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  
+  // أنيميشن الخروج
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(-20px)';
+    setTimeout(() => toast.remove(), 400);
+  }, 3000);
+}
+
 // حذف كل الملفات
 document.getElementById('clearPdf').addEventListener('click', async ()=>{
-  if(!confirm('⚠️ حذف كل الملفات المرفوعة؟\nلا يمكن التراجع!')) return;
+  const files = await getAllFiles();
+  if (!files.length) {
+    alert('ℹ️ مفيش ملفات مرفوعة حالياً');
+    return;
+  }
+  
+  if(!confirm(`⚠️ حذف ${files.length} ملف مرفوع؟\nلا يمكن التراجع!`)) return;
+  
   await clearAllFiles();
   location.reload();
 });
