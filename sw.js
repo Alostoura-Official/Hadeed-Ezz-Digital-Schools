@@ -1,4 +1,4 @@
-const CACHE = 'hadid-eez-v11';
+const CACHE = 'hadid-eez-v12';
 const ASSETS = [
   './',
   './index.html',
