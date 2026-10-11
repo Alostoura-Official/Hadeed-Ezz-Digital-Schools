@@ -37,11 +37,12 @@
   <span>© "جميع الحقوق محفوظة"</span>
 
   <div class="btns">
-    <button class="btn menubtn" onclick="openSide()">☰ فهرس المنهج</button>
-    <button class="btn" id="soundBtn" onclick="toggleSound()">🔊 الصوت: مفعّل</button>
-    <button class="btn" onclick="window.print()">🖨️ طباعة</button>
-    <button class="btn" id="thBtn" onclick="theme()">🌙 وضع ليلي</button>
-  </div>
+  <button class="btn menubtn" onclick="openSide()">☰ فهرس المنهج</button>
+  <button class="btn" id="soundBtn" onclick="toggleSound()">🔊 الصوت: مفعّل</button>
+  <button class="btn" onclick="window.print()">🖨️ طباعة</button>
+  <button class="btn" id="thBtn" onclick="theme()">🌙 وضع ليلي</button>
+  <button class="btn install-header-btn" id="installHeaderBtn" onclick="openInstallModal()" style="display:none">📲 تثبيت</button>
+</div>
 </header>
 
 <!-- ======== لوحة إضافة ملفات PDF ======== -->
@@ -139,6 +140,60 @@
   <div id="pdfCanvasWrap"><div class="pdf-loading">⏳ جارٍ التحميل...</div></div>
   <div class="pdf-thumbs" id="pdfThumbs"></div>
 </div>
+<!-- ============ بانر تثبيت التطبيق ============ -->
+<div id="installBanner" class="install-banner" style="display:none">
+  <div class="install-content">
+    <img src="icons/icon-192.png" alt="التطبيق" class="install-icon">
+    <div class="install-text">
+      <strong>ثبّت التطبيق على جهازك</strong>
+      <span>تجربة أسرع • بدون متصفح • يعمل أوفلاين</span>
+    </div>
+  </div>
+  <div class="install-actions">
+    <button id="installBtn" class="install-btn-yes">تثبيت</button>
+    <button id="installClose" class="install-btn-no">✕</button>
+  </div>
+</div>
+
+<!-- ============ مودال تعليمات iOS ============ -->
+<div id="iosModal" class="ios-modal" style="display:none">
+  <div class="ios-modal-content">
+    <button class="ios-modal-close" onclick="closeIosModal()">✕</button>
+    <div class="ios-modal-icon">📲</div>
+    <h2>ثبّت التطبيق على iPhone</h2>
+    <p class="ios-subtitle">اتبع الخطوات البسيطة دي</p>
+    
+    <div class="ios-step">
+      <div class="ios-step-num">1</div>
+      <div class="ios-step-text">
+        اضغط زر المشاركة <span class="ios-share-icon">⬆️</span> في شريط Safari السفلي
+      </div>
+    </div>
+    
+    <div class="ios-step">
+      <div class="ios-step-num">2</div>
+      <div class="ios-step-text">
+        اسحب لأسفل واختر <strong>"إضافة إلى الشاشة الرئيسية"</strong>
+        <span class="ios-add-icon">➕</span>
+      </div>
+    </div>
+    
+    <div class="ios-step">
+      <div class="ios-step-num">3</div>
+      <div class="ios-step-text">
+        اضغط <strong>"إضافة"</strong> في الأعلى
+      </div>
+    </div>
+    
+    <div class="ios-success">
+      ✅ التطبيق سيظهر على الشاشة الرئيسية
+    </div>
+  </div>
+</div>
+
+<!-- ============ Overlay ============ -->
+<div id="installOverlay" class="install-overlay" style="display:none" onclick="closeIosModal()"></div>
+	
   <script src="js/app.js" defer></script>
 </body>
 </html>
