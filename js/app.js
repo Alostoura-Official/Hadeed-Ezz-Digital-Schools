@@ -1617,6 +1617,7 @@ async function removePdf(id){
    عارض PDF — النسخة النهائية
    ================================================================= */
 let pvPdf = null, pvPage = 1, pvId = null, pvFiles = null;
+let pvZoomLevel = 1;
 
 async function pvOpen(id){
   const files = pvFiles || await getAllFiles();
@@ -1782,7 +1783,6 @@ document.addEventListener('keydown', e=>{
 });
 
 /* ---------- تحكم في الحجم ---------- */
-let pvZoomLevel = 1;   // ⬅️ مستوى التكبير
 
 window.pvZoom = function(dir) {
   pvZoomLevel = Math.max(0.5, Math.min(3, pvZoomLevel + dir * 0.2));
