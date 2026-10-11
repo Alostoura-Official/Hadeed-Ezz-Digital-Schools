@@ -1630,7 +1630,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// لما الـ SW الجديد ياخد السيطرة، اعمل reload
+
 let refreshing = false;
 navigator.serviceWorker?.addEventListener('controllerchange', () => {
   if (refreshing) return;
