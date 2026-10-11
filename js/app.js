@@ -1882,3 +1882,178 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   }, { passive: true });
   
 })();
+
+
+/* ================================================
+   نظام مشاركة التطبيق
+   ================================================ */
+(function(){
+  'use strict';
+  
+  const SHARE_URL = window.location.origin + window.location.pathname;
+  const SHARE_TITLE = 'منصة - مدارس حديد عز الرقمية';
+  const SHARE_TEXT = '🎓 منصة تعليمية متكاملة - مدارس حديد عز الرقمية\nجرّبها الآن من خلال الرابط:';
+  
+  const shareModal = document.getElementById('shareModal');
+  const shareOverlay = document.getElementById('shareOverlay');
+  const shareUrlInput = document.getElementById('shareUrlInput');
+  const copyToast = document.getElementById('copyToast');
+  const qrContainer = document.getElementById('qrContainer');
+  
+  let qrcodeGenerated = false;
+  
+  // ============ فتح/إغلاق المودال ============
+  window.openShareModal = function() {
+    if (!shareModal) return;
+    shareModal.style.display = 'flex';
+    if (shareOverlay) shareOverlay.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    // حط الرابط في الـ input
+    if (shareUrlInput) shareUrlInput.value = SHARE_URL;
+  };
+  
+  window.closeShareModal = function() {
+    if (!shareModal) return;
+    shareModal.style.display = 'none';
+    if (shareOverlay) shareOverlay.style.display = 'none';
+    document.body.style.overflow = '';
+    
+    // اخفي QR لو مفتوح
+    window.hideQRCode();
+  };
+  
+  // ============ نسخ الرابط ============
+  window.copyShareUrl = function() {
+    const url = SHARE_URL;
+    
+    // الطريقة الحديثة
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        showCopyToast();
+      }).catch(() => {
+        fallbackCopy(url);
+      });
+    } else {
+      fallbackCopy(url);
+    }
+  };
+  
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      showCopyToast();
+    } catch (e) {
+      alert('انسخ الرابط يدوياً:\n' + text);
+    }
+    document.body.removeChild(ta);
+  }
+  
+  function showCopyToast() {
+    if (!copyToast) return;
+    copyToast.classList.add('show');
+    setTimeout(() => copyToast.classList.remove('show'), 2000);
+  }
+  
+  // ============ المشاركة الأصلية (Native Share) ============
+  window.shareNative = async function() {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: SHARE_TITLE,
+          text: SHARE_TEXT,
+          url: SHARE_URL
+        });
+        console.log('✅ تمت المشاركة');
+        // أغلق المودال بعد المشاركة
+        window.closeShareModal();
+      } catch (err) {
+        // لو المستخدم ألغى → تجاهل
+        if (err.name !== 'AbortError') {
+          console.warn('خطأ:', err);
+        }
+      }
+    } else {
+      // المتصفح مش بيدعم Native Share → انسخ الرابط
+      window.copyShareUrl();
+      alert('المتصفح لا يدعم المشاركة المباشرة.\nتم نسخ الرابط ✅');
+    }
+  };
+  
+  // ============ مشاركة عبر واتساب ============
+  window.shareWhatsApp = function() {
+    const text = encodeURIComponent(SHARE_TEXT + '\n' + SHARE_URL);
+    window.open('https://wa.me/?text=' + text, '_blank');
+  };
+  
+  // ============ مشاركة عبر تيليجرام ============
+  window.shareTelegram = function() {
+    const url = encodeURIComponent(SHARE_URL);
+    const text = encodeURIComponent(SHARE_TEXT);
+    window.open('https://t.me/share/url?url=' + url + '&text=' + text, '_blank');
+  };
+  
+  // ============ مشاركة عبر فيسبوك ============
+  window.shareFacebook = function() {
+    const url = encodeURIComponent(SHARE_URL);
+    window.open('https://www.facebook.com/sharer/sharer.php?u=' + url, '_blank');
+  };
+  
+  // ============ مشاركة عبر تويتر / X ============
+  window.shareTwitter = function() {
+    const url = encodeURIComponent(SHARE_URL);
+    const text = encodeURIComponent('🎓 منصة - مدارس حديد عز الرقمية');
+    window.open('https://twitter.com/intent/tweet?url=' + url + '&text=' + text, '_blank');
+  };
+  
+  // ============ عرض QR Code ============
+  window.showQRCode = function() {
+    if (!qrContainer) return;
+    
+    // لو لسه مش اتولد → ولّده
+    if (!qrcodeGenerated) {
+      const qrDiv = document.getElementById('qrcode');
+      if (qrDiv && typeof QRCode !== 'undefined') {
+        qrDiv.innerHTML = '';
+        new QRCode(qrDiv, {
+          text: SHARE_URL,
+          width: 200,
+          height: 200,
+          colorDark: '#1e3a8a',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+        qrcodeGenerated = true;
+      }
+    }
+    
+    qrContainer.style.display = 'block';
+    // اخفي الخيارات
+    const options = document.querySelector('.share-options');
+    if (options) options.style.display = 'none';
+    const urlBox = document.querySelector('.share-url-box');
+    if (urlBox) urlBox.style.display = 'none';
+  };
+  
+  window.hideQRCode = function() {
+    if (qrContainer) qrContainer.style.display = 'none';
+    const options = document.querySelector('.share-options');
+    if (options) options.style.display = 'grid';
+    const urlBox = document.querySelector('.share-url-box');
+    if (urlBox) urlBox.style.display = 'flex';
+  };
+  
+  // ============ Escape يغلق المودال ============
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && shareModal && shareModal.style.display === 'flex') {
+      window.closeShareModal();
+    }
+  });
+  
+})();
