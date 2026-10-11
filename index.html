@@ -48,12 +48,12 @@
 
 <!-- ======== لوحة إضافة ملفات PDF ======== -->
 <div id="pdfPanel">
-  <h3>📥 إضافة ملفات PDF (عن طريق رابط GitHub)</h3>
+  <h3>📥 إضافة ملفات PDF من جهازك</h3>
   <div class="pdf-row">
     <select id="pdfSubject">
       <option value="mech">⚙️ ميكاترونكس</option>
       <option value="english">🇬🇧 لغة إنجليزية</option>
-	  <option value="italian">🇮🇹 لغة إيطالية</option>
+      <option value="italian">🇮🇹 لغة إيطالية</option>
       <option value="arabic">📗 لغة عربية</option>
       <option value="math">🔢 رياضيات</option>
       <option value="physics">⚛️ فيزياء</option>
@@ -71,10 +71,14 @@
   </div>
   <div class="pdf-row">
     <input type="text" id="pdfName" placeholder="📝 اسم الملف (مثال: Unit 1 - Safety)" style="flex:1;min-width:200px">
-    <input type="text" id="pdfUrl" placeholder="🔗 الصق رابط GitHub Raw للملف PDF" style="flex:2;min-width:280px">
+    <label for="pdfFile" class="pdf-file-btn">
+      <span>📂 اختر ملف PDF</span>
+      <input type="file" id="pdfFile" accept=".pdf,application/pdf" style="display:none">
+    </label>
     <button id="addPdfBtn">➕ إضافة</button>
   </div>
-  <div id="pdfStatus">💡 ارفع ملف PDF على GitHub → انسخ رابط raw → الصقه هنا</div>
+  <div id="pdfStatus">💡 اختر الملف من جهازك → اضغط إضافة</div>
+  <div id="pdfSelectedFile" class="pdf-selected-file" style="display:none"></div>
   <div id="pdfList"></div>
   <button class="pdf-clear" id="clearPdf">🗑️ حذف كل الملفات</button>
 </div>
