@@ -1206,12 +1206,12 @@ goToTopButton.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smoo
 /* =================================================================
    نظام PDF — رفع الملفات من الجهاز
    ================================================================= */
-const DB_NAME = 'hadeed_eez_pdfs';
+const DB_NAME = 'hadeed_eez_pdfs_v2';   // ⬅️ اسم جديد لتفادي التضارب
 const DB_VERSION = 1;
 const STORE_NAME = 'files';
 
 let dbInstance = null;
-let selectedFile = null;   // الملف المختار حالياً
+let selectedFile = null;
 
 /* ---------- فتح قاعدة البيانات ---------- */
 function openDB() {
@@ -1296,9 +1296,57 @@ function readFileAsArrayBuffer(file) {
   });
 }
 
+/* ---------- تحويل آمن إلى Uint8Array (مع نسخ) ---------- */
+function toUint8ArraySafe(data) {
+  if (data == null) {
+    throw new Error('البيانات فارغة');
+  }
+  
+  // Uint8Array
+  if (data instanceof Uint8Array) {
+    const copy = new Uint8Array(data.length);
+    copy.set(data);
+    return copy;
+  }
+  
+  // ArrayBuffer
+  if (data instanceof ArrayBuffer) {
+    try {
+      const copy = data.slice(0);
+      return new Uint8Array(copy);
+    } catch (e) {
+      throw new Error('ArrayBuffer detached — امسح الملف وأعد رفعه');
+    }
+  }
+  
+  // TypedArray آخر
+  if (ArrayBuffer.isView(data)) {
+    const copy = new Uint8Array(data.byteLength);
+    for (let i = 0; i < data.byteLength; i++) {
+      copy[i] = data[i];
+    }
+    return copy;
+  }
+  
+  // Blob
+  if (typeof Blob !== 'undefined' && data instanceof Blob) {
+    // ⬅️ سنستخدم async، بس ده fallback
+    throw new Error('Blob غير مدعوم في الدالة المتزامنة');
+  }
+  
+  throw new Error('نوع بيانات غير مدعوم: ' + Object.prototype.toString.call(data));
+}
+
 /* ---------- استخراج النص من buffer ---------- */
-async function extractTextFromBuffer(arrayBuffer) {
-  const u8 = new Uint8Array(arrayBuffer);
+async function extractTextFromBuffer(data) {
+  let u8;
+  if (typeof Blob !== 'undefined' && data instanceof Blob) {
+    const buf = await data.arrayBuffer();
+    u8 = new Uint8Array(buf);
+  } else {
+    u8 = toUint8ArraySafe(data);
+  }
+  
   const pdf = await pdfjsLib.getDocument({ data: u8 }).promise;
   let fullText = '';
   for(let i=1; i<=pdf.numPages; i++){
@@ -1318,6 +1366,7 @@ async function extractTextFromBuffer(arrayBuffer) {
   }
   return fullText;
 }
+
 /* ============ دوال تحليل النص ============ */
 function parseDict(text){
   const rows=[]; let counter=1;
@@ -1371,7 +1420,6 @@ function parseLessons(text){
   
   if (current) lessons.push(current);
   
-  // لو مفيش أي عنوان → قسم النص لدروس
   if (!lessons.length && lines.length) {
     const CHUNK_SIZE = 40;
     for (let i = 0; i < lines.length; i += CHUNK_SIZE) {
@@ -1425,6 +1473,7 @@ function parseDefs(text){
   });
   return defs;
 }
+
 /* ---------- تحديث حالة اختيار الملف ---------- */
 function updateSelectedFileDisplay() {
   const wrap = $('pdfSelectedFile');
@@ -1465,7 +1514,6 @@ async function rebuildFromLinks(){
   
   const status = $('pdfStatus');
   
-  // ⬅️ المهم: نظف القوائم دايمًا (حتى لو مفيش ملفات)
   SECTIONS = SECTIONS.filter(s => !s._fromPDF);
   Object.keys(CURRICULUM).forEach(k => {
     CURRICULUM[k] = CURRICULUM[k].filter(u => !u._fromPDF);
@@ -1473,7 +1521,6 @@ async function rebuildFromLinks(){
   DEFS = DEFS.filter(d => !d._fromPDF);
   QB = QB.filter(l => !l._fromPDF);
   
-  // ⬅️ لو مفيش ملفات → أعد البناء عشان الملفات المحذوفة تختفي
   if(!files.length){
     if (status) status.textContent = '💡 اختر الملف من جهازك → اضغط إضافة';
     buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
@@ -1565,8 +1612,9 @@ async function removePdf(id){
   await deleteFileFromDB(id);
   await rebuildFromLinks();
 }
+
 /* =================================================================
-   عارض PDF — من الملف مباشرة
+   عارض PDF — النسخة النهائية
    ================================================================= */
 let pvPdf = null, pvPage = 1, pvId = null, pvFiles = null;
 
@@ -1585,26 +1633,58 @@ async function pvOpen(id){
 
   try{
     console.log('📄 فتح:', f.name);
-    const u8 = new Uint8Array(f.data);
+    console.log('🔍 نوع البيانات:', Object.prototype.toString.call(f.data));
+    console.log('🔍 الحجم:', f.data?.byteLength || f.data?.length || 0);
+    
+    // ⬅️ التحويل الآمن — يدعم Blob + Uint8Array + ArrayBuffer
+    let u8;
+    if (typeof Blob !== 'undefined' && f.data instanceof Blob) {
+      const buf = await f.data.arrayBuffer();
+      u8 = new Uint8Array(buf);
+    } else if (f.data instanceof Uint8Array) {
+      u8 = new Uint8Array(f.data.length);
+      u8.set(f.data);
+    } else if (f.data instanceof ArrayBuffer) {
+      u8 = new Uint8Array(f.data.slice(0));
+    } else if (f.data && f.data.buffer instanceof ArrayBuffer) {
+      u8 = new Uint8Array(f.data.buffer.slice(0));
+    } else {
+      throw new Error('نوع بيانات غير مدعوم: ' + Object.prototype.toString.call(f.data));
+    }
+    
+    if (!u8 || u8.length === 0) {
+      throw new Error('البيانات فارغة (0 بايت)');
+    }
+    
+    console.log('✅ الحجم بعد التحويل:', u8.length);
+    console.log('🔍 أول 4 بايت:', Array.from(u8.slice(0,4)).map(b=>b.toString(16).padStart(2,'0')).join(' '));
+    
+    const sig = String.fromCharCode(u8[0], u8[1], u8[2], u8[3]);
+    if (sig !== '%PDF') {
+      throw new Error('الملف ليس PDF صحيح (يبدأ بـ: "' + sig + '")');
+    }
+    
     const loadingTask = pdfjsLib.getDocument({
       data: u8,
       cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
       cMapPacked: true
     });
     pvPdf = await loadingTask.promise;
-    console.log('✅ صفحات:', pvPdf.numPages);
+    console.log('✅ عدد الصفحات:', pvPdf.numPages);
     $('pvTotal').textContent = pvPdf.numPages;
     await pvRender(1);
     pvBuildThumbs().catch(e => console.warn('thumbs', e));
   }catch(err){
-    console.error('❌', err);
+    console.error('❌ فشل عرض الملف:', err);
     $('pdfCanvasWrap').innerHTML =
       '<div class="pdf-loading">❌ فشل عرض الملف<br>' +
-      '<small style="font-size:12px;opacity:.8">' +
-      'حاول تاني أو امسح الملف واعد رفعه' +
+      '<small style="font-size:12px;opacity:.8;line-height:1.8;display:block;margin-top:8px">' +
+      esc(err.message || 'خطأ غير معروف') +
+      '<br>حاول تاني أو امسح الملف وأعد رفعه' +
       '</small></div>';
   }
 }
+
 async function pvRender(n){
   if(!pvPdf) return;
   if(n<1 || n>pvPdf.numPages) return;
@@ -1642,6 +1722,7 @@ async function pvRender(n){
     $('pdfCanvasWrap').innerHTML = '<div class="pdf-loading">❌ فشل عرض الصفحة ' + n + '</div>';
   }
 }
+
 async function pvBuildThumbs(){
   const wrap = $('pdfThumbs');wrap.innerHTML = '';
   const total = pvPdf.numPages;
@@ -1661,7 +1742,9 @@ async function pvBuildThumbs(){
     }catch(e){ console.warn('thumb '+i, e); }
   }
 }
+
 function pvGo(dir){ pvRender(pvPage + dir); }
+
 function pvClose(){
   $('pdfViewer').classList.remove('show');
   document.body.style.overflow = '';
@@ -1669,12 +1752,14 @@ function pvClose(){
   $('pdfCanvasWrap').innerHTML = '<div class="pdf-loading">⏳ جارٍ التحميل...</div>';
   $('pdfThumbs').innerHTML = '';
 }
+
 document.addEventListener('keydown', e=>{
   if(!$('pdfViewer').classList.contains('show')) return;
   if(e.key === 'ArrowRight' || e.key === 'ArrowDown'){ e.preventDefault(); pvGo(1); }
   if(e.key === 'ArrowLeft'  || e.key === 'ArrowUp'){   e.preventDefault(); pvGo(-1); }
   if(e.key === 'Escape') pvClose();
 });
+
 let pvResizeTimer;
 window.addEventListener('resize', ()=>{
   if(!pvPdf) return;
@@ -1684,11 +1769,9 @@ window.addEventListener('resize', ()=>{
 
 /* ================= أزرار الإضافة والحذف ================= */
 
-// ⬅️ الحد الأقصى لحجم الملف — عدّل الرقم زي ما تحب
 const MAX_FILE_SIZE_MB = 500;
 const MAX_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-/* ---------- دالة تنسيق حجم الملف ---------- */
 function formatFileSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -1696,7 +1779,6 @@ function formatFileSize(bytes) {
   return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
 }
 
-// اختيار ملف من الجهاز
 const pdfFileInput = document.getElementById('pdfFile');
 if (pdfFileInput) {
   pdfFileInput.addEventListener('change', (e) => {
@@ -1707,7 +1789,6 @@ if (pdfFileInput) {
       return; 
     }
     
-    // التحقق من النوع
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
       alert('❌ لازم يكون الملف PDF');
       e.target.value = '';
@@ -1716,7 +1797,6 @@ if (pdfFileInput) {
       return;
     }
     
-    // التحقق من الحجم
     if (file.size > MAX_SIZE_BYTES) {
       alert(
         `❌ الملف كبير جداً\n\n` +
@@ -1730,7 +1810,6 @@ if (pdfFileInput) {
       return;
     }
     
-    // ⬅️ تحذير للملفات الكبيرة (> 100MB)
     if (file.size > 100 * 1024 * 1024) {
       const proceed = confirm(
         `⚠️ الملف كبير (${formatFileSize(file.size)})\n\n` +
@@ -1747,7 +1826,6 @@ if (pdfFileInput) {
     
     selectedFile = file;
     
-    // حط اسم الملف تلقائياً في حقل الاسم لو فاضي
     const nameInput = $('pdfName');
     if (nameInput && !nameInput.value.trim()) {
       nameInput.value = file.name.replace(/\.pdf$/i, '');
@@ -1757,7 +1835,6 @@ if (pdfFileInput) {
   });
 }
 
-// زر الإضافة
 document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
   const subj = $('pdfSubject').value;
   const type = $('pdfType').value;
@@ -1771,7 +1848,6 @@ document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
     name = selectedFile.name.replace(/\.pdf$/i, '');
   }
 
-  // تعطيل الزر
   const btn = $('addPdfBtn');
   btn.disabled = true;
   btn.textContent = '⏳...';
@@ -1779,10 +1855,9 @@ document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
   if (status) status.textContent = '⏳ جارٍ إضافة الملف...';
 
   try {
-    // اقرأ الملف كـ ArrayBuffer
-    const data = await readFileAsArrayBuffer(selectedFile);
+    // ⬅️ خزّن كـ Blob (آمن من detach)
+    const data = new Blob([await readFileAsArrayBuffer(selectedFile)], { type: 'application/pdf' });
     
-    // أنشئ السجل
     const fileRecord = {
       id: 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
       name: name,
@@ -1790,23 +1865,19 @@ document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
       type: type,
       size: selectedFile.size,
       fileName: selectedFile.name,
-      data: data,
+      data: data,        // ⬅️ Blob
       addedAt: Date.now()
     };
     
-    // خزن في IndexedDB
     await addFileToDB(fileRecord);
     
-    // نظف الحقول
     selectedFile = null;
     if ($('pdfFile')) $('pdfFile').value = '';
     if ($('pdfName')) $('pdfName').value = '';
     updateSelectedFileDisplay();
     
-    // ⬅️ إعادة بناء كل حاجة — بما فيها القائمة الجانبية
     await rebuildFromLinks();
     
-    // ⬅️ رسالة نجاح
     if (status) {
       status.innerHTML = `✅ تمت إضافة "${name}" بنجاح إلى ${SUBJECTS[subj]?.name || subj}`;
       setTimeout(() => {
@@ -1814,7 +1885,6 @@ document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
       }, 3000);
     }
     
-    // ⬅️ عرض إشعار Toast
     showAddSuccessToast(name, SUBJECTS[subj]?.name || subj);
     
   } catch(err){
@@ -1827,7 +1897,6 @@ document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
   }
 });
 
-/* ---------- إشعار النجاح ---------- */
 function showAddSuccessToast(fileName, subjectName) {
   const toast = document.createElement('div');
   toast.style.cssText = `
@@ -1854,18 +1923,16 @@ function showAddSuccessToast(fileName, subjectName) {
   toast.innerHTML = `
     <div style="font-size: 28px; margin-bottom: 6px;">✅</div>
     <div style="font-weight: 800; margin-bottom: 4px;">تمت الإضافة بنجاح</div>
-    <div style="font-size: 12px; opacity: 0.9;">📄 ${fileName}</div>
-    <div style="font-size: 12px; opacity: 0.9;">📚 ${subjectName}</div>
+    <div style="font-size: 12px; opacity: 0.9;">📄 ${esc(fileName)}</div>
+    <div style="font-size: 12px; opacity: 0.9;">📚 ${esc(subjectName)}</div>
   `;
   document.body.appendChild(toast);
   
-  // أنيميشن الدخول
   requestAnimationFrame(() => {
     toast.style.opacity = '1';
     toast.style.transform = 'translateX(-50%) translateY(0)';
   });
   
-  // أنيميشن الخروج
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateX(-50%) translateY(-20px)';
@@ -1873,7 +1940,6 @@ function showAddSuccessToast(fileName, subjectName) {
   }, 3000);
 }
 
-// حذف كل الملفات
 document.getElementById('clearPdf').addEventListener('click', async ()=>{
   const files = await getAllFiles();
   if (!files.length) {
