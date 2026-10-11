@@ -1,4 +1,4 @@
-const CACHE = 'hadid-eez-v13';
+const CACHE = 'hadid-eez-v14';
 const ASSETS = [
   './',
   './index.html',
@@ -6,9 +6,14 @@ const ASSETS = [
   './js/app.js',
   './js/lib/pdf.min.js',
   './js/lib/pdf.worker.min.js',
+  './js/lib/qrcode.min.js',
   './manifest.json',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './icons/splash.png',
+  './icons/favicon-32x32.png',
+  './icons/favicon-16x16.png',
+  './icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', e => {
@@ -25,7 +30,7 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// ⬅️ جديد: استقبل أمر SKIP_WAITING من app.js
+// استقبل أمر SKIP_WAITING من app.js
 self.addEventListener('message', e => {
   if (e.data && e.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
