@@ -4,7 +4,45 @@ let currentSpokenEl = null;
 let currentRowEl = null;
 let isSpeakingSection = false;
 let currentSectionSi = null;
+/* ---------- تفعيل/إيقاف الصوت ---------- */
+function toggleSound() {
+  soundOn = !soundOn;
+  localStorage.setItem('mech-sound', soundOn ? '1' : '0');
+  
+  // تحديث نص الزر
+  const btn = document.getElementById('soundBtn');
+  if (btn) {
+    btn.textContent = soundOn ? '🔊 الصوت: مفعّل' : '🔇 الصوت: متوقف';
+    btn.style.background = soundOn 
+      ? 'linear-gradient(135deg, #009246, #16a34a)' 
+      : 'linear-gradient(135deg, #6b7280, #4b5563)';
+  }
+  
+  // لو تم الإيقاف — أوقف أي نطق حالياً
+  if (!soundOn) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (typeof stopSpeaking === 'function') {
+      stopSpeaking();
+    }
+  }
+  
+  // رسالة تأكيد
+  if (typeof showToast === 'function') {
+    showToast(soundOn ? '🔊 تم تفعيل الصوت' : '🔇 تم إيقاف الصوت', 'success', 1800);
+  }
+}
 
+/* ---------- تحديث حالة الزر عند تحميل الصفحة ---------- */
+function updateSoundButton() {
+  const btn = document.getElementById('soundBtn');
+  if (!btn) return;
+  btn.textContent = soundOn ? '🔊 الصوت: مفعّل' : '🔇 الصوت: متوقف';
+  btn.style.background = soundOn 
+    ? 'linear-gradient(135deg, #009246, #16a34a)' 
+    : 'linear-gradient(135deg, #6b7280, #4b5563)';
+}
 /* ================================================================
    🎙️ إعدادات النطق (اللغة والجنس)
    ================================================================ */
@@ -2456,6 +2494,7 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
 async function init(){
   initTabs();
   buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
+  updateSoundButton();
 
   if(localStorage.getItem("mech-theme") === "dark"){
     document.documentElement.dataset.theme = "dark";
