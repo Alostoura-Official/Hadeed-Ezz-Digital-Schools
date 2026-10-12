@@ -1434,6 +1434,9 @@ window.navGo = function(tab, item, navId) {
   }, 120);
 };
 
+/* ================================================================
+   🗂️ فتح / إغلاق / toggle القائمة الجانبية
+   ================================================================ */
 window.openSide = function() {
   const s = $("side"), b = $("sideback");
   if (s) s.classList.add("open");
@@ -1445,6 +1448,7 @@ window.closeSide = function() {
   if (s) s.classList.remove("open");
   if (b) b.classList.remove("show");
 };
+
 window.toggleSide = function() {
   const s = $("side");
   if (!s) return;
@@ -1454,6 +1458,32 @@ window.toggleSide = function() {
     openSide();
   }
 };
+
+/* ================================================================
+   🖱️ إغلاق القائمة عند الضغط في أي مكان خارجها
+   ================================================================ */
+document.addEventListener('click', (e) => {
+  const side = document.getElementById('side');
+  if (!side || !side.classList.contains('open')) return;
+
+  // ✅ استثناءات: القائمة نفسها + زر ☰ + الخلفية sideback
+  if (side.contains(e.target)) return;
+  if (e.target.closest('.menubtn')) return;
+  if (e.target.id === 'sideback') return;
+
+  // ❌ غير كده → اقفل
+  closeSide();
+});
+
+/* ⌨️ إغلاق بزر Escape */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const side = document.getElementById('side');
+    if (side && side.classList.contains('open')) {
+      closeSide();
+    }
+  }
+});
 /* ================================================================
    24) ⬆️ زر الصعود
    ================================================================ */
