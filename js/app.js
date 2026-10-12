@@ -4,15 +4,14 @@ let currentSpokenEl = null;
 let currentRowEl = null;
 let isSpeakingSection = false;
 let currentSectionSi = null;
+
 /* ---------- نطق كلمة فردية ---------- */
 function speak(text, lang = 'en-US', rate = 0.85, el = null) {
-  // 1) شيل تظليل الكلمة القديمة
   if (currentSpokenEl) {
     currentSpokenEl.classList.remove('speaking');
     currentSpokenEl = null;
   }
   
-  // 2) لو "نطق الكل" شغال، أوقفه
   if (isSpeakingSection) {
     stopSpeaking();
   }
@@ -35,13 +34,11 @@ function speak(text, lang = 'en-US', rate = 0.85, el = null) {
                  || voices.find(v => v.lang.startsWith(lang.split('-')[0]));
   if (preferred) utter.voice = preferred;
   
-  // 3) ظلل الكلمة
   if (el) {
     el.classList.add('speaking');
     currentSpokenEl = el;
   }
   
-  // 4) شيل التظليل لما النطق يخلص
   utter.onend = () => {
     if (currentSpokenEl) {
       currentSpokenEl.classList.remove('speaking');
@@ -52,15 +49,14 @@ function speak(text, lang = 'en-US', rate = 0.85, el = null) {
   
   window.speechSynthesis.speak(utter);
 }
+
 /* ---------- نطق القسم كامل (نطق الكل) ---------- */
 function speakSection(si) {
-  // لو نفس القسم شغال → أوقفه
   if (isSpeakingSection && currentSectionSi === si) {
     stopSpeaking();
     return;
   }
   
-  // لو قسم تاني شغال → أوقفه وابدأ الجديد
   if (isSpeakingSection) {
     stopSpeaking();
   }
@@ -71,7 +67,6 @@ function speakSection(si) {
     return; 
   }
   
-  // شيل أي تظليل فردي
   if (currentSpokenEl) {
     currentSpokenEl.classList.remove('speaking');
     currentSpokenEl = null;
@@ -91,13 +86,11 @@ function speakSection(si) {
   let i = 0;
   
   window.speechSynthesis.cancel();
-  // شيل أي تظليل قديم
   document.querySelectorAll('.speaking').forEach(el => el.classList.remove('speaking'));
   
   function playNext() {
     if (!isSpeakingSection || currentSectionSi !== si) return;
     
-    // خلص؟ نضّف واخرج
     if (i >= words.length) {
       finishSpeaking();
       return;
@@ -106,14 +99,11 @@ function speakSection(si) {
     const row = rows[i];
     if (!row) { i++; setTimeout(playNext, 300); return; }
     
-    // هات خلايا الكلمة الإنجليزية والإيطالية
     const enCell = row.querySelector('td.en');
     const itCell = row.querySelector('td.it');
     
-    // مرر الصف للشاشة
     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
     
-    // ===== 1) نطق الإنجليزي =====
     if (enCell) {
       enCell.classList.add('speaking');
       currentSpokenEl = enCell;
@@ -126,11 +116,9 @@ function speakSection(si) {
     uEN.onend = () => {
       if (!isSpeakingSection || currentSectionSi !== si) return;
       
-      // شيل التظليل من الإنجليزي
       if (enCell) enCell.classList.remove('speaking');
       currentSpokenEl = null;
       
-      // ===== 2) نطق الإيطالي =====
       if (itCell) {
         itCell.classList.add('speaking');
         currentSpokenEl = itCell;
@@ -143,11 +131,9 @@ function speakSection(si) {
       uIT.onend = () => {
         if (!isSpeakingSection || currentSectionSi !== si) return;
         
-        // شيل التظليل من الإيطالي
         if (itCell) itCell.classList.remove('speaking');
         currentSpokenEl = null;
         
-        // انتقل للصف التالي
         i++;
         setTimeout(playNext, 400);
       };
@@ -191,7 +177,6 @@ function stopSpeaking() {
   currentSectionSi = null;
   window.speechSynthesis.cancel();
   
-  // شيل كل التظليل (سواء على الكلمة أو الصف)
   document.querySelectorAll('.speaking').forEach(el => {
     el.classList.remove('speaking');
   });
@@ -200,6 +185,7 @@ function stopSpeaking() {
   currentRowEl = null;
   currentSpokenEl = null;
 }
+
 /* =================================================================
    1) المواد الدراسية الرئيسية
    ================================================================= */
@@ -219,7 +205,6 @@ const SUBJECTS = {
 /* =================================================================
    2) بيانات القاموس
    ================================================================= */
-/* بنية كل مصطلح: [الرقم, English, Italiano, نطق إنجليزي, نطق إيطالي, المعنى] */
 let SECTIONS = [
 {n:"أساسيات الميكاترونكس والتحكم",c:"#2563eb",subj:"mech",t:[
   [1,"Mechatronics","Meccatronica","ميكاترونكس","ميكاترونيكا","الميكاترونكس"],
@@ -722,7 +707,6 @@ let DEFS=[
 ["Partly Completed Machinery","آلة غير مكتملة","Subassembly for incorporation into other machinery — needs Declaration of Incorporation."],
 ["Health Surveillance","الرقابة الصحية","Medical exams/tests by the Occupational Health Doctor to monitor worker fitness."]];
 
-
 /* =================================================================
    5) بنك الأسئلة
    ================================================================= */
@@ -803,7 +787,6 @@ let QB=[
 {k:"sc",n:71,pre:"Scenario 10 — وصل مكوّن (صمام سيرفو / وحدة طاقة هيدروليكية) بإقرار دمج وتعليمات تجميع. زميلك: «عنده أوراق CE يبقى نستخدمه كماكينة مستقلة».",s:"(a) Is the colleague correct? (b) What type of equipment is this? (c) What documents should accompany it?",a:"(a) لا — لا يجوز استخدامه كآلة مستقلة (b) على الأرجح Partly Completed Machinery (c) Declaration of Incorporation + Assembly instructions."},
 {k:"sc",n:72,pre:"Scenario 11 — معدّة في منطقة انفجارية محتملة عليها CE و Ex معًا. عامل: «علامة Ex تعني مقاومة انفجار في كل مكان — لا نحتاج أي فحوصات إضافية».",s:"(a) Is the worker correct? (b) What must still be followed? (c) What if unsure about suitability for the zone?",a:"(a) لا (b) معلومات المعدة + تصنيف المنطقة المصرح به + تعليمات المنتِج + إجراءات الموقع + ضوابط المهمة (c) يُبلغ ويستشير المشرف ويتحقق من الانطباق قبل الاستخدام."}]}];
 
-
 /* =================================================================
    6) الاختبار السريع
    ================================================================= */
@@ -824,7 +807,6 @@ const QUIZ=[
 {q:"A worker slips on a wet floor but stays on his feet. This is:",o:["An accident","An incident","A hazard"],a:1,e:"لا ضرر فعلي حدث = Incident. لو كسر ذراعه = Accident."},
 {q:"Machine label: ST-450 Serial 74218. Instructions: ST-450 Serial 74281. What should you do?",o:["Assume the instructions belong to the machine","Record and report the discrepancy for authorized verification before relying on the instructions","Use the machine without checking"],a:1,e:"الموديل متطابق لكن الرقم المسلسل لا — سجّل وأبلغ."},
 {q:"Non-compliance occurs when…",o:["An applicable requirement or authorised instruction is not being followed","An accident has already happened","A worker wears the wrong uniform color"],a:0,e:"عدم الامتثال = عدم اتباع متطلب أو تعليمة مصرح بها معمول به."}];
-
 
 /* ================= أدوات ================= */
 const $=id=>document.getElementById(id);
@@ -1206,20 +1188,17 @@ goToTopButton.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smoo
 /* =================================================================
    نظام PDF — رفع الملفات من الجهاز
    ================================================================= */
-const DB_NAME = 'hadeed_eez_pdfs_v2';   // ⬅️ اسم جديد لتفادي التضارب
+const DB_NAME = 'hadeed_eez_pdfs_v2';
 const DB_VERSION = 1;
 const STORE_NAME = 'files';
 
 let dbInstance = null;
 let selectedFile = null;
 
-/* ---------- فتح قاعدة البيانات ---------- */
 function openDB() {
   return new Promise((resolve, reject) => {
     if (dbInstance) return resolve(dbInstance);
-    
     const req = indexedDB.open(DB_NAME, DB_VERSION);
-    
     req.onupgradeneeded = (e) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -1228,17 +1207,11 @@ function openDB() {
         store.createIndex('type', 'type', { unique: false });
       }
     };
-    
-    req.onsuccess = (e) => {
-      dbInstance = e.target.result;
-      resolve(dbInstance);
-    };
-    
+    req.onsuccess = (e) => { dbInstance = e.target.result; resolve(dbInstance); };
     req.onerror = (e) => reject(e.target.error);
   });
 }
 
-/* ---------- إضافة ملف ---------- */
 async function addFileToDB(fileRecord) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -1250,7 +1223,6 @@ async function addFileToDB(fileRecord) {
   });
 }
 
-/* ---------- جلب كل الملفات ---------- */
 async function getAllFiles() {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -1262,7 +1234,6 @@ async function getAllFiles() {
   });
 }
 
-/* ---------- حذف ملف ---------- */
 async function deleteFileFromDB(id) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -1274,7 +1245,6 @@ async function deleteFileFromDB(id) {
   });
 }
 
-/* ---------- حذف كل الملفات ---------- */
 async function clearAllFiles() {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -1286,7 +1256,6 @@ async function clearAllFiles() {
   });
 }
 
-/* ---------- قراءة ملف كـ ArrayBuffer ---------- */
 function readFileAsArrayBuffer(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1296,20 +1265,13 @@ function readFileAsArrayBuffer(file) {
   });
 }
 
-/* ---------- تحويل آمن إلى Uint8Array (مع نسخ) ---------- */
 function toUint8ArraySafe(data) {
-  if (data == null) {
-    throw new Error('البيانات فارغة');
-  }
-  
-  // Uint8Array
+  if (data == null) throw new Error('البيانات فارغة');
   if (data instanceof Uint8Array) {
     const copy = new Uint8Array(data.length);
     copy.set(data);
     return copy;
   }
-  
-  // ArrayBuffer
   if (data instanceof ArrayBuffer) {
     try {
       const copy = data.slice(0);
@@ -1318,26 +1280,17 @@ function toUint8ArraySafe(data) {
       throw new Error('ArrayBuffer detached — امسح الملف وأعد رفعه');
     }
   }
-  
-  // TypedArray آخر
   if (ArrayBuffer.isView(data)) {
     const copy = new Uint8Array(data.byteLength);
-    for (let i = 0; i < data.byteLength; i++) {
-      copy[i] = data[i];
-    }
+    for (let i = 0; i < data.byteLength; i++) copy[i] = data[i];
     return copy;
   }
-  
-  // Blob
   if (typeof Blob !== 'undefined' && data instanceof Blob) {
-    // ⬅️ سنستخدم async، بس ده fallback
     throw new Error('Blob غير مدعوم في الدالة المتزامنة');
   }
-  
   throw new Error('نوع بيانات غير مدعوم: ' + Object.prototype.toString.call(data));
 }
 
-/* ---------- استخراج النص من buffer ---------- */
 async function extractTextFromBuffer(data) {
   let u8;
   if (typeof Blob !== 'undefined' && data instanceof Blob) {
@@ -1346,7 +1299,6 @@ async function extractTextFromBuffer(data) {
   } else {
     u8 = toUint8ArraySafe(data);
   }
-  
   const pdf = await pdfjsLib.getDocument({ data: u8 }).promise;
   let fullText = '';
   for(let i=1; i<=pdf.numPages; i++){
@@ -1367,7 +1319,6 @@ async function extractTextFromBuffer(data) {
   return fullText;
 }
 
-/* ============ دوال تحليل النص ============ */
 function parseDict(text){
   const rows=[]; let counter=1;
   text.split('\n').forEach(line=>{
@@ -1388,38 +1339,23 @@ function parseDict(text){
 function parseLessons(text){
   const lessons = [];
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  
   if (!lines.length) return lessons;
-  
   let current = null;
   const titleRe = /^\s*(Unit|UNIT|Lesson|LESSON|Chapter|CHAPTER|Subtopic|SUBTOPIC|الوحدة|الدرس|الباب|الفصل|Section|SECTION|المبحث|المحاضرة)\s*[\d\-\.:أ-ي]*/i;
-  
   lines.forEach((line) => {
     if (!line || line.length < 3) return;
-    
     const isTitle = titleRe.test(line);
-    
     if (isTitle) {
       if (current) lessons.push(current);
-      current = {
-        u: 'PDF Lesson',
-        t: line,
-        subs: [{ n: line, i: '📄', b: [] }]
-      };
+      current = { u: 'PDF Lesson', t: line, subs: [{ n: line, i: '📄', b: [] }] };
     } else if (current) {
       current.subs[0].b.push({ t: 'p', x: line });
     } else {
-      current = {
-        u: 'PDF Lesson',
-        t: 'محتوى PDF',
-        subs: [{ n: 'المحتوى', i: '📄', b: [] }]
-      };
+      current = { u: 'PDF Lesson', t: 'محتوى PDF', subs: [{ n: 'المحتوى', i: '📄', b: [] }] };
       current.subs[0].b.push({ t: 'p', x: line });
     }
   });
-  
   if (current) lessons.push(current);
-  
   if (!lessons.length && lines.length) {
     const CHUNK_SIZE = 40;
     for (let i = 0; i < lines.length; i += CHUNK_SIZE) {
@@ -1435,7 +1371,6 @@ function parseLessons(text){
       });
     }
   }
-  
   return lessons;
 }
 
@@ -1474,20 +1409,13 @@ function parseDefs(text){
   return defs;
 }
 
-/* ---------- تحديث حالة اختيار الملف ---------- */
 function updateSelectedFileDisplay() {
   const wrap = $('pdfSelectedFile');
   if (!wrap) return;
-  
-  if (!selectedFile) {
-    wrap.style.display = 'none';
-    return;
-  }
-  
+  if (!selectedFile) { wrap.style.display = 'none'; return; }
   const sizeKB = (selectedFile.size / 1024).toFixed(1);
   const sizeMB = (selectedFile.size / (1024 * 1024)).toFixed(2);
   const displaySize = selectedFile.size > 1024 * 1024 ? sizeMB + ' MB' : sizeKB + ' KB';
-  
   wrap.innerHTML = `
     <div class="file-info">
       <span>📄</span>
@@ -1506,36 +1434,28 @@ window.clearSelectedFile = function() {
   updateSelectedFileDisplay();
 };
 
-/* ================= إعادة البناء ================= */
 async function rebuildFromLinks(){
   const files = await getAllFiles();
   pvFiles = files;
   renderPdfList(files);
-  
   const status = $('pdfStatus');
-  
   SECTIONS = SECTIONS.filter(s => !s._fromPDF);
   Object.keys(CURRICULUM).forEach(k => {
     CURRICULUM[k] = CURRICULUM[k].filter(u => !u._fromPDF);
   });
   DEFS = DEFS.filter(d => !d._fromPDF);
   QB = QB.filter(l => !l._fromPDF);
-  
   if(!files.length){
     if (status) status.textContent = '💡 اختر الملف من جهازك → اضغط إضافة';
     buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
     return false;
   }
-
   if (status) status.textContent = '⏳ جارٍ معالجة ' + files.length + ' ملف...';
-
   let dictCnt=0, lesCnt=0, qCnt=0, defCnt=0;
-
   for(const f of files){
     try{
       const text = await extractTextFromBuffer(f.data);
       const subj = f.subj || 'other';
-
       if(f.type === 'dict'){
         const raw = parseDict(text);
         const rows = raw.map(r => [r[0], r[1], r[2] || r[1], r[3] || '', r[4] || '', r[5] || r[3] || '']);
@@ -1550,10 +1470,7 @@ async function rebuildFromLinks(){
       }
       if(f.type === 'lessons'){
         const lessons = parseLessons(text);
-        lessons.forEach(L=>{
-          L._fromPDF = true;
-          L.u = '📄 ' + f.name;
-        });
+        lessons.forEach(L=>{ L._fromPDF = true; L.u = '📄 ' + f.name; });
         if(!CURRICULUM[subj]) CURRICULUM[subj] = [];
         CURRICULUM[subj].push(...lessons);
         lesCnt += lessons.length;
@@ -1571,28 +1488,21 @@ async function rebuildFromLinks(){
         DEFS.push(...defs);
         defCnt += defs.length;
       }
-    }catch(err){ 
-      console.error('❌', f.name, err); 
-    }
+    }catch(err){ console.error('❌', f.name, err); }
   }
-
   buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
-
   if (status) {
     status.innerHTML = `✅ تم تحميل ${files.length} ملف — قاموس: ${dictCnt} • دروس: ${lesCnt} • أسئلة: ${qCnt} • تعريفات: ${defCnt}`;
   }
   return true;
 }
 
-/* ---------- عرض قائمة الملفات ---------- */
 function renderPdfList(files){
   const list = $('pdfList');
   if (!list) return;
   list.innerHTML = '';
   if(!files.length) return;
-  
   const typeNames = {lessons:'📖',dict:'📚',qbank:'📝',defs:'🃏'};
-  
   files.forEach(f=>{
     const subj = SUBJECTS[f.subj] || SUBJECTS.other;
     const el = document.createElement('div');
@@ -1614,7 +1524,7 @@ async function removePdf(id){
 }
 
 /* =================================================================
-   عارض PDF — النسخة النهائية
+   عارض PDF
    ================================================================= */
 let pvPdf = null, pvPage = 1, pvId = null, pvFiles = null;
 let pvZoomLevel = 1;
@@ -1624,20 +1534,13 @@ async function pvOpen(id){
   pvFiles = files;
   const f = files.find(x => x.id === id);
   if(!f){ alert('الملف غير موجود'); return; }
-  
   pvId = id; pvPage = 1;
   $('pvTitle').textContent = f.name;
   $('pdfViewer').classList.add('show');
   $('pdfCanvasWrap').innerHTML = '<div class="pdf-loading">⏳ جارٍ التحميل...</div>';
   $('pdfThumbs').innerHTML = '';
   document.body.style.overflow = 'hidden';
-
   try{
-    console.log('📄 فتح:', f.name);
-    console.log('🔍 نوع البيانات:', Object.prototype.toString.call(f.data));
-    console.log('🔍 الحجم:', f.data?.byteLength || f.data?.length || 0);
-    
-    // ⬅️ التحويل الآمن — يدعم Blob + Uint8Array + ArrayBuffer
     let u8;
     if (typeof Blob !== 'undefined' && f.data instanceof Blob) {
       const buf = await f.data.arrayBuffer();
@@ -1652,26 +1555,15 @@ async function pvOpen(id){
     } else {
       throw new Error('نوع بيانات غير مدعوم: ' + Object.prototype.toString.call(f.data));
     }
-    
-    if (!u8 || u8.length === 0) {
-      throw new Error('البيانات فارغة (0 بايت)');
-    }
-    
-    console.log('✅ الحجم بعد التحويل:', u8.length);
-    console.log('🔍 أول 4 بايت:', Array.from(u8.slice(0,4)).map(b=>b.toString(16).padStart(2,'0')).join(' '));
-    
+    if (!u8 || u8.length === 0) throw new Error('البيانات فارغة (0 بايت)');
     const sig = String.fromCharCode(u8[0], u8[1], u8[2], u8[3]);
-    if (sig !== '%PDF') {
-      throw new Error('الملف ليس PDF صحيح (يبدأ بـ: "' + sig + '")');
-    }
-    
+    if (sig !== '%PDF') throw new Error('الملف ليس PDF صحيح (يبدأ بـ: "' + sig + '")');
     const loadingTask = pdfjsLib.getDocument({
       data: u8,
       cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
       cMapPacked: true
     });
     pvPdf = await loadingTask.promise;
-    console.log('✅ عدد الصفحات:', pvPdf.numPages);
     $('pvTotal').textContent = pvPdf.numPages;
     await pvRender(1);
     pvBuildThumbs().catch(e => console.warn('thumbs', e));
@@ -1693,33 +1585,15 @@ async function pvRender(n){
   $('pvCur').textContent = n;
   $('pvPrev').disabled = n <= 1;
   $('pvNext').disabled = n >= pvPdf.numPages;
-
   try{
     const page = await pvPdf.getPage(n);
-    
-    // ⬅️ استخدم أبعاد الشاشة مباشرة (مش getBoundingClientRect)
     const isFullscreen = !!document.fullscreenElement;
-    const containerW = isFullscreen 
-      ? window.innerWidth - 40 
-      : Math.min(window.innerWidth - 80, 1800);   // ⬅️ حد أقصى 1400px
-    const containerH = isFullscreen 
-      ? window.innerHeight - 100 
-      : window.innerHeight - 200;                 // ⬅️ أقل شوية عشان الشريط
-    
-    console.log('📐 العرض المتاح:', containerW, '×', containerH);
-    
+    const containerW = isFullscreen ? window.innerWidth - 40 : Math.min(window.innerWidth - 80, 1800);
+    const containerH = isFullscreen ? window.innerHeight - 100 : window.innerHeight - 200;
     const vp1 = page.getViewport({ scale: 1 });
-    
-    // ⬅️ احسب scale حسب المساحة المتاحة
-    const baseScale = Math.min(
-      containerW / vp1.width,
-      containerH / vp1.height
-    );
+    const baseScale = Math.min(containerW / vp1.width, containerH / vp1.height);
     const scale = baseScale * pvZoomLevel;
     const vp = page.getViewport({ scale });
-
-    console.log('📏 Scale النهائي:', scale.toFixed(2));
-
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
@@ -1727,12 +1601,11 @@ async function pvRender(n){
     canvas.height = Math.floor(vp.height * dpr);
     canvas.style.width = Math.floor(vp.width) + 'px';
     canvas.style.height = Math.floor(vp.height) + 'px';
-    canvas.style.maxWidth = '100%';           // ⬅️ حماية إضافية
+    canvas.style.maxWidth = '100%';
     canvas.style.height = 'auto';
     canvas.style.display = 'block';
     ctx.scale(dpr, dpr);
     await page.render({ canvasContext: ctx, viewport: vp }).promise;
-
     $('pdfCanvasWrap').innerHTML = '';
     $('pdfCanvasWrap').appendChild(canvas);
     document.querySelectorAll('.pdf-thumb').forEach((t,i)=>{
@@ -1782,67 +1655,39 @@ document.addEventListener('keydown', e=>{
   if(e.key === 'Escape') pvClose();
 });
 
-/* ---------- تحكم في الحجم ---------- */
-
 window.pvZoom = function(dir) {
   pvZoomLevel = Math.max(0.5, Math.min(3, pvZoomLevel + dir * 0.2));
-  console.log('🔍 مستوى التكبير:', pvZoomLevel.toFixed(1));
   pvRender(pvPage);
 };
 
 window.pvToggleFullscreen = function() {
   const viewer = $('pdfViewer');
   if (!viewer) return;
-  
   if (!document.fullscreenElement) {
-    // دخول ملء الشاشة
-    if (viewer.requestFullscreen) {
-      viewer.requestFullscreen();
-    } else if (viewer.webkitRequestFullscreen) {
-      viewer.webkitRequestFullscreen();
-    } else if (viewer.msRequestFullscreen) {
-      viewer.msRequestFullscreen();
-    }
+    if (viewer.requestFullscreen) viewer.requestFullscreen();
+    else if (viewer.webkitRequestFullscreen) viewer.webkitRequestFullscreen();
+    else if (viewer.msRequestFullscreen) viewer.msRequestFullscreen();
   } else {
-    // الخروج من ملء الشاشة
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-    }
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    else if (document.msExitFullscreen) document.msExitFullscreen();
   }
 };
 
-// تحديث الأيقونة عند تغيير حالة ملء الشاشة
 document.addEventListener('fullscreenchange', () => {
   const btn = $('pvFullscreen');
   if (btn) {
     btn.textContent = document.fullscreenElement ? '⛶✕' : '⛶';
     btn.title = document.fullscreenElement ? 'الخروج من ملء الشاشة' : 'ملء الشاشة';
   }
-  // أعد عرض الصفحة عشان تتأقلم مع الحجم الجديد
   if (pvPdf) setTimeout(() => pvRender(pvPage), 100);
 });
 
-// دعم اختصار F11 / Ctrl+F / زر Escape
 document.addEventListener('keydown', e => {
   if (!$('pdfViewer').classList.contains('show')) return;
-  // Ctrl + F → ملء الشاشة
-  if (e.ctrlKey && e.key === 'f') {
-    e.preventDefault();
-    pvToggleFullscreen();
-  }
-  // + و - للتكبير
-  if (e.key === '+' || e.key === '=') {
-    e.preventDefault();
-    pvZoom(1);
-  }
-  if (e.key === '-') {
-    e.preventDefault();
-    pvZoom(-1);
-  }
+  if (e.ctrlKey && e.key === 'f') { e.preventDefault(); pvToggleFullscreen(); }
+  if (e.key === '+' || e.key === '=') { e.preventDefault(); pvZoom(1); }
+  if (e.key === '-') { e.preventDefault(); pvZoom(-1); }
 });
 
 let pvResizeTimer;
@@ -1853,7 +1698,6 @@ window.addEventListener('resize', ()=>{
 });
 
 /* ================= أزرار الإضافة والحذف ================= */
-
 const MAX_FILE_SIZE_MB = 500;
 const MAX_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -1868,54 +1712,22 @@ const pdfFileInput = document.getElementById('pdfFile');
 if (pdfFileInput) {
   pdfFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
-    if (!file) { 
-      selectedFile = null; 
-      updateSelectedFileDisplay(); 
-      return; 
-    }
-    
+    if (!file) { selectedFile = null; updateSelectedFileDisplay(); return; }
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
       alert('❌ لازم يكون الملف PDF');
-      e.target.value = '';
-      selectedFile = null;
-      updateSelectedFileDisplay();
-      return;
+      e.target.value = ''; selectedFile = null; updateSelectedFileDisplay(); return;
     }
-    
     if (file.size > MAX_SIZE_BYTES) {
-      alert(
-        `❌ الملف كبير جداً\n\n` +
-        `📄 حجم الملف: ${formatFileSize(file.size)}\n` +
-        `✅ الحد الأقصى: ${MAX_FILE_SIZE_MB} MB\n\n` +
-        `جرب ضغط الملف أو تقسيمه`
-      );
-      e.target.value = '';
-      selectedFile = null;
-      updateSelectedFileDisplay();
-      return;
+      alert(`❌ الملف كبير جداً\n\n📄 حجم الملف: ${formatFileSize(file.size)}\n✅ الحد الأقصى: ${MAX_FILE_SIZE_MB} MB\n\nجرب ضغط الملف أو تقسيمه`);
+      e.target.value = ''; selectedFile = null; updateSelectedFileDisplay(); return;
     }
-    
     if (file.size > 100 * 1024 * 1024) {
-      const proceed = confirm(
-        `⚠️ الملف كبير (${formatFileSize(file.size)})\n\n` +
-        `قد ياخد وقت أطول للتحميل.\n` +
-        `هل تريد المتابعة؟`
-      );
-      if (!proceed) {
-        selectedFile = null;
-        e.target.value = '';
-        updateSelectedFileDisplay();
-        return;
-      }
+      const proceed = confirm(`⚠️ الملف كبير (${formatFileSize(file.size)})\n\nقد ياخد وقت أطول للتحميل.\nهل تريد المتابعة؟`);
+      if (!proceed) { selectedFile = null; e.target.value = ''; updateSelectedFileDisplay(); return; }
     }
-    
     selectedFile = file;
-    
     const nameInput = $('pdfName');
-    if (nameInput && !nameInput.value.trim()) {
-      nameInput.value = file.name.replace(/\.pdf$/i, '');
-    }
-    
+    if (nameInput && !nameInput.value.trim()) nameInput.value = file.name.replace(/\.pdf$/i, '');
     updateSelectedFileDisplay();
   });
 }
@@ -1924,54 +1736,36 @@ document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
   const subj = $('pdfSubject').value;
   const type = $('pdfType').value;
   let name = $('pdfName').value.trim();
-
-  if(!selectedFile){ 
-    alert('❌ لازم تختار ملف PDF أولاً'); 
-    return; 
-  }
-  if(!name){
-    name = selectedFile.name.replace(/\.pdf$/i, '');
-  }
-
+  if(!selectedFile){ alert('❌ لازم تختار ملف PDF أولاً'); return; }
+  if(!name) name = selectedFile.name.replace(/\.pdf$/i, '');
   const btn = $('addPdfBtn');
   btn.disabled = true;
   btn.textContent = '⏳...';
   const status = $('pdfStatus');
   if (status) status.textContent = '⏳ جارٍ إضافة الملف...';
-
   try {
-    // ⬅️ خزّن كـ Blob (آمن من detach)
     const data = new Blob([await readFileAsArrayBuffer(selectedFile)], { type: 'application/pdf' });
-    
     const fileRecord = {
       id: 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-      name: name,
-      subj: subj,
-      type: type,
+      name, subj, type,
       size: selectedFile.size,
       fileName: selectedFile.name,
-      data: data,        // ⬅️ Blob
+      data,
       addedAt: Date.now()
     };
-    
     await addFileToDB(fileRecord);
-    
     selectedFile = null;
     if ($('pdfFile')) $('pdfFile').value = '';
     if ($('pdfName')) $('pdfName').value = '';
     updateSelectedFileDisplay();
-    
     await rebuildFromLinks();
-    
     if (status) {
       status.innerHTML = `✅ تمت إضافة "${name}" بنجاح إلى ${SUBJECTS[subj]?.name || subj}`;
       setTimeout(() => {
         if (status) status.textContent = `💡 الملف في: ${SUBJECTS[subj]?.name || subj} → ${type}`;
       }, 3000);
     }
-    
     showAddSuccessToast(name, SUBJECTS[subj]?.name || subj);
-    
   } catch(err){
     console.error('❌', err);
     alert('❌ فشل إضافة الملف: ' + err.message);
@@ -1985,25 +1779,14 @@ document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
 function showAddSuccessToast(fileName, subjectName) {
   const toast = document.createElement('div');
   toast.style.cssText = `
-    position: fixed;
-    top: 80px;
-    left: 50%;
+    position: fixed; top: 80px; left: 50%;
     transform: translateX(-50%) translateY(-20px);
     background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: #fff;
-    padding: 16px 24px;
-    border-radius: 14px;
-    font-family: 'Tajawal', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
+    color: #fff; padding: 16px 24px; border-radius: 14px;
+    font-family: 'Tajawal', sans-serif; font-weight: 700; font-size: 14px;
     box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4);
-    z-index: 100002;
-    opacity: 0;
-    transition: all 0.4s ease;
-    text-align: center;
-    max-width: 90vw;
-    min-width: 250px;
-    line-height: 1.5;
+    z-index: 100002; opacity: 0; transition: all 0.4s ease;
+    text-align: center; max-width: 90vw; min-width: 250px; line-height: 1.5;
   `;
   toast.innerHTML = `
     <div style="font-size: 28px; margin-bottom: 6px;">✅</div>
@@ -2012,12 +1795,10 @@ function showAddSuccessToast(fileName, subjectName) {
     <div style="font-size: 12px; opacity: 0.9;">📚 ${esc(subjectName)}</div>
   `;
   document.body.appendChild(toast);
-  
   requestAnimationFrame(() => {
     toast.style.opacity = '1';
     toast.style.transform = 'translateX(-50%) translateY(0)';
   });
-  
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateX(-50%) translateY(-20px)';
@@ -2027,13 +1808,8 @@ function showAddSuccessToast(fileName, subjectName) {
 
 document.getElementById('clearPdf').addEventListener('click', async ()=>{
   const files = await getAllFiles();
-  if (!files.length) {
-    alert('ℹ️ مفيش ملفات مرفوعة حالياً');
-    return;
-  }
-  
+  if (!files.length) { alert('ℹ️ مفيش ملفات مرفوعة حالياً'); return; }
   if(!confirm(`⚠️ حذف ${files.length} ملف مرفوع؟\nلا يمكن التراجع!`)) return;
-  
   await clearAllFiles();
   location.reload();
 });
@@ -2054,64 +1830,153 @@ document.addEventListener("keydown", e=>{
 async function init(){
   initTabs();
   buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
-
   if(localStorage.getItem("mech-theme") === "dark"){
     document.documentElement.dataset.theme = "dark";
     $("thBtn").textContent = "☀️ وضع نهاري";
   }
-
   $("q1").oninput = f1;
   $("q2").oninput = f2;
   $("q3").oninput = f3;
   $("q4").oninput = f4;
-
   try{ await rebuildFromLinks(); }
   catch(e){ console.warn('خطأ:', e); }
 }
 init();
-/* ================= تسجيل Service Worker (PWA) ================= */
+
+/* =================================================================
+   🛡️ فحص وجود أي إدخال من المستخدم
+   ================================================================= */
+function hasAnyUserInput() {
+  // 1) أي راديو محدد
+  if (document.querySelector('input[type="radio"]:checked')) return true;
+  
+  // 2) أي حقل نصي فيه قيمة
+  const textInputs = document.querySelectorAll('input[type="text"]');
+  for (const input of textInputs) {
+    if (input.value && input.value.trim()) return true;
+  }
+  
+  // 3) أي إجابة مسجلة سابقاً
+  try {
+    const history = JSON.parse(localStorage.getItem('homework2-history') || '[]');
+    if (history.length > 0) return true;
+  } catch(e) {}
+  
+  return false;
+}
+
+/* =================================================================
+   🔔 إشعار التحديث الأنيق
+   ================================================================= */
+function showUpdatePrompt(newSW) {
+  if (hasAnyUserInput()) {
+    console.log('⚠️ [SW] يوجد إدخال — تأجيل التحديث');
+    window.__pendingSW = newSW;
+    return;
+  }
+  
+  const existing = document.getElementById('sw-update-banner');
+  if (existing) existing.remove();
+  
+  const updateBanner = document.createElement('div');
+  updateBanner.id = 'sw-update-banner';
+  updateBanner.style.cssText = `
+    position: fixed; top: 20px; left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: linear-gradient(135deg, #ea7c0c, #b45309);
+    color: #fff; padding: 14px 20px; border-radius: 14px;
+    font-family: 'Tajawal', sans-serif; font-weight: 700; font-size: 14px;
+    box-shadow: 0 10px 30px rgba(234, 124, 12, 0.5);
+    z-index: 100000; display: flex; align-items: center; gap: 12px;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 90vw; cursor: pointer;
+  `;
+  updateBanner.innerHTML = `
+    <span style="font-size: 22px;">🎉</span>
+    <span>يوجد تحديث جديد — اضغط للتحديث</span>
+    <button style="
+      background: rgba(255,255,255,0.25); border: none; color: #fff;
+      width: 28px; height: 28px; border-radius: 50%; font-size: 14px;
+      cursor: pointer; font-family: inherit; font-weight: 800;
+    " onclick="event.stopPropagation(); this.closest('#sw-update-banner').remove();">✕</button>
+  `;
+  document.body.appendChild(updateBanner);
+  requestAnimationFrame(() => {
+    updateBanner.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  updateBanner.onclick = () => {
+    updateBanner.remove();
+    newSW.postMessage({ type: 'SKIP_WAITING' });
+  };
+  setTimeout(() => {
+    if (updateBanner.parentNode) {
+      updateBanner.style.transform = 'translateX(-50%) translateY(-100px)';
+      setTimeout(() => updateBanner.remove(), 400);
+    }
+  }, 30000);
+}
+
+/* =================================================================
+   ⚙️ تسجيل Service Worker (PWA) — نسخة نهائية
+   ================================================================= */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
+    navigator.serviceWorker.register('sw.js', {
+      scope: './',
+      updateViaCache: 'none'
+    })
       .then(reg => {
-        console.log('✅ Service Worker مسجل بنجاح:', reg.scope);
+        console.log('✅ [SW] مسجّل بنجاح:', reg.scope);
         
-        // الاستماع لتحديثات SW
+        setInterval(() => {
+          reg.update().catch(() => {});
+        }, 30 * 60 * 1000);
+        
         reg.addEventListener('updatefound', () => {
           const newSW = reg.installing;
           if (!newSW) return;
           
           newSW.addEventListener('statechange', () => {
             if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
-              // فيه نسخة جديدة — اسأل المستخدم
-              if (confirm('🎉 فيه نسخة جديدة من الموقع!\nهل تريد تحديث الصفحة الآن؟')) {
-                newSW.postMessage({ type: 'SKIP_WAITING' });
-                window.location.reload();
-              }
+              console.log('🎉 [SW] تحديث جديد جاهز');
+              showUpdatePrompt(newSW);
             }
           });
         });
       })
-      .catch(err => console.warn('⚠️ فشل تسجيل Service Worker:', err));
+      .catch(err => console.warn('⚠️ [SW] فشل التسجيل:', err));
   });
 }
 
-
+/* =================================================================
+   🔄 إعادة التحميل عند تفعيل SW جديد — مع كل الحمايات
+   ================================================================= */
 let refreshing = false;
 navigator.serviceWorker?.addEventListener('controllerchange', () => {
   if (refreshing) return;
   refreshing = true;
+  
+  // 🛡️ حماية موسّعة
+  if (hasAnyUserInput()) {
+    console.log('⚠️ [SW] يوجد إدخال — لن يُعاد التحميل');
+    refreshing = false;
+    return;
+  }
+  
+  // 🛑 أوقف كل الأصوات قبل إعادة التحميل
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+  
+  console.log('🔄 [SW] إعادة تحميل الصفحة');
   window.location.reload();
 });
-
 
 /* ============ Splash Screen Timer ============ */
 (function(){
   const splash = document.getElementById('splashScreen');
   if (!splash) return;
-  
   let hidden = false;
-  
   function hideSplash() {
     if (hidden) return;
     hidden = true;
@@ -2120,16 +1985,13 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
       if (splash.parentNode) splash.remove();
     }, 700);
   }
-  
   window.addEventListener('load', () => {
     setTimeout(hideSplash, 1500);
   });
-  
   document.addEventListener('DOMContentLoaded', () => {
     setTimeout(hideSplash, 5000);
   });
-  
-})();   
+})();
 
 /* ================================================
    نظام تثبيت التطبيق — PWA Install Prompt (v2)
@@ -2137,7 +1999,6 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
 (function(){
   'use strict';
   
-  // ============ كشف التثبيت بطرق متعددة ============
   const isStandalone = 
     window.matchMedia('(display-mode: standalone)').matches ||
     window.matchMedia('(display-mode: fullscreen)').matches ||
@@ -2145,19 +2006,15 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     window.navigator.standalone === true ||
     document.referrer.includes('android-app://');
   
-  // ============ فحص علامة التثبيت المحفوظة ============
   const installedFlag = localStorage.getItem('app-installed') === 'true';
   
-  // ============ لو التطبيق مثبت → اطلع فوراً ============
   if (isStandalone || installedFlag) {
     console.log('✅ التطبيق مثبت - لن يظهر بانر التثبيت');
-    
     const b = document.getElementById('installBanner');
     const h = document.getElementById('installHeaderBtn');
     if (b) b.style.display = 'none';
     if (h) h.style.display = 'none';
-    
-    return;  // ⬅️ اطلع فوراً
+    return;
   }
   
   console.log('⚠️ التطبيق غير مثبت - سيعرض البانر عند الإمكان');
@@ -2172,13 +2029,11 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   
   if (!banner) return;
   
-  // ============ كشف نوع الجهاز ============
   const ua = navigator.userAgent;
   const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
   const isAndroid = /Android/.test(ua);
   const isDesktop = !isIOS && !isAndroid;
   
-  // ============ فحص رفض المستخدم للبانر خلال 7 أيام ============
   const dismissedTime = localStorage.getItem('install-dismissed');
   if (dismissedTime) {
     const daysSince = (Date.now() - +dismissedTime) / (1000 * 60 * 60 * 24);
@@ -2188,12 +2043,9 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     }
   }
   
-  // ============ دوال التحكم ============
   function showBanner() {
-    // ⬅️ حماية إضافية
     if (localStorage.getItem('app-installed') === 'true') return;
     if (window.matchMedia('(display-mode: standalone)').matches) return;
-    
     if (banner) {
       banner.style.display = 'flex';
       const views = +(localStorage.getItem('install-banner-views') || 0);
@@ -2209,22 +2061,17 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   }
   
   function showHeaderBtn() {
-    // ⬅️ حماية إضافية
     if (localStorage.getItem('app-installed') === 'true') return;
     if (window.matchMedia('(display-mode: standalone)').matches) return;
-    
     if (headerBtn) headerBtn.style.display = 'inline-block';
   }
   
-  // ============ دالة عامة لفتح البانر/المودال يدوياً ============
   window.openInstallModal = function() {
-    // ⬅️ لو التطبيق مثبت → رسالة
     if (localStorage.getItem('app-installed') === 'true' || 
         window.matchMedia('(display-mode: standalone)').matches) {
       alert('✅ التطبيق مثبت بالفعل على جهازك');
       return;
     }
-    
     if (isIOS) {
       if (iosModal) iosModal.style.display = 'block';
       if (installOverlay) installOverlay.style.display = 'block';
@@ -2247,152 +2094,97 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     document.body.style.overflow = '';
   };
   
-  // ============ حدث beforeinstallprompt ============
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     console.log('📲 التطبيق قابل للتثبيت');
-    
     showHeaderBtn();
-    
     setTimeout(() => {
-      if (window.scrollY < 300) {
-        showBanner();
-      }
+      if (window.scrollY < 300) showBanner();
     }, 3000);
   });
   
-  // ============ دعم iOS ============
   if (isIOS) {
     showHeaderBtn();
-    
     if (banner) {
       const bannerSubtitle = banner.querySelector('.install-text span');
       if (bannerSubtitle) {
         bannerSubtitle.textContent = 'اضغط على زر المشاركة ⬆️ ثم "إضافة للشاشة"';
       }
     }
-    
     setTimeout(() => {
-      if (window.scrollY < 300) {
-        showBanner();
-      }
+      if (window.scrollY < 300) showBanner();
     }, 5000);
   }
   
-  // ============ ضغط "تثبيت" في البانر ============
   if (installBtn) {
     installBtn.addEventListener('click', async () => {
-      if (isIOS) {
-        window.openInstallModal();
-        return;
-      }
-      
-      if (!deferredPrompt) {
-        window.openInstallModal();
-        return;
-      }
-      
+      if (isIOS) { window.openInstallModal(); return; }
+      if (!deferredPrompt) { window.openInstallModal(); return; }
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
       if (outcome === 'accepted') {
         console.log('✅ المستخدم وافق على التثبيت');
-        
-        // ⬅️ حفظ علامة التثبيت
         localStorage.setItem('app-installed', 'true');
         localStorage.setItem('app-installed-date', Date.now().toString());
-        
         hideBanner();
         if (headerBtn) headerBtn.style.display = 'none';
       } else {
         console.log('❌ المستخدم رفض التثبيت');
         hideBanner(true);
       }
-      
       deferredPrompt = null;
     });
   }
   
-  // ============ ضغط "✕" ============
   if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      hideBanner(true);
-    });
+    closeBtn.addEventListener('click', () => { hideBanner(true); });
   }
   
-  // ============ لما التطبيق يتثبت فعلياً ============
   window.addEventListener('appinstalled', () => {
     console.log('🎉 التطبيق اتثبت بنجاح');
-    
-    // ⬅️ حفظ علامة التثبيت (مهم جداً)
     localStorage.setItem('app-installed', 'true');
     localStorage.setItem('app-installed-date', Date.now().toString());
-    
-    // ⬅️ نظف علامة الرفض لو كانت موجودة
     localStorage.removeItem('install-dismissed');
-    
-    // ⬅️ اخفي كل حاجة
     hideBanner();
     if (headerBtn) headerBtn.style.display = 'none';
     deferredPrompt = null;
-    
-    // ⬅️ رسالة شكر
     setTimeout(() => {
       const toast = document.createElement('div');
       toast.textContent = '🎉 تم تثبيت التطبيق بنجاح!';
       toast.style.cssText = `
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
+        position: fixed; bottom: 30px; left: 50%;
         transform: translateX(-50%);
         background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: #fff;
-        padding: 14px 24px;
-        border-radius: 14px;
-        font-family: 'Tajawal', sans-serif;
-        font-weight: 700;
-        font-size: 15px;
+        color: #fff; padding: 14px 24px; border-radius: 14px;
+        font-family: 'Tajawal', sans-serif; font-weight: 700; font-size: 15px;
         box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4);
-        z-index: 100002;
-        animation: slideUp 0.5s ease;
+        z-index: 100002; animation: slideUp 0.5s ease;
       `;
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 4000);
     }, 500);
   });
   
-  // ============ حل احتياطي — التمرير ============
   let scrollTriggered = false;
   window.addEventListener('scroll', () => {
-    // ⬅️ حماية
     if (localStorage.getItem('app-installed') === 'true') return;
     if (window.matchMedia('(display-mode: standalone)').matches) return;
-    
     if (scrollTriggered) return;
     if (window.scrollY > 500) {
       scrollTriggered = true;
-      if (!localStorage.getItem('install-dismissed')) {
-        showBanner();
-      }
+      if (!localStorage.getItem('install-dismissed')) showBanner();
     }
   }, { passive: true });
   
-  // ============ فحص دوري كل 30 ثانية ============
   setInterval(() => {
     if (localStorage.getItem('app-installed') === 'true' ||
         window.matchMedia('(display-mode: standalone)').matches) {
-      if (banner && banner.style.display !== 'none') {
-        banner.style.display = 'none';
-      }
-      if (headerBtn && headerBtn.style.display !== 'none') {
-        headerBtn.style.display = 'none';
-      }
+      if (banner && banner.style.display !== 'none') banner.style.display = 'none';
+      if (headerBtn && headerBtn.style.display !== 'none') headerBtn.style.display = 'none';
     }
   }, 30000);
-  
 })();
-
 
 /* ================================================
    نظام مشاركة التطبيق
@@ -2412,13 +2204,11 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   
   let qrcodeGenerated = false;
   
-  // ============ فتح/إغلاق المودال ============
   window.openShareModal = function() {
     if (!shareModal) return;
     shareModal.style.display = 'flex';
     if (shareOverlay) shareOverlay.style.display = 'block';
     document.body.style.overflow = 'hidden';
-    
     if (shareUrlInput) shareUrlInput.value = SHARE_URL;
   };
   
@@ -2427,14 +2217,11 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     shareModal.style.display = 'none';
     if (shareOverlay) shareOverlay.style.display = 'none';
     document.body.style.overflow = '';
-    
     window.hideQRCode();
   };
   
-  // ============ نسخ الرابط ============
   window.copyShareUrl = function() {
     const url = SHARE_URL;
-    
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(() => {
         showCopyToast();
@@ -2468,7 +2255,6 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     setTimeout(() => copyToast.classList.remove('show'), 2000);
   }
   
-  // ============ المشاركة الأصلية ============
   window.shareNative = async function() {
     if (navigator.share) {
       try {
@@ -2480,9 +2266,7 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
         console.log('✅ تمت المشاركة');
         window.closeShareModal();
       } catch (err) {
-        if (err.name !== 'AbortError') {
-          console.warn('خطأ:', err);
-        }
+        if (err.name !== 'AbortError') console.warn('خطأ:', err);
       }
     } else {
       window.copyShareUrl();
@@ -2490,36 +2274,30 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     }
   };
   
-  // ============ مشاركة عبر واتساب ============
   window.shareWhatsApp = function() {
     const text = encodeURIComponent(SHARE_TEXT + '\n' + SHARE_URL);
     window.open('https://wa.me/?text=' + text, '_blank');
   };
   
-  // ============ مشاركة عبر تيليجرام ============
   window.shareTelegram = function() {
     const url = encodeURIComponent(SHARE_URL);
     const text = encodeURIComponent(SHARE_TEXT);
     window.open('https://t.me/share/url?url=' + url + '&text=' + text, '_blank');
   };
   
-  // ============ مشاركة عبر فيسبوك ============
   window.shareFacebook = function() {
     const url = encodeURIComponent(SHARE_URL);
     window.open('https://www.facebook.com/sharer/sharer.php?u=' + url, '_blank');
   };
   
-  // ============ مشاركة عبر تويتر / X ============
   window.shareTwitter = function() {
     const url = encodeURIComponent(SHARE_URL);
     const text = encodeURIComponent('🎓 منصة - مدارس حديد عز الرقمية');
     window.open('https://twitter.com/intent/tweet?url=' + url + '&text=' + text, '_blank');
   };
   
-  // ============ عرض QR Code ============
   window.showQRCode = function() {
     if (!qrContainer) return;
-    
     if (!qrcodeGenerated) {
       const qrDiv = document.getElementById('qrcode');
       if (qrDiv && typeof QRCode !== 'undefined') {
@@ -2535,7 +2313,6 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
         qrcodeGenerated = true;
       }
     }
-    
     qrContainer.style.display = 'block';
     const options = document.querySelector('.share-options');
     if (options) options.style.display = 'none';
@@ -2551,7 +2328,6 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     if (urlBox) urlBox.style.display = 'flex';
   };
   
-  // ============ Escape يغلق المودال ============
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && shareModal && shareModal.style.display === 'flex') {
       window.closeShareModal();
