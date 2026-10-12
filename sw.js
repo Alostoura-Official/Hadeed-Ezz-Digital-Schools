@@ -1,7 +1,8 @@
-const CACHE = 'hadid-eez-v31';
+const CACHE = 'hadid-eez-v32';
 const ASSETS = [
   './',
   './index.html',
+  './homework.html',
   './css/style.css',
   './css/css2.css',
   './css/fonts/tajawal-400-arabic.woff2',
