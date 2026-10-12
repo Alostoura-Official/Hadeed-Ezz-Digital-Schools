@@ -1,52 +1,98 @@
-/* ================= متغيرات النطق ================= */
+
+'use strict';
+
+/* ================================================================
+   0) 🛠️ أدوات مساعدة عامة
+   ================================================================ */
+const $ = id => document.getElementById(id);
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+}
+
+/* ================================================================
+   1) 🔔 نظام الإشعارات Toast
+   ================================================================ */
+function showToast(message, type = 'warn', duration = 3500) {
+  const container = document.getElementById('toastContainer');
+  if (!container) { console.warn('⚠️ toastContainer غير موجود:', message); return; }
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icons = { warn: '⚠️', error: '❌', success: '✅', info: 'ℹ️' };
+  toast.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span><span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+/* ================================================================
+   2) 🌙 الوضع الليلي
+   ================================================================ */
+function applyTheme(theme) {
+  const btn = document.getElementById('themeToggle');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (theme === 'dark') {
+    document.documentElement.dataset.theme = 'dark';
+    if (btn) btn.textContent = '☀️';
+    if (meta) meta.content = '#070c16';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    if (btn) btn.textContent = '🌙';
+    if (meta) meta.content = '#ea7c0c';
+  }
+  localStorage.setItem('mech-theme', theme);
+}
+
+window.toggleTheme = function() {
+  const current = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(current);
+  showToast(current === 'dark' ? 'تم تفعيل الوضع الليلي 🌙' : 'تم تفعيل الوضع النهاري ☀️', 'success', 1800);
+};
+
+/* ================================================================
+   3) 🎨 تأثير الهيدر عند التمرير
+   ================================================================ */
+window.addEventListener('scroll', () => {
+  const header = document.getElementById('appHeader');
+  if (!header) return;
+  header.classList.toggle('scrolled', window.scrollY > 10);
+}, { passive: true });
+
+/* ================================================================
+   4) 🎙️ متغيرات النطق
+   ================================================================ */
 let soundOn = localStorage.getItem('mech-sound') !== '0';
 let currentSpokenEl = null;
 let currentRowEl = null;
 let isSpeakingSection = false;
 let currentSectionSi = null;
-/* ---------- تفعيل/إيقاف الصوت ---------- */
+let activeSpeakBtn = null;
+
 function toggleSound() {
   soundOn = !soundOn;
   localStorage.setItem('mech-sound', soundOn ? '1' : '0');
-  
-  // تحديث نص الزر
-  const btn = document.getElementById('soundBtn');
-  if (btn) {
-    btn.textContent = soundOn ? '🔊 الصوت: مفعّل' : '🔇 الصوت: متوقف';
-    btn.style.background = soundOn 
-      ? 'linear-gradient(135deg, #009246, #16a34a)' 
-      : 'linear-gradient(135deg, #6b7280, #4b5563)';
-  }
-  
-  // لو تم الإيقاف — أوقف أي نطق حالياً
+  updateSoundButton();
   if (!soundOn) {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    if (typeof stopSpeaking === 'function') {
-      stopSpeaking();
-    }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    if (typeof stopSpeaking === 'function') stopSpeaking();
   }
-  
-  // رسالة تأكيد
-  if (typeof showToast === 'function') {
-    showToast(soundOn ? '🔊 تم تفعيل الصوت' : '🔇 تم إيقاف الصوت', 'success', 1800);
-  }
+  showToast(soundOn ? '🔊 تم تفعيل الصوت' : '🔇 تم إيقاف الصوت', 'success', 1800);
 }
 
-/* ---------- تحديث حالة الزر عند تحميل الصفحة ---------- */
 function updateSoundButton() {
   const btn = document.getElementById('soundBtn');
   if (!btn) return;
   btn.textContent = soundOn ? '🔊 الصوت: مفعّل' : '🔇 الصوت: متوقف';
-  btn.style.background = soundOn 
-    ? 'linear-gradient(135deg, #009246, #16a34a)' 
+  btn.style.background = soundOn
+    ? 'linear-gradient(135deg, #009246, #16a34a)'
     : 'linear-gradient(135deg, #6b7280, #4b5563)';
 }
+
 /* ================================================================
-   🎙️ إعدادات النطق (اللغة والجنس)
+   5) 🎙️ إعدادات اللغة والجنس
    ================================================================ */
-let voiceSettings = {
+const voiceSettings = {
   lang: localStorage.getItem('voice-lang') || 'en-US',
   gender: localStorage.getItem('voice-gender') || 'any',
   rate: parseFloat(localStorage.getItem('voice-rate')) || 0.85,
@@ -58,7 +104,6 @@ const VOICE_PRIORITY = {
   'it': ['Google italiano','Microsoft Elsa Online','Microsoft Diego Online','Alice','Federica','Luca']
 };
 
-/* ---------- كشف جنس الصوت ---------- */
 function detectGender(voice) {
   if (!voice) return 'unknown';
   const name = (voice.name || '').toLowerCase();
@@ -69,8 +114,8 @@ function detectGender(voice) {
   return 'unknown';
 }
 
-/* ---------- اختيار أفضل صوت ---------- */
 function pickBestVoice(lang) {
+  if (!('speechSynthesis' in window)) return null;
   const voices = window.speechSynthesis.getVoices();
   const langPrefix = lang.split('-')[0];
   const langVoices = voices.filter(v => v.lang.startsWith(langPrefix));
@@ -94,180 +139,131 @@ function pickBestVoice(lang) {
   return langVoices[0];
 }
 
-/* ---------- نطق كلمة فردية ---------- */
+/* ================================================================
+   6) 🔊 نطق نص
+   ================================================================ */
 function speak(text, lang = null, rate = null, el = null) {
   if (currentSpokenEl) {
     currentSpokenEl.classList.remove('speaking');
     currentSpokenEl = null;
   }
-  
-  if (isSpeakingSection) {
-    stopSpeaking();
-  }
-  
+  if (isSpeakingSection) stopSpeaking();
   if (!soundOn) return;
-  if (!('speechSynthesis' in window)) { 
-    alert('المتصفح لا يدعم النطق'); 
-    return; 
-  }
-  
+  if (!('speechSynthesis' in window)) { showToast('المتصفح لا يدعم النطق', 'error'); return; }
   if (!lang) lang = voiceSettings.lang;
   if (rate === null) rate = voiceSettings.rate;
-  
+
+  if (activeSpeakBtn) {
+    activeSpeakBtn.classList.remove('speaking-now');
+    activeSpeakBtn = null;
+  }
+
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang;
   utter.rate = rate;
   utter.volume = 1;
-  
-  // 🎯 استخدام نظام اختيار الصوت الجديد
+
   const voice = pickBestVoice(lang);
-  const voiceGender = detectGender(voice);
-  
+  const vGender = detectGender(voice);
+
   if (voiceSettings.gender === 'female') {
-    utter.pitch = (voiceGender === 'female') ? 1.0 : 1.4;
+    utter.pitch = (vGender === 'female') ? 1.0 : 1.4;
   } else if (voiceSettings.gender === 'male') {
-    utter.pitch = (voiceGender === 'male') ? 1.0 : 0.7;
+    utter.pitch = (vGender === 'male') ? 1.0 : 0.7;
   } else {
     utter.pitch = voiceSettings.pitch;
   }
-  
+
   if (voice) utter.voice = voice;
-  
-  if (el) {
-    el.classList.add('speaking');
-    currentSpokenEl = el;
-  }
-  
+  if (el) { el.classList.add('speaking'); currentSpokenEl = el; }
+
   utter.onend = () => {
-    if (currentSpokenEl) {
-      currentSpokenEl.classList.remove('speaking');
-      currentSpokenEl = null;
-    }
+    if (currentSpokenEl) { currentSpokenEl.classList.remove('speaking'); currentSpokenEl = null; }
+    if (activeSpeakBtn) { activeSpeakBtn.classList.remove('speaking-now'); activeSpeakBtn = null; }
   };
   utter.onerror = utter.onend;
-  
   window.speechSynthesis.speak(utter);
 }
 
-/* ---------- نطق القسم كامل (نطق الكل) ---------- */
+/* Alias للتوافق مع أي كود قديم */
+window.speakText = function(text, lang = null, btnEl = null) {
+  return speak(text, lang, null, btnEl);
+};
+
+/* ================================================================
+   7) 🔊 نطق قسم كامل
+   ================================================================ */
 function speakSection(si) {
-  if (isSpeakingSection && currentSectionSi === si) {
-    stopSpeaking();
-    return;
-  }
-  
-  if (isSpeakingSection) {
-    stopSpeaking();
-  }
-  
+  if (isSpeakingSection && currentSectionSi === si) { stopSpeaking(); return; }
+  if (isSpeakingSection) stopSpeaking();
   if (!soundOn) return;
-  if (!('speechSynthesis' in window)) { 
-    alert('المتصفح لا يدعم النطق'); 
-    return; 
-  }
-  
-  if (currentSpokenEl) {
-    currentSpokenEl.classList.remove('speaking');
-    currentSpokenEl = null;
-  }
-  
+  if (!('speechSynthesis' in window)) { showToast('المتصفح لا يدعم النطق', 'error'); return; }
+  if (currentSpokenEl) { currentSpokenEl.classList.remove('speaking'); currentSpokenEl = null; }
+
   const words = SECTIONS[si].t;
   const table = document.querySelector(`.sec[data-si="${si}"]`);
   if (!table) return;
-  
+
   isSpeakingSection = true;
   currentSectionSi = si;
-  
   const btn = table.querySelector('.btn-speak');
   if (btn) btn.innerHTML = '⏹️ إيقاف';
-  
+
   const rows = table.querySelectorAll('tbody tr');
   let i = 0;
-  
   window.speechSynthesis.cancel();
   document.querySelectorAll('.speaking').forEach(el => el.classList.remove('speaking'));
-  
+
   function playNext() {
     if (!isSpeakingSection || currentSectionSi !== si) return;
-    
-    if (i >= words.length) {
-      finishSpeaking();
-      return;
-    }
-    
+    if (i >= words.length) { finishSpeaking(); return; }
     const row = rows[i];
     if (!row) { i++; setTimeout(playNext, 300); return; }
-    
+
     const enCell = row.querySelector('td.en');
     const itCell = row.querySelector('td.it');
-    
     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    
-    // ===== نطق الإنجليزي =====
-    if (enCell) {
-      enCell.classList.add('speaking');
-      currentSpokenEl = enCell;
-    }
-    
+
+    if (enCell) { enCell.classList.add('speaking'); currentSpokenEl = enCell; }
+
     const uEN = new SpeechSynthesisUtterance(words[i][1]);
-    uEN.lang = 'en-US';
-    uEN.rate = voiceSettings.rate;
-    
-    const enVoice = pickBestVoice('en-US');
-    if (enVoice) uEN.voice = enVoice;
-    
+    uEN.lang = 'en-US'; uEN.rate = voiceSettings.rate;
+    const enVoice = pickBestVoice('en-US'); if (enVoice) uEN.voice = enVoice;
+
     uEN.onend = () => {
       if (!isSpeakingSection || currentSectionSi !== si) return;
-      
       if (enCell) enCell.classList.remove('speaking');
       currentSpokenEl = null;
-      
-      // ===== نطق الإيطالي =====
-      if (itCell) {
-        itCell.classList.add('speaking');
-        currentSpokenEl = itCell;
-      }
-      
+      if (itCell) { itCell.classList.add('speaking'); currentSpokenEl = itCell; }
+
       const uIT = new SpeechSynthesisUtterance(words[i][2]);
-      uIT.lang = 'it-IT';
-      uIT.rate = voiceSettings.rate;
-      
-      const itVoice = pickBestVoice('it-IT');
-      if (itVoice) uIT.voice = itVoice;
-      
+      uIT.lang = 'it-IT'; uIT.rate = voiceSettings.rate;
+      const itVoice = pickBestVoice('it-IT'); if (itVoice) uIT.voice = itVoice;
+
       uIT.onend = () => {
         if (!isSpeakingSection || currentSectionSi !== si) return;
-        
         if (itCell) itCell.classList.remove('speaking');
         currentSpokenEl = null;
-        
-        i++;
-        setTimeout(playNext, 400);
+        i++; setTimeout(playNext, 400);
       };
-      
       uIT.onerror = () => {
         if (!isSpeakingSection || currentSectionSi !== si) return;
         if (itCell) itCell.classList.remove('speaking');
         currentSpokenEl = null;
-        i++;
-        setTimeout(playNext, 400);
+        i++; setTimeout(playNext, 400);
       };
-      
       window.speechSynthesis.speak(uIT);
     };
-    
     uEN.onerror = () => {
       if (!isSpeakingSection || currentSectionSi !== si) return;
       if (enCell) enCell.classList.remove('speaking');
       currentSpokenEl = null;
-      i++;
-      setTimeout(playNext, 400);
+      i++; setTimeout(playNext, 400);
     };
-    
     window.speechSynthesis.speak(uEN);
   }
-  
+
   function finishSpeaking() {
     isSpeakingSection = false;
     currentSectionSi = null;
@@ -275,65 +271,59 @@ function speakSection(si) {
     document.querySelectorAll('.btn-speak').forEach(b => b.innerHTML = '🔊 نطق الكل');
     currentSpokenEl = null;
   }
-  
+
   playNext();
 }
 
-/* ---------- إيقاف النطق ---------- */
 function stopSpeaking() {
   isSpeakingSection = false;
   currentSectionSi = null;
-  window.speechSynthesis.cancel();
-  
-  document.querySelectorAll('.speaking').forEach(el => {
-    el.classList.remove('speaking');
-  });
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  document.querySelectorAll('.speaking').forEach(el => el.classList.remove('speaking'));
   document.querySelectorAll('.btn-speak').forEach(b => b.innerHTML = '🔊 نطق الكل');
-  
   currentRowEl = null;
   currentSpokenEl = null;
+  activeSpeakBtn = null;
 }
 
 /* ================================================================
-   🔄 تبديل اللغة والجنس (من قائمة الإعدادات)
+   8) 🔄 تبديل اللغة والجنس
    ================================================================ */
 window.switchVoiceLang = function(lang) {
   voiceSettings.lang = lang;
   localStorage.setItem('voice-lang', lang);
-  
   document.querySelectorAll('.lang-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.lang === lang);
   });
-  
   const sample = lang === 'en-US' ? 'English voice activated' : 'Voce italiana attivata';
   speak(sample, lang);
+  showToast(lang === 'en-US' ? 'تم تفعيل الصوت الإنجليزي' : 'تم تفعيل الصوت الإيطالي', 'success', 2000);
 };
 
 window.switchVoiceGender = function(gender) {
   voiceSettings.gender = gender;
   localStorage.setItem('voice-gender', gender);
-  
   document.querySelectorAll('.gender-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.gender === gender);
   });
-  
   const samples = {
     'male': voiceSettings.lang === 'en-US' ? 'Male voice' : 'Voce maschile',
     'female': voiceSettings.lang === 'en-US' ? 'Female voice' : 'Voce femminile',
     'any': voiceSettings.lang === 'en-US' ? 'Default voice' : 'Voce predefinita'
   };
   speak(samples[gender] || samples['any']);
+  const labels = { male: 'صوت رجل', female: 'صوت امرأة', any: 'صوت تلقائي' };
+  showToast(`تم اختيار: ${labels[gender]}`, 'success', 2000);
 };
 
 /* ================================================================
-   ⚙️ قائمة الإعدادات — فتح/إغلاق
+   9) ⚙️ قائمة الإعدادات
    ================================================================ */
 window.toggleSettings = function(e) {
-  e.stopPropagation();
+  if (e) e.stopPropagation();
   const menu = document.getElementById('settingsMenu');
   const btn = document.getElementById('settingsBtn');
   if (!menu || !btn) return;
-  
   const isOpen = menu.classList.toggle('open');
   btn.setAttribute('aria-expanded', isOpen);
   btn.classList.toggle('active', isOpen);
@@ -362,7 +352,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ================================================================
-   1) المواد الدراسية الرئيسية
+   10) 📚 المواد الدراسية
    ================================================================ */
 const SUBJECTS = {
   mech:      { name: "ميكاترونكس",       icon: "⚙️", color: "#2563eb" },
@@ -378,7 +368,7 @@ const SUBJECTS = {
 };
 
 /* ================================================================
-   2) بيانات القاموس
+   11) 📚 بيانات القاموس
    ================================================================ */
 let SECTIONS = [
 {n:"أساسيات الميكاترونكس والتحكم",c:"#2563eb",subj:"mech",t:[
@@ -619,7 +609,7 @@ let SECTIONS = [
 ];
 
 /* ================================================================
-   3) المنهج — مواد ← وحدات ← دروس
+   12) 📘 المنهج
    ================================================================ */
 let CURRICULUM = {
   italian: [
@@ -858,9 +848,9 @@ let CURRICULUM = {
 };
 
 /* ================================================================
-   4) التعريفات
+   13) 🃏 التعريفات
    ================================================================ */
-let DEFS=[
+let DEFS = [
 ["Safety","السلامة","A condition in which people are not exposed to unacceptable levels of danger."],
 ["Occupational Health","الصحة المهنية","Protecting and supporting physical, mental and social well-being in relation to the work performed and its conditions."],
 ["Hazard","الخطر","Inherent property of an object, substance, activity or situation with potential to cause harm — exists even with no exposure."],
@@ -883,9 +873,9 @@ let DEFS=[
 ["Health Surveillance","الرقابة الصحية","Medical exams/tests by the Occupational Health Doctor to monitor worker fitness."]];
 
 /* ================================================================
-   5) بنك الأسئلة
+   14) 📝 بنك الأسئلة
    ================================================================ */
-let QB=[
+let QB = [
 {les:"LESSON 1 — Foundations of Occupational Health and Safety",qs:[
 {k:"tf",n:1,s:"A hazard is the injury that happens to a worker.",a:false,c:"الخطر (Hazard) هو مصدر الضرر المحتمل — الإصابة نفسها هي الضرر (Harm)."},
 {k:"tf",n:2,s:"Every incident results in an injury or ill health.",a:false,c:"الحادث الكاد يقع (Incident) قد يقع دون أي ضرر فعلي — الضرر الفعلي يجعله Accident."},
@@ -963,9 +953,9 @@ let QB=[
 {k:"sc",n:72,pre:"Scenario 11 — معدّة في منطقة انفجارية محتملة عليها CE و Ex معًا. عامل: «علامة Ex تعني مقاومة انفجار في كل مكان — لا نحتاج أي فحوصات إضافية».",s:"(a) Is the worker correct? (b) What must still be followed? (c) What if unsure about suitability for the zone?",a:"(a) لا (b) معلومات المعدة + تصنيف المنطقة المصرح به + تعليمات المنتِج + إجراءات الموقع + ضوابط المهمة (c) يُبلغ ويستشير المشرف ويتحقق من الانطباق قبل الاستخدام."}]}];
 
 /* ================================================================
-   6) الاختبار السريع
+   15) 🎯 الاختبار السريع
    ================================================================ */
-const QUIZ=[
+const QUIZ = [
 {q:"Which two responsibilities of the Employer cannot be delegated?",o:["Conducting the risk assessment and appointing the Head of Prevention","Supervising daily work and buying safety equipment","Conducting health examinations and representing workers"],a:0,e:"واجبات صاحب العمل غير القابلة للتفويض: إجراء/توثيق تقييم المخاطر + تعيين رئيس خدمة الوقاية والحماية."},
 {q:"What is the main role of the Supervisor (Preposto)?",o:["To carry out medical examinations on workers","To oversee the correct execution of work and ensure instructions are followed","To represent worker interests during safety meetings"],a:1,e:"المشرف يشرف على التنفيذ اليومي الصحيح للعمل وضمان اتباع التعليمات."},
 {q:"How does the Workers' Safety Representative (RLS) differ from a Supervisor?",o:["The RLS gives direct work instructions to technicians","The RLS oversees daily production speed","The RLS represents worker safety concerns, while the Supervisor oversees work execution"],a:2,e:"RLS يمثل مخاوف العمال في السلامة، بينما المشرف يشرف على تنفيذ العمل."},
@@ -983,33 +973,60 @@ const QUIZ=[
 {q:"Machine label: ST-450 Serial 74218. Instructions: ST-450 Serial 74281. What should you do?",o:["Assume the instructions belong to the machine","Record and report the discrepancy for authorized verification before relying on the instructions","Use the machine without checking"],a:1,e:"الموديل متطابق لكن الرقم المسلسل لا — سجّل وأبلغ."},
 {q:"Non-compliance occurs when…",o:["An applicable requirement or authorised instruction is not being followed","An accident has already happened","A worker wears the wrong uniform color"],a:0,e:"عدم الامتثال = عدم اتباع متطلب أو تعليمة مصرح بها معمول به."}];
 
-/* ================= أدوات ================= */
-const $=id=>document.getElementById(id);
-function esc(s){return String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
+/* ================================================================
+   16) 🗂️ التبويبات — تمرير ذكي إلى محتوى التبويب
+   ================================================================ */
+function initTabs() {
+  // احسب ارتفاع الهيدر ديناميكياً (يدعم الجوال والديسكتوب)
+  const getHeaderHeight = () => {
+    const header = document.getElementById('appHeader');
+    return header ? header.offsetHeight : 72;
+  };
 
-/* ================= التبويبات ================= */
-function initTabs(){
-  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
-    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-    document.querySelectorAll(".pane").forEach(x=>x.classList.remove("show"));
-    b.classList.add("active");$(b.dataset.p).classList.add("show");window.scrollTo(0,0);
+  document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll(".pane").forEach(x => x.classList.remove("show"));
+
+    b.classList.add("active");
+    const target = $(b.dataset.p);
+    if (!target) return;
+    target.classList.add("show");
+
+    // 🌟 تمرير ذكي:
+    // - إذا كان المستخدم أعلى من بداية المحتوى → مرّر لبدايته
+    // - إذا كان داخل المحتوى → اتركه في مكانه
+    setTimeout(() => {
+      const headerH = getHeaderHeight();
+      const targetTop = target.getBoundingClientRect().top + window.scrollY;
+      const minScroll = targetTop - headerH - 10;
+
+      if (window.scrollY < minScroll - 20) {
+        window.scrollTo({
+          top: Math.max(0, minScroll),
+          behavior: "smooth"
+        });
+      }
+    }, 60);
   });
 }
 
-/* ================= القاموس ================= */
-function buildDict(){
-  const dict=$("dict");dict.innerHTML="";
-  SECTIONS.forEach((S,si)=>{
-    const sec=document.createElement("section");
-    sec.className="sec";sec.style.setProperty("--c",S.c);sec.dataset.si=si;
-    sec.dataset.subj=S.subj||"";
-    sec.innerHTML=`<div class="sec-h" onclick="this.parentElement.classList.toggle('closed')">
+/* ================================================================
+   17) 📚 القاموس
+   ================================================================ */
+function buildDict() {
+  const dict = $("dict");
+  if (!dict) return;
+  dict.innerHTML = "";
+  SECTIONS.forEach((S, si) => {
+    const sec = document.createElement("section");
+    sec.className = "sec";
+    sec.style.setProperty("--c", S.c);
+    sec.dataset.si = si;
+    sec.dataset.subj = S.subj || "";
+    sec.innerHTML = `<div class="sec-h" onclick="this.parentElement.classList.toggle('closed')">
       <h2>🗂️ ${esc(S.n)}</h2>
       <div style="display:flex;align-items:center;gap:6px">
-        <button class="btn-speak" onclick="event.stopPropagation();speakSection(${si})" 
-        title="ينطق الكلمة إنجليزي ثم إيطالي بالتتابع">
-  🔊 نطق الكل
-</button>
+        <button class="btn-speak" onclick="event.stopPropagation();speakSection(${si})" title="ينطق الكلمة إنجليزي ثم إيطالي بالتتابع">🔊 نطق الكل</button>
         <span class="rng">${S.t[0][0]}–${S.t[S.t.length-1][0]}</span>
       </div>
     </div>
@@ -1021,10 +1038,10 @@ function buildDict(){
       <th>نطق إيطالي</th>
       <th>المعنى</th>
     </tr></thead>
-    <tbody>${S.t.map(t=>`<tr data-f="${esc((t[1]+" "+t[2]+" "+t[3]+" "+t[4]+" "+t[5]).toLowerCase())}">
+    <tbody>${S.t.map(t => `<tr data-f="${esc((t[1]+" "+t[2]+" "+t[3]+" "+t[4]+" "+t[5]).toLowerCase())}">
         <td class="num">${t[0]}</td>
         <td class="en" onclick="speak('${esc(t[1].replace(/'/g,"\\'"))}','en-US',0.85,this)" title="اضغط للسماع">${esc(t[1])} <span class="spk">🔊</span></td>
-<td class="it" onclick="speak('${esc(t[2].replace(/'/g,"\\'"))}','it-IT',0.85,this)" title="Clicca per ascoltare">${esc(t[2])} <span class="spk">🔊</span></td>
+        <td class="it" onclick="speak('${esc(t[2].replace(/'/g,"\\'"))}','it-IT',0.85,this)" title="Clicca per ascoltare">${esc(t[2])} <span class="spk">🔊</span></td>
         <td class="pro">${esc(t[3])}</td>
         <td class="pro-it">${esc(t[4])}</td>
         <td>${esc(t[5])}</td>
@@ -1034,67 +1051,82 @@ function buildDict(){
   });
   buildChips();
 }
-function buildChips(){
-  const chips=$("chips");chips.innerHTML="";
-  [{n:"الكل"}].concat(SECTIONS).forEach((S,i)=>{
-    const b=document.createElement("button");
-    b.className="chip"+(i?"":" active");
-    b.textContent=i?S.n:"📚 الكل";
-    b.dataset.si=i-1;
-    b.onclick=()=>{
-      chips.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
-      b.classList.add("active");f1();
+
+function buildChips() {
+  const chips = $("chips");
+  if (!chips) return;
+  chips.innerHTML = "";
+  [{ n: "الكل" }].concat(SECTIONS).forEach((S, i) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (i ? "" : " active");
+    b.textContent = i ? S.n : "📚 الكل";
+    b.dataset.si = i - 1;
+    b.onclick = () => {
+      chips.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+      b.classList.add("active");
+      f1();
     };
     chips.appendChild(b);
   });
 }
-function f1(){
-  const q=$("q1").value.trim().toLowerCase();
-  const act=chips.querySelector(".active");
-  const si=act?+act.dataset.si:-1;
-  let v=0;
-  $("dict").querySelectorAll(".sec").forEach(sec=>{
-    let s=0;
-    sec.querySelectorAll("tbody tr").forEach(tr=>{
-      const ok=(si===-1||si===+sec.dataset.si)&&(!q||tr.dataset.f.includes(q));
-      tr.style.display=ok?"":"none";if(ok)s++;
+
+function f1() {
+  const qEl = $("q1"); if (!qEl) return;
+  const chips = $("chips"); if (!chips) return;
+  const q = qEl.value.trim().toLowerCase();
+  const act = chips.querySelector(".active");
+  const si = act ? +act.dataset.si : -1;
+  let v = 0;
+  const dict = $("dict"); if (!dict) return;
+  dict.querySelectorAll(".sec").forEach(sec => {
+    let s = 0;
+    sec.querySelectorAll("tbody tr").forEach(tr => {
+      const ok = (si === -1 || si === +sec.dataset.si) && (!q || tr.dataset.f.includes(q));
+      tr.style.display = ok ? "" : "none";
+      if (ok) s++;
     });
-    sec.style.display=s?"":"none";v+=s;
+    sec.style.display = s ? "" : "none";
+    v += s;
   });
-  $("c1").textContent=q?v+" نتيجة":"";
-  $("e1").style.display=v?"none":"block";
+  const c1 = $("c1"); if (c1) c1.textContent = q ? v + " نتيجة" : "";
+  const e1 = $("e1"); if (e1) e1.style.display = v ? "none" : "block";
 }
 
-/* ================= الدروس ================= */
-function blk(b){
-  if(b.t==="h")return `<div class="blk"><h4>${esc(b.x)}</h4></div>`;
-  if(b.t==="p")return `<div class="blk"><p>${esc(b.x)}</p></div>`;
-  if(b.t==="list")return `<div class="blk"><ul>${b.x.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>`;
-  if(b.t==="steps")return `<div class="blk"><ol>${b.x.map(i=>`<li>${esc(i)}</li>`).join("")}</ol></div>`;
-  if(b.t==="def")return `<div class="blk defbox"><span class="term">📖 ${esc(b.term)}</span><div class="x">${esc(b.x)}</div></div>`;
-  if(b.t==="note")return `<div class="blk notebox"><span class="tag">${esc(b.tag)}</span>${esc(b.x)}</div>`;
-  if(b.t==="chain")return `<div class="blk chain">${b.x.map((x,i)=>`<b>${esc(x)}</b>${i<b.x.length-1?"<span>←</span>":""}`).join("")}</div>`;
+/* ================================================================
+   18) 📖 الدروس
+   ================================================================ */
+function blk(b) {
+  if (b.t === "h") return `<div class="blk"><h4>${esc(b.x)}</h4></div>`;
+  if (b.t === "p") return `<div class="blk"><p>${esc(b.x)}</p></div>`;
+  if (b.t === "list") return `<div class="blk"><ul>${b.x.map(i => `<li>${esc(i)}</li>`).join("")}</ul></div>`;
+  if (b.t === "steps") return `<div class="blk"><ol>${b.x.map(i => `<li>${esc(i)}</li>`).join("")}</ol></div>`;
+  if (b.t === "def") return `<div class="blk defbox"><span class="term">📖 ${esc(b.term)}</span><div class="x">${esc(b.x)}</div></div>`;
+  if (b.t === "note") return `<div class="blk notebox"><span class="tag">${esc(b.tag)}</span>${esc(b.x)}</div>`;
+  if (b.t === "chain") return `<div class="blk chain">${b.x.map((x, i) => `<b>${esc(x)}</b>${i < b.x.length - 1 ? "<span>←</span>" : ""}`).join("")}</div>`;
   return "";
 }
-function buildLessons(){
-  const lessons=$("lessons");lessons.innerHTML="";
-  Object.keys(SUBJECTS).forEach(subjKey=>{
+
+function buildLessons() {
+  const lessons = $("lessons");
+  if (!lessons) return;
+  lessons.innerHTML = "";
+  Object.keys(SUBJECTS).forEach(subjKey => {
     const units = CURRICULUM[subjKey] || [];
-    if(!units.length) return;
+    if (!units.length) return;
     const subj = SUBJECTS[subjKey];
     const hdr = document.createElement("div");
     hdr.className = "subject-hdr";
-    hdr.id = "subj-hdr-"+subjKey;
+    hdr.id = "subj-hdr-" + subjKey;
     hdr.style.setProperty("--sc", subj.color);
-    const totalSubs = units.reduce((a,u)=>a+u.subs.length,0);
+    const totalSubs = units.reduce((a, u) => a + u.subs.length, 0);
     hdr.innerHTML = `<span><span class="em">${subj.icon}</span>${esc(subj.name)}</span>
       <span class="badge">${totalSubs} درس</span>`;
     lessons.appendChild(hdr);
-    units.forEach((U, ui)=>{
+    units.forEach((U, ui) => {
       const u = document.createElement("div");
       u.className = "unit";
       u.innerHTML = `<h2>📘 ${esc(U.u)} — ${esc(U.t)}</h2>`;
-      U.subs.forEach((sub, si)=>{
+      U.subs.forEach((sub, si) => {
         const s = document.createElement("div");
         s.className = "sub";
         s.style.setProperty("--c2", subj.color);
@@ -1110,172 +1142,224 @@ function buildLessons(){
     });
   });
 }
-function f2(){
-  const q=$("q2").value.trim().toLowerCase();let v=0;
-  $("lessons").querySelectorAll(".sub").forEach(s=>{
-    const ok=!q||s.textContent.toLowerCase().includes(q);
-    s.style.display=ok?"":"none";
-    if(ok){v++;if(q)s.classList.remove("closed");}
+
+function f2() {
+  const qEl = $("q2"); if (!qEl) return;
+  const lessons = $("lessons"); if (!lessons) return;
+  const q = qEl.value.trim().toLowerCase(); let v = 0;
+  lessons.querySelectorAll(".sub").forEach(s => {
+    const ok = !q || s.textContent.toLowerCase().includes(q);
+    s.style.display = ok ? "" : "none";
+    if (ok) { v++; if (q) s.classList.remove("closed"); }
   });
-  $("lessons").querySelectorAll(".subject-hdr").forEach(h=>{
-    let any=false;let el=h.nextElementSibling;
-    while(el && !el.classList.contains("subject-hdr")){
-      if(el.querySelector(".sub") && [...el.querySelectorAll(".sub")].some(x=>x.style.display!=="none")){
-        any=true;break;
+  lessons.querySelectorAll(".subject-hdr").forEach(h => {
+    let any = false; let el = h.nextElementSibling;
+    while (el && !el.classList.contains("subject-hdr")) {
+      if (el.querySelector(".sub") && [...el.querySelectorAll(".sub")].some(x => x.style.display !== "none")) {
+        any = true; break;
       }
-      el=el.nextElementSibling;
+      el = el.nextElementSibling;
     }
-    h.style.display=any?"":"none";
+    h.style.display = any ? "" : "none";
   });
-  $("c2").textContent=q?v+" درس":"";
-  $("e2").style.display=v?"none":"block";
+  const c2 = $("c2"); if (c2) c2.textContent = q ? v + " درس" : "";
+  const e2 = $("e2"); if (e2) e2.style.display = v ? "none" : "block";
 }
 
-/* ================= التعريفات ================= */
-function buildDefs(){
-  const defs=$("defs");defs.innerHTML="";
-  DEFS.forEach(d=>{
-    const c=document.createElement("div");
-    c.className="dcard";
-    c.dataset.f=esc((d[0]+" "+d[2]).toLowerCase());
-    c.innerHTML=`<div class="q">${esc(d[0])}<small>${esc(d[1])}</small></div>
+/* ================================================================
+   19) 🃏 التعريفات
+   ================================================================ */
+function buildDefs() {
+  const defs = $("defs");
+  if (!defs) return;
+  defs.innerHTML = "";
+  DEFS.forEach(d => {
+    const c = document.createElement("div");
+    c.className = "dcard";
+    c.dataset.f = esc((d[0] + " " + d[2]).toLowerCase());
+    c.innerHTML = `<div class="q">${esc(d[0])}<small>${esc(d[1])}</small></div>
       <div class="a">${esc(d[2])}</div>
       <div class="hint">👆 اضغط لكشف التعريف</div>`;
-    c.onclick=()=>c.classList.toggle("flip");
+    c.onclick = () => c.classList.toggle("flip");
     defs.appendChild(c);
   });
 }
-function f3(){
-  const q=$("q3").value.trim().toLowerCase();let v=0;
-  $("defs").querySelectorAll(".dcard").forEach(c=>{
-    const ok=!q||c.dataset.f.includes(q);c.style.display=ok?"":"none";if(ok)v++;
+
+function f3() {
+  const qEl = $("q3"); if (!qEl) return;
+  const defs = $("defs"); if (!defs) return;
+  const q = qEl.value.trim().toLowerCase(); let v = 0;
+  defs.querySelectorAll(".dcard").forEach(c => {
+    const ok = !q || c.dataset.f.includes(q);
+    c.style.display = ok ? "" : "none";
+    if (ok) v++;
   });
-  $("c3").textContent=q?v+" بطاقة":"";
-  $("e3").style.display=v?"none":"block";
+  const c3 = $("c3"); if (c3) c3.textContent = q ? v + " بطاقة" : "";
+  const e3 = $("e3"); if (e3) e3.style.display = v ? "none" : "block";
 }
 
-/* ================= بنك الأسئلة ================= */
-const secNames={tf:"A. صح أم خطأ",d:"B. تعريفات",w:"C. إجابات كتابية"};
-function buildQBank(){
-  const qbank=$("qbank");qbank.innerHTML="";
-  QB.forEach((L,li)=>{
-    const box=document.createElement("div");
-    box.className="qb-les";box.id="qb-"+li;
-    let html=`<h2>📝 ${esc(L.les)}</h2>`,last="";
-    L.qs.forEach(q=>{
-      if(q.k!==last){last=q.k;html+=`<div class="qb-sec"><b>${secNames[q.k]||q.k}</b></div>`;}
-      const col={tf:"#2563eb",d:"#16a34a",w:"#ea580c"}[q.k]||"#2563eb";
-      if(q.k==="tf"){
-        html+=`<div class="qcard" data-f="${esc(q.s.toLowerCase())}" data-c="${esc(q.c)}" data-a="${q.a?1:0}" style="--qc:${col}">
+/* ================================================================
+   20) 📝 بنك الأسئلة
+   ================================================================ */
+const secNames = { tf: "A. صح أم خطأ", d: "B. تعريفات", w: "C. إجابات كتابية" };
+
+function buildQBank() {
+  const qbank = $("qbank");
+  if (!qbank) return;
+  qbank.innerHTML = "";
+  QB.forEach((L, li) => {
+    const box = document.createElement("div");
+    box.className = "qb-les"; box.id = "qb-" + li;
+    let html = `<h2>📝 ${esc(L.les)}</h2>`, last = "";
+    L.qs.forEach(q => {
+      if (q.k !== last) { last = q.k; html += `<div class="qb-sec"><b>${secNames[q.k] || q.k}</b></div>`; }
+      const col = { tf: "#2563eb", d: "#16a34a", w: "#ea580c" }[q.k] || "#2563eb";
+      if (q.k === "tf") {
+        html += `<div class="qcard" data-f="${esc(q.s.toLowerCase())}" data-c="${esc(q.c)}" data-a="${q.a ? 1 : 0}" style="--qc:${col}">
           <div class="qn">سؤال ${q.n}</div><div class="st">${esc(q.s)}</div>
           <div class="tfrow">
             <button class="tfbtn" onclick="tfAns(this,true)">✅ صح</button>
             <button class="tfbtn" onclick="tfAns(this,false)">❌ خطأ</button>
           </div>
           <div class="ansbox"></div></div>`;
-      }else{
-        html+=`<div class="qcard" data-f="${esc(q.s.toLowerCase())}" style="--qc:${col}">
+      } else {
+        html += `<div class="qcard" data-f="${esc(q.s.toLowerCase())}" style="--qc:${col}">
           <div class="qn">سؤال ${q.n}</div>
           <div class="st">${esc(q.s)}</div>
           <button class="reveal" onclick="toggleAns(this)">👁️ إظهار الإجابة</button>
           <div class="ansbox">✍️ ${esc(q.a)}</div></div>`;
       }
     });
-    box.innerHTML=html;qbank.appendChild(box);
+    box.innerHTML = html; qbank.appendChild(box);
   });
-}
-function toggleAns(btn){
-  const ab=btn.nextElementSibling;ab.classList.toggle("show");
-  btn.textContent=ab.classList.contains("show")?"🙈 إخفاء الإجابة":"👁️ إظهار الإجابة";
-}
-function tfAns(btn,pick){
-  const card=btn.closest(".qcard"),truth=card.dataset.a==="1";
-  card.querySelectorAll(".tfbtn").forEach(b=>b.disabled=true);
-  if(pick===truth)btn.classList.add("right");
-  else{btn.classList.add("wrong");card.querySelectorAll(".tfbtn")[truth?0:1].classList.add("right");}
-  const ab=card.querySelector(".ansbox");
-  ab.innerHTML=(truth?"✅ <b>الإجابة الصحيحة: صح</b><br>":"❌ <b>الإجابة الصحيحة: خطأ</b><br>")+esc(card.dataset.c);
-  ab.classList.add("show");
-}
-function f4(){
-  const q=$("q4").value.trim().toLowerCase();let v=0;
-  $("qbank").querySelectorAll(".qb-les").forEach(box=>{
-    let bv=0;
-    box.querySelectorAll(".qcard").forEach(c=>{
-      const ok=!q||c.dataset.f.includes(q);
-      c.style.display=ok?"":"none";if(ok){bv++;v++;}
-    });
-    box.style.display=bv?"":"none";
-  });
-  $("c4").textContent=q?v+" سؤال":"";
-  $("e4").style.display=v?"none":"block";
 }
 
-/* ================= الاختبار السريع ================= */
-let QI=[],QX=0,QS=0;
-function startQuiz(){
-  QI=[...QUIZ.keys()];
-  for(let i=QI.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[QI[i],QI[j]]=[QI[j],QI[i]]}
-  QX=0;QS=0;showQ();
+function toggleAns(btn) {
+  const ab = btn.nextElementSibling; ab.classList.toggle("show");
+  btn.textContent = ab.classList.contains("show") ? "🙈 إخفاء الإجابة" : "👁️ إظهار الإجابة";
 }
-function showQ(){
-  const q=QUIZ[QI[QX]],el=$("quiz");
-  el.innerHTML=`<div class="pbar"><i style="width:${QX/QUIZ.length*100}%"></i></div>
-  <div class="qn">سؤال ${QX+1} من ${QUIZ.length} • ✅ ${QS}</div>
+
+function tfAns(btn, pick) {
+  const card = btn.closest(".qcard"), truth = card.dataset.a === "1";
+  card.querySelectorAll(".tfbtn").forEach(b => b.disabled = true);
+  if (pick === truth) btn.classList.add("right");
+  else { btn.classList.add("wrong"); card.querySelectorAll(".tfbtn")[truth ? 0 : 1].classList.add("right"); }
+  const ab = card.querySelector(".ansbox");
+  ab.innerHTML = (truth ? "✅ <b>الإجابة الصحيحة: صح</b><br>" : "❌ <b>الإجابة الصحيحة: خطأ</b><br>") + esc(card.dataset.c);
+  ab.classList.add("show");
+}
+
+function f4() {
+  const qEl = $("q4"); if (!qEl) return;
+  const qbank = $("qbank"); if (!qbank) return;
+  const q = qEl.value.trim().toLowerCase(); let v = 0;
+  qbank.querySelectorAll(".qb-les").forEach(box => {
+    let bv = 0;
+    box.querySelectorAll(".qcard").forEach(c => {
+      const ok = !q || c.dataset.f.includes(q);
+      c.style.display = ok ? "" : "none";
+      if (ok) { bv++; v++; }
+    });
+    box.style.display = bv ? "" : "none";
+  });
+  const c4 = $("c4"); if (c4) c4.textContent = q ? v + " سؤال" : "";
+  const e4 = $("e4"); if (e4) e4.style.display = v ? "none" : "block";
+}
+
+/* ================================================================
+   21) 🎯 الاختبار السريع
+   ================================================================ */
+let QI = [], QX = 0, QS = 0;
+
+function startQuiz() {
+  const quiz = $("quiz"); if (!quiz) return;
+  QI = [...QUIZ.keys()];
+  for (let i = QI.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [QI[i], QI[j]] = [QI[j], QI[i]];
+  }
+  QX = 0; QS = 0; showQ();
+}
+
+function showQ() {
+  const quiz = $("quiz"); if (!quiz) return;
+  const q = QUIZ[QI[QX]];
+  quiz.innerHTML = `<div class="pbar"><i style="width:${QX / QUIZ.length * 100}%"></i></div>
+  <div class="qn">سؤال ${QX + 1} من ${QUIZ.length} • ✅ ${QS}</div>
   <div class="qt">${esc(q.q)}</div>
-  ${q.o.map((o,i)=>`<button class="opt" onclick="ans(${i})">${esc(o)}</button>`).join("")}
+  ${q.o.map((o, i) => `<button class="opt" onclick="ans(${i})">${esc(o)}</button>`).join("")}
   <div class="exp" id="exp"></div><div class="qrow" id="qrow"></div>`;
 }
-function ans(i){
-  const q=QUIZ[QI[QX]],opts=$("quiz").querySelectorAll(".opt");
-  opts.forEach((b,j)=>{b.disabled=true;if(j===q.a)b.classList.add("right");else if(j===i)b.classList.add("wrong")});
-  if(i===q.a)QS++;
-  const e=$("exp");e.innerHTML=(i===q.a?"✅ <b>إجابة صحيحة!</b> ":"❌ <b>الإجابة الصحيحة موضحة بالأخضر.</b> ")+esc(q.e);
-  e.classList.add("show");
-  $("qrow").innerHTML=`<button class="qbtn" onclick="nextQ()">${QX+1<QUIZ.length?"التالي ←":"النتيجة 🏁"}</button>`;
-}
-function nextQ(){
+
+window.ans = function(i) {
+  const q = QUIZ[QI[QX]];
+  const quiz = $("quiz"); if (!quiz) return;
+  const opts = quiz.querySelectorAll(".opt");
+  opts.forEach((b, j) => { b.disabled = true; if (j === q.a) b.classList.add("right"); else if (j === i) b.classList.add("wrong"); });
+  if (i === q.a) QS++;
+  const e = $("exp");
+  if (e) {
+    e.innerHTML = (i === q.a ? "✅ <b>إجابة صحيحة!</b> " : "❌ <b>الإجابة الصحيحة موضحة بالأخضر.</b> ") + esc(q.e);
+    e.classList.add("show");
+  }
+  const qrow = $("qrow");
+  if (qrow) qrow.innerHTML = `<button class="qbtn" onclick="nextQ()">${QX + 1 < QUIZ.length ? "التالي ←" : "النتيجة 🏁"}</button>`;
+};
+
+window.nextQ = function() {
   QX++;
-  if(QX<QUIZ.length)showQ();
-  else{
-    const p=Math.round(QS/QUIZ.length*100);
-    const best=Math.max(p,+(localStorage.getItem("mech-best")||0));
-    localStorage.setItem("mech-best",best);
-    const em=p>=85?"🏆":p>=70?"🎉":p>=50?"👍":"💪";
-    $("quiz").innerHTML=`<div class="result"><div class="em">${em}</div>
+  if (QX < QUIZ.length) showQ();
+  else {
+    const p = Math.round(QS / QUIZ.length * 100);
+    const best = Math.max(p, +(localStorage.getItem("mech-best") || 0));
+    localStorage.setItem("mech-best", best);
+    const em = p >= 85 ? "🏆" : p >= 70 ? "🎉" : p >= 50 ? "👍" : "💪";
+    const quiz = $("quiz"); if (!quiz) return;
+    quiz.innerHTML = `<div class="result"><div class="em">${em}</div>
       <h3>نتيجتك: ${QS} / ${QUIZ.length} (${p}%)</h3>
       <p style="color:var(--muted);font-size:14px">🏅 أفضل نتيجة: <b>${best}%</b></p>
       <div class="qrow" style="margin-top:16px">
         <button class="qbtn" onclick="startQuiz()">🔄 إعادة</button>
       </div></div>`;
   }
+};
+
+/* ================================================================
+   22) 🗂️ القائمة الجانبية
+   ================================================================ */
+function getStudied() {
+  try { return JSON.parse(localStorage.getItem("mech-studied") || "[]"); } catch (e) { return []; }
 }
 
-/* ================= القائمة الجانبية ================= */
-function getStudied(){try{return JSON.parse(localStorage.getItem("mech-studied")||"[]")}catch(e){return[]}}
-function updProg(){
-  const s=getStudied();
-  const total=Object.values(CURRICULUM).reduce((a,units)=>a+units.reduce((b,u)=>b+u.subs.length,0),0);
-  if(total===0){$("progTxt").textContent="0 / 0";return;}
-  $("progTxt").textContent=s.length+" / "+total;
-  $("progFill").style.width=(s.length/total*100)+"%";
+function updProg() {
+  const s = getStudied();
+  const total = Object.values(CURRICULUM).reduce((a, units) => a + units.reduce((b, u) => b + u.subs.length, 0), 0);
+  const progTxt = $("progTxt"), progFill = $("progFill");
+  if (!progTxt || !progFill) return;
+  if (total === 0) { progTxt.textContent = "0 / 0"; return; }
+  progTxt.textContent = s.length + " / " + total;
+  progFill.style.width = (s.length / total * 100) + "%";
 }
-function toggleStudied(k,ev){
-  if(ev)ev.stopPropagation();
-  const s=getStudied(),i=s.indexOf(k);
-  if(i<0)s.push(k);else s.splice(i,1);
-  localStorage.setItem("mech-studied",JSON.stringify(s));
-  const c=$("chk-"+k);
-  if(c){c.textContent=s.includes(k)?"✓":"○";c.classList.toggle("done",s.includes(k));}
+
+window.toggleStudied = function(k, ev) {
+  if (ev) ev.stopPropagation();
+  const s = getStudied(), i = s.indexOf(k);
+  if (i < 0) s.push(k); else s.splice(i, 1);
+  localStorage.setItem("mech-studied", JSON.stringify(s));
+  const c = $("chk-" + k);
+  if (c) { c.textContent = s.includes(k) ? "✓" : "○"; c.classList.toggle("done", s.includes(k)); }
   updProg();
-}
-function buildNav(){
-  const navL = $("navSubjects");navL.innerHTML = "";
-  Object.keys(SUBJECTS).forEach(subjKey=>{
+};
+
+function buildNav() {
+  const navL = $("navSubjects");
+  if (!navL) return;
+  navL.innerHTML = "";
+  Object.keys(SUBJECTS).forEach(subjKey => {
     const units = CURRICULUM[subjKey] || [];
-    if(!units.length) return;
+    if (!units.length) return;
     const subj = SUBJECTS[subjKey];
-    const totalSubs = units.reduce((a,u)=>a+u.subs.length,0);
+    const totalSubs = units.reduce((a, u) => a + u.subs.length, 0);
     const subjBtn = document.createElement("button");
     subjBtn.className = "subj-gt";
     subjBtn.style.setProperty("--sc", subj.color);
@@ -1285,92 +1369,109 @@ function buildNav(){
       </span>`;
     const subjBody = document.createElement("div");
     subjBody.className = "subj-body";
-    units.forEach((U, ui)=>{
+    units.forEach((U, ui) => {
       const unitBtn = document.createElement("button");
       unitBtn.className = "unit-gt";
       unitBtn.style.setProperty("--sc", subj.color);
       unitBtn.innerHTML = `<span>📘 ${esc(U.u)}</span><span class="arw">▾</span>`;
       const unitBody = document.createElement("div");
       unitBody.className = "unit-body";
-      U.subs.forEach((sub, si)=>{
+      U.subs.forEach((sub, si) => {
         const key = subjKey + "-" + ui + "-" + si;
         const it = document.createElement("div");
         it.className = "nav-i";
-        it.id = "nav-"+key;
+        it.id = "nav-" + key;
         it.style.setProperty("--sc", subj.color);
         it.innerHTML = `<span class="nav-t">${sub.i} ${esc(sub.n)}</span>
           <button class="chk" id="chk-${key}" onclick="toggleStudied('${key}',event)" title="علّم كمذاكَر">○</button>`;
-        it.querySelector(".nav-t").onclick = ()=>navGo("p2","les-"+key,"nav-"+key);
+        it.querySelector(".nav-t").onclick = () => navGo("p2", "les-" + key, "nav-" + key);
         unitBody.appendChild(it);
       });
-      unitBtn.onclick = ()=>{
+      unitBtn.onclick = () => {
         unitBody.classList.toggle("open");
-        unitBtn.querySelector(".arw").textContent = unitBody.classList.contains("open")?"▴":"▾";
+        unitBtn.querySelector(".arw").textContent = unitBody.classList.contains("open") ? "▴" : "▾";
       };
       subjBody.appendChild(unitBtn);
       subjBody.appendChild(unitBody);
     });
-    subjBtn.onclick = ()=>{
+    subjBtn.onclick = () => {
       subjBody.classList.toggle("open");
-      subjBtn.querySelector(".arw").textContent = subjBody.classList.contains("open")?"▴":"▾";
+      subjBtn.querySelector(".arw").textContent = subjBody.classList.contains("open") ? "▴" : "▾";
     };
     navL.appendChild(subjBtn);
     navL.appendChild(subjBody);
   });
-  getStudied().forEach(k=>{const c=$("chk-"+k);if(c){c.textContent="✓";c.classList.add("done");}});
+  getStudied().forEach(k => { const c = $("chk-" + k); if (c) { c.textContent = "✓"; c.classList.add("done"); } });
   updProg();
 }
 
-/* ================= التنقل ================= */
-let activeNav=null;
-function navGo(tab,item,navId){
-  const tb=document.querySelector('.tab[data-p="'+tab+'"]');
-  if(tb)tb.click();
-  if(activeNav)activeNav.classList.remove("on");
-  if(navId){const n=$(navId);if(n){n.classList.add("on");activeNav=n;}}
+/* ================================================================
+   23) 🧭 التنقل
+   ================================================================ */
+let activeNav = null;
+
+window.navGo = function(tab, item, navId) {
+  const tb = document.querySelector('.tab[data-p="' + tab + '"]');
+  if (tb) tb.click();
+  if (activeNav) activeNav.classList.remove("on");
+  if (navId) { const n = $(navId); if (n) { n.classList.add("on"); activeNav = n; } }
   closeSide();
-  if(item)setTimeout(()=>{
-    document.querySelectorAll("#lessons .sub").forEach(x=>x.classList.add("closed"));
-    document.querySelectorAll("#lessons .sub").forEach(x=>x.style.display="");
-    document.querySelectorAll("#lessons .subject-hdr").forEach(x=>x.style.display="");
-    const el=$(item);
-    if(el){
+  if (item) setTimeout(() => {
+    document.querySelectorAll("#lessons .sub").forEach(x => x.classList.add("closed"));
+    document.querySelectorAll("#lessons .sub").forEach(x => x.style.display = "");
+    document.querySelectorAll("#lessons .subject-hdr").forEach(x => x.style.display = "");
+    const el = $(item);
+    if (el) {
       el.classList.remove("closed");
-      el.scrollIntoView({behavior:"smooth",block:"start"});
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
       el.classList.add("flash");
-      setTimeout(()=>el.classList.remove("flash"),1900);
+      setTimeout(() => el.classList.remove("flash"), 1900);
     }
-  },120);
-}
-function openSide(){$("side").classList.add("open");$("sideback").classList.add("show")}
-function closeSide(){$("side").classList.remove("open");$("sideback").classList.remove("show")}
+  }, 120);
+};
 
-/* ================= الوضع الليلي ================= */
-function theme(){
-  const d=document.documentElement.dataset.theme==="dark";
-  document.documentElement.dataset.theme=d?"":"dark";
-  $("thBtn").textContent=d?"🌙 وضع ليلي":"☀️ وضع نهاري";
-  localStorage.setItem("mech-theme",d?"":"dark");
-}
+window.openSide = function() {
+  const s = $("side"), b = $("sideback");
+  if (s) s.classList.add("open");
+  if (b) b.classList.add("show");
+};
 
-/* ================= زر الصعود ================= */
-const goToTopButton=document.getElementById('go-to-top-button');
+window.closeSide = function() {
+  const s = $("side"), b = $("sideback");
+  if (s) s.classList.remove("open");
+  if (b) b.classList.remove("show");
+};
+window.toggleSide = function() {
+  const s = $("side");
+  if (!s) return;
+  if (s.classList.contains("open")) {
+    closeSide();
+  } else {
+    openSide();
+  }
+};
+/* ================================================================
+   24) ⬆️ زر الصعود
+   ================================================================ */
+const goToTopButton = document.getElementById('go-to-top-button');
 if (goToTopButton) {
-  window.addEventListener('scroll',()=>{
-    goToTopButton.style.display=window.scrollY>100?'flex':'none';
+  window.addEventListener('scroll', () => {
+    goToTopButton.style.display = window.scrollY > 100 ? 'flex' : 'none';
   });
-  goToTopButton.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+  goToTopButton.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 }
 
-/* =================================================================
-   نظام PDF — رفع الملفات من الجهاز
-   ================================================================= */
+/* ================================================================
+   25) 📄 نظام PDF — IndexedDB
+   ================================================================ */
 const DB_NAME = 'hadeed_eez_pdfs_v2';
 const DB_VERSION = 1;
 const STORE_NAME = 'files';
 
 let dbInstance = null;
 let selectedFile = null;
+let pvPdf = null, pvPage = 1, pvId = null, pvFiles = null;
+let pvZoomLevel = 1;
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -1475,33 +1576,33 @@ async function extractTextFromBuffer(data) {
   }
   const pdf = await pdfjsLib.getDocument({ data: u8 }).promise;
   let fullText = '';
-  for(let i=1; i<=pdf.numPages; i++){
+  for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
     let lastY = null, line = '';
     const lines = [];
-    content.items.forEach(item=>{
-      if(lastY !== null && Math.abs(item.transform[5]-lastY) > 5){
+    content.items.forEach(item => {
+      if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
         lines.push(line.trim()); line = '';
       }
       line += item.str + ' ';
       lastY = item.transform[5];
     });
-    if(line.trim()) lines.push(line.trim());
+    if (line.trim()) lines.push(line.trim());
     fullText += '\n' + lines.join('\n');
   }
   return fullText;
 }
 
-function parseDict(text){
-  const rows=[]; let counter=1;
-  text.split('\n').forEach(line=>{
+function parseDict(text) {
+  const rows = []; let counter = 1;
+  text.split('\n').forEach(line => {
     line = line.trim();
-    if(!line || line.length < 4) return;
-    if(/^[A-Z\s]{3,}$/.test(line) && line.split(' ').length < 4 && !/[a-z]/.test(line)) return;
+    if (!line || line.length < 4) return;
+    if (/^[A-Z\s]{3,}$/.test(line) && line.split(' ').length < 4 && !/[a-z]/.test(line)) return;
     let parts = line.split(/\s*[|•\t]\s*/);
-    if(parts.length < 2) parts = line.split(/\s+[-–—:]\s+/);
-    if(parts.length >= 2){
+    if (parts.length < 2) parts = line.split(/\s+[-–—:]\s+/);
+    if (parts.length >= 2) {
       const en = parts[0].trim();
       const meaning = parts.slice(1).join(' | ').trim();
       rows.push([counter++, en, en, meaning, meaning, meaning]);
@@ -1510,7 +1611,7 @@ function parseDict(text){
   return rows;
 }
 
-function parseLessons(text){
+function parseLessons(text) {
   const lessons = [];
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   if (!lines.length) return lessons;
@@ -1537,30 +1638,26 @@ function parseLessons(text){
       lessons.push({
         u: 'PDF Lesson',
         t: `المحتوى (${Math.floor(i / CHUNK_SIZE) + 1})`,
-        subs: [{
-          n: `صفحة ${Math.floor(i / CHUNK_SIZE) + 1}`,
-          i: '📄',
-          b: chunk.map(line => ({ t: 'p', x: line }))
-        }]
+        subs: [{ n: `صفحة ${Math.floor(i / CHUNK_SIZE) + 1}`, i: '📄', b: chunk.map(line => ({ t: 'p', x: line })) }]
       });
     }
   }
   return lessons;
 }
 
-function parseQBank(text){
+function parseQBank(text) {
   const questions = [];
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   let i = 0, qNum = 1;
-  while(i < lines.length){
+  while (i < lines.length) {
     const line = lines[i];
-    if(/^(True|False|صح|خطأ)\s*[:：\-]/i.test(line) || /\?\s*$/.test(line)){
+    if (/^(True|False|صح|خطأ)\s*[:：\-]/i.test(line) || /\?\s*$/.test(line)) {
       const q = line;
       let j = i + 1;
-      while(j < lines.length && /^[a-dA-D1-4][\)\.\-:]\s*/.test(lines[j])) j++;
+      while (j < lines.length && /^[a-dA-D1-4][\)\.\-:]\s*/.test(lines[j])) j++;
       let answer = 'يرجى مراجعة المصدر.';
       const ansMatch = lines.slice(i, j).join(' ').match(/Answer|الإجابة\s*[:：]\s*(.+)/i);
-      if(ansMatch) answer = ansMatch[1];
+      if (ansMatch) answer = ansMatch[1];
       questions.push({ k: 'w', n: qNum, s: q, a: answer });
       qNum++; i = j;
     } else i++;
@@ -1568,13 +1665,13 @@ function parseQBank(text){
   return questions;
 }
 
-function parseDefs(text){
+function parseDefs(text) {
   const defs = [];
-  text.split('\n').forEach(line=>{
+  text.split('\n').forEach(line => {
     line = line.trim();
-    if(!line || line.length < 8) return;
+    if (!line || line.length < 8) return;
     const m = line.match(/^(.{2,60}?)\s*[=:–—]\s*(.{5,})$/);
-    if(m) defs.push([m[1].trim(), m[1].trim(), m[2].trim()]);
+    if (m) defs.push([m[1].trim(), m[1].trim(), m[2].trim()]);
   });
   return defs;
 }
@@ -1604,7 +1701,7 @@ window.clearSelectedFile = function() {
   updateSelectedFileDisplay();
 };
 
-async function rebuildFromLinks(){
+async function rebuildFromLinks() {
   const files = await getAllFiles();
   pvFiles = files;
   renderPdfList(files);
@@ -1615,69 +1712,66 @@ async function rebuildFromLinks(){
   });
   DEFS = DEFS.filter(d => !d._fromPDF);
   QB = QB.filter(l => !l._fromPDF);
-  if(!files.length){
+  if (!files.length) {
     if (status) status.textContent = '💡 اختر الملف من جهازك → اضغط إضافة';
-    buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
+    buildDict(); buildLessons(); buildDefs(); buildQBank(); buildNav(); startQuiz();
     return false;
   }
   if (status) status.textContent = '⏳ جارٍ معالجة ' + files.length + ' ملف...';
-  let dictCnt=0, lesCnt=0, qCnt=0, defCnt=0;
-  for(const f of files){
-    try{
+  let dictCnt = 0, lesCnt = 0, qCnt = 0, defCnt = 0;
+  for (const f of files) {
+    try {
       const text = await extractTextFromBuffer(f.data);
       const subj = f.subj || 'other';
-      if(f.type === 'dict'){
+      if (f.type === 'dict') {
         const raw = parseDict(text);
         const rows = raw.map(r => [r[0], r[1], r[2] || r[1], r[3] || '', r[4] || '', r[5] || r[3] || '']);
-        if(rows.length){
+        if (rows.length) {
           const subjInfo = SUBJECTS[subj] || SUBJECTS.other;
-          SECTIONS.push({
-            n: '📄 ' + f.name + ' — ' + subjInfo.name,
-            c: subjInfo.color, subj, _fromPDF: true, t: rows
-          });
+          SECTIONS.push({ n: '📄 ' + f.name + ' — ' + subjInfo.name, c: subjInfo.color, subj, _fromPDF: true, t: rows });
           dictCnt += rows.length;
         }
       }
-      if(f.type === 'lessons'){
+      if (f.type === 'lessons') {
         const lessons = parseLessons(text);
-        lessons.forEach(L=>{ L._fromPDF = true; L.u = '📄 ' + f.name; });
-        if(!CURRICULUM[subj]) CURRICULUM[subj] = [];
+        lessons.forEach(L => { L._fromPDF = true; L.u = '📄 ' + f.name; });
+        if (!CURRICULUM[subj]) CURRICULUM[subj] = [];
         CURRICULUM[subj].push(...lessons);
         lesCnt += lessons.length;
       }
-      if(f.type === 'qbank'){
+      if (f.type === 'qbank') {
         const questions = parseQBank(text);
-        if(questions.length){
+        if (questions.length) {
           QB.push({ les: '📝 ' + f.name, subj, _fromPDF: true, qs: questions });
           qCnt += questions.length;
         }
       }
-      if(f.type === 'defs'){
+      if (f.type === 'defs') {
         const defs = parseDefs(text);
         defs.forEach(d => d._fromPDF = true);
         DEFS.push(...defs);
         defCnt += defs.length;
       }
-    }catch(err){ console.error('❌', f.name, err); }
+    } catch (err) { console.error('❌', f.name, err); }
   }
-  buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
+  buildDict(); buildLessons(); buildDefs(); buildQBank(); buildNav(); startQuiz();
   if (status) {
     status.innerHTML = `✅ تم تحميل ${files.length} ملف — قاموس: ${dictCnt} • دروس: ${lesCnt} • أسئلة: ${qCnt} • تعريفات: ${defCnt}`;
   }
   return true;
 }
 
-function renderPdfList(files){
+function renderPdfList(files) {
   const list = $('pdfList');
   if (!list) return;
   list.innerHTML = '';
-  if(!files.length) return;
-  const typeNames = {lessons:'📖',dict:'📚',qbank:'📝',defs:'🃏'};
-  files.forEach(f=>{
+  if (!files.length) return;
+  const typeNames = { lessons: '📖', dict: '📚', qbank: '📝', defs: '🃏' };
+  files.forEach(f => {
     const subj = SUBJECTS[f.subj] || SUBJECTS.other;
     const el = document.createElement('div');
     el.className = 'pdf-item';
-    el.innerHTML = `<span>${typeNames[f.type]||'📄'} <b>${esc(f.name)}</b> 
+    el.innerHTML = `<span>${typeNames[f.type] || '📄'} <b>${esc(f.name)}</b> 
         <small style="color:${subj.color};font-weight:700">— ${subj.icon} ${esc(subj.name)}</small></span>
       <span style="display:flex;gap:5px">
         <button class="view" onclick="pvOpen('${f.id}')">👁️ عرض</button>
@@ -1687,30 +1781,36 @@ function renderPdfList(files){
   });
 }
 
-async function removePdf(id){
-  if(!confirm('حذف هذا الملف؟')) return;
+window.removePdf = async function(id) {
+  if (!confirm('حذف هذا الملف؟')) return;
   await deleteFileFromDB(id);
   await rebuildFromLinks();
-}
+};
 
-/* =================================================================
-   عارض PDF
-   ================================================================= */
-let pvPdf = null, pvPage = 1, pvId = null, pvFiles = null;
-let pvZoomLevel = 1;
+/* ================================================================
+   26) 👁️ عارض PDF
+   ================================================================ */
+window.pvOpen = async function(id) {
+  // ✅ تحقق من وجود المكتبة
+  if (typeof pdfjsLib === 'undefined') {
+    alert('❌ مكتبة عرض PDF لم تُحمَّل بعد.\nتأكد من وجود js/lib/pdf.min.js في HTML');
+    console.error('❌ pdfjsLib غير معرّفة');
+    return;
+  }
 
-async function pvOpen(id){
   const files = pvFiles || await getAllFiles();
   pvFiles = files;
   const f = files.find(x => x.id === id);
-  if(!f){ alert('الملف غير موجود'); return; }
+  if (!f) { alert('الملف غير موجود'); return; }
   pvId = id; pvPage = 1;
-  $('pvTitle').textContent = f.name;
-  $('pdfViewer').classList.add('show');
-  $('pdfCanvasWrap').innerHTML = '<div class="pdf-loading">⏳ جارٍ التحميل...</div>';
-  $('pdfThumbs').innerHTML = '';
+  const pvTitle = $('pvTitle'), pdfViewer = $('pdfViewer'), pdfCanvasWrap = $('pdfCanvasWrap'), pdfThumbs = $('pdfThumbs');
+  if (!pdfViewer || !pdfCanvasWrap) return;
+  if (pvTitle) pvTitle.textContent = f.name;
+  pdfViewer.classList.add('show');
+  pdfCanvasWrap.innerHTML = '<div class="pdf-loading">⏳ جارٍ التحميل...</div>';
+  if (pdfThumbs) pdfThumbs.innerHTML = '';
   document.body.style.overflow = 'hidden';
-  try{
+  try {
     let u8;
     if (typeof Blob !== 'undefined' && f.data instanceof Blob) {
       const buf = await f.data.arrayBuffer();
@@ -1729,33 +1829,35 @@ async function pvOpen(id){
     const sig = String.fromCharCode(u8[0], u8[1], u8[2], u8[3]);
     if (sig !== '%PDF') throw new Error('الملف ليس PDF صحيح (يبدأ بـ: "' + sig + '")');
     const loadingTask = pdfjsLib.getDocument({
-      data: u8,
-      cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
-      cMapPacked: true
-    });
+  data: u8,
+  cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+  cMapPacked: true,
+  useSystemFonts: true
+});
     pvPdf = await loadingTask.promise;
-    $('pvTotal').textContent = pvPdf.numPages;
+    const pvTotal = $('pvTotal'); if (pvTotal) pvTotal.textContent = pvPdf.numPages;
     await pvRender(1);
     pvBuildThumbs().catch(e => console.warn('thumbs', e));
-  }catch(err){
+  } catch (err) {
     console.error('❌ فشل عرض الملف:', err);
-    $('pdfCanvasWrap').innerHTML =
+    pdfCanvasWrap.innerHTML =
       '<div class="pdf-loading">❌ فشل عرض الملف<br>' +
       '<small style="font-size:12px;opacity:.8;line-height:1.8;display:block;margin-top:8px">' +
       esc(err.message || 'خطأ غير معروف') +
       '<br>حاول تاني أو امسح الملف وأعد رفعه' +
       '</small></div>';
   }
-}
+};
 
-async function pvRender(n){
-  if(!pvPdf) return;
-  if(n < 1 || n > pvPdf.numPages) return;
+async function pvRender(n) {
+  if (!pvPdf) return;
+  if (n < 1 || n > pvPdf.numPages) return;
   pvPage = n;
-  $('pvCur').textContent = n;
-  $('pvPrev').disabled = n <= 1;
-  $('pvNext').disabled = n >= pvPdf.numPages;
-  try{
+  const pvCur = $('pvCur'), pvPrev = $('pvPrev'), pvNext = $('pvNext'), pdfCanvasWrap = $('pdfCanvasWrap');
+  if (pvCur) pvCur.textContent = n;
+  if (pvPrev) pvPrev.disabled = n <= 1;
+  if (pvNext) pvNext.disabled = n >= pvPdf.numPages;
+  try {
     const page = await pvPdf.getPage(n);
     const isFullscreen = !!document.fullscreenElement;
     const containerW = isFullscreen ? window.innerWidth - 40 : Math.min(window.innerWidth - 80, 1800);
@@ -1776,53 +1878,59 @@ async function pvRender(n){
     canvas.style.display = 'block';
     ctx.scale(dpr, dpr);
     await page.render({ canvasContext: ctx, viewport: vp }).promise;
-    $('pdfCanvasWrap').innerHTML = '';
-    $('pdfCanvasWrap').appendChild(canvas);
-    document.querySelectorAll('.pdf-thumb').forEach((t,i)=>{
-      t.classList.toggle('on', i+1 === n);
+    if (pdfCanvasWrap) {
+      pdfCanvasWrap.innerHTML = '';
+      pdfCanvasWrap.appendChild(canvas);
+    }
+    document.querySelectorAll('.pdf-thumb').forEach((t, i) => {
+      t.classList.toggle('on', i + 1 === n);
     });
-    $('pdfViewer').scrollTop = 0;
-  }catch(err){
+    const viewer = $('pdfViewer'); if (viewer) viewer.scrollTop = 0;
+  } catch (err) {
     console.error('render', err);
-    $('pdfCanvasWrap').innerHTML = '<div class="pdf-loading">❌ فشل عرض الصفحة ' + n + '</div>';
+    if (pdfCanvasWrap) pdfCanvasWrap.innerHTML = '<div class="pdf-loading">❌ فشل عرض الصفحة ' + n + '</div>';
   }
 }
 
-async function pvBuildThumbs(){
-  const wrap = $('pdfThumbs');wrap.innerHTML = '';
+async function pvBuildThumbs() {
+  const wrap = $('pdfThumbs');
+  if (!wrap) return;
+  wrap.innerHTML = '';
   const total = pvPdf.numPages;
-  for(let i=1; i<=total; i++){
-    try{
+  for (let i = 1; i <= total; i++) {
+    try {
       const page = await pvPdf.getPage(i);
       const vp = page.getViewport({ scale: 0.18 });
       const canvas = document.createElement('canvas');
-      canvas.width = vp.width;canvas.height = vp.height;
+      canvas.width = vp.width; canvas.height = vp.height;
       const ctx = canvas.getContext('2d');
       await page.render({ canvasContext: ctx, viewport: vp }).promise;
       const thumb = document.createElement('div');
-      thumb.className = 'pdf-thumb' + (i===pvPage?' on':'');
+      thumb.className = 'pdf-thumb' + (i === pvPage ? ' on' : '');
       thumb.appendChild(canvas);
-      thumb.onclick = ()=> pvRender(i);
+      thumb.onclick = () => pvRender(i);
       wrap.appendChild(thumb);
-    }catch(e){ console.warn('thumb '+i, e); }
+    } catch (e) { console.warn('thumb ' + i, e); }
   }
 }
 
-function pvGo(dir){ pvRender(pvPage + dir); }
+window.pvGo = function(dir) { pvRender(pvPage + dir); };
 
-function pvClose(){
-  $('pdfViewer').classList.remove('show');
+window.pvClose = function() {
+  const pdfViewer = $('pdfViewer'), pdfCanvasWrap = $('pdfCanvasWrap'), pdfThumbs = $('pdfThumbs');
+  if (pdfViewer) pdfViewer.classList.remove('show');
   document.body.style.overflow = '';
   pvPdf = null;
-  $('pdfCanvasWrap').innerHTML = '<div class="pdf-loading">⏳ جارٍ التحميل...</div>';
-  $('pdfThumbs').innerHTML = '';
-}
+  if (pdfCanvasWrap) pdfCanvasWrap.innerHTML = '<div class="pdf-loading">⏳ جارٍ التحميل...</div>';
+  if (pdfThumbs) pdfThumbs.innerHTML = '';
+};
 
-document.addEventListener('keydown', e=>{
-  if(!$('pdfViewer').classList.contains('show')) return;
-  if(e.key === 'ArrowRight' || e.key === 'ArrowDown'){ e.preventDefault(); pvGo(1); }
-  if(e.key === 'ArrowLeft'  || e.key === 'ArrowUp'){   e.preventDefault(); pvGo(-1); }
-  if(e.key === 'Escape') pvClose();
+document.addEventListener('keydown', e => {
+  const pdfViewer = $('pdfViewer');
+  if (!pdfViewer || !pdfViewer.classList.contains('show')) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); pvGo(1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); pvGo(-1); }
+  if (e.key === 'Escape') pvClose();
 });
 
 window.pvZoom = function(dir) {
@@ -1854,20 +1962,23 @@ document.addEventListener('fullscreenchange', () => {
 });
 
 document.addEventListener('keydown', e => {
-  if (!$('pdfViewer').classList.contains('show')) return;
+  const pdfViewer = $('pdfViewer');
+  if (!pdfViewer || !pdfViewer.classList.contains('show')) return;
   if (e.ctrlKey && e.key === 'f') { e.preventDefault(); pvToggleFullscreen(); }
   if (e.key === '+' || e.key === '=') { e.preventDefault(); pvZoom(1); }
   if (e.key === '-') { e.preventDefault(); pvZoom(-1); }
 });
 
 let pvResizeTimer;
-window.addEventListener('resize', ()=>{
-  if(!pvPdf) return;
+window.addEventListener('resize', () => {
+  if (!pvPdf) return;
   clearTimeout(pvResizeTimer);
-  pvResizeTimer = setTimeout(()=> pvRender(pvPage), 250);
+  pvResizeTimer = setTimeout(() => pvRender(pvPage), 250);
 });
 
-/* ================= أزرار الإضافة والحذف ================= */
+/* ================================================================
+   27) 📥 أزرار إضافة/حذف PDF
+   ================================================================ */
 const MAX_FILE_SIZE_MB = 500;
 const MAX_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -1904,12 +2015,12 @@ if (pdfFileInput) {
 
 const addPdfBtn = document.getElementById('addPdfBtn');
 if (addPdfBtn) {
-  addPdfBtn.addEventListener('click', async ()=>{
+  addPdfBtn.addEventListener('click', async () => {
     const subj = $('pdfSubject').value;
     const type = $('pdfType').value;
     let name = $('pdfName').value.trim();
-    if(!selectedFile){ alert('❌ لازم تختار ملف PDF أولاً'); return; }
-    if(!name) name = selectedFile.name.replace(/\.pdf$/i, '');
+    if (!selectedFile) { alert('❌ لازم تختار ملف PDF أولاً'); return; }
+    if (!name) name = selectedFile.name.replace(/\.pdf$/i, '');
     const btn = $('addPdfBtn');
     btn.disabled = true;
     btn.textContent = '⏳...';
@@ -1938,7 +2049,7 @@ if (addPdfBtn) {
         }, 3000);
       }
       showAddSuccessToast(name, SUBJECTS[subj]?.name || subj);
-    } catch(err){
+    } catch (err) {
       console.error('❌', err);
       alert('❌ فشل إضافة الملف: ' + err.message);
       if (status) status.textContent = '❌ فشل الإضافة';
@@ -1981,30 +2092,32 @@ function showAddSuccessToast(fileName, subjectName) {
 
 const clearPdfBtn = document.getElementById('clearPdf');
 if (clearPdfBtn) {
-  clearPdfBtn.addEventListener('click', async ()=>{
+  clearPdfBtn.addEventListener('click', async () => {
     const files = await getAllFiles();
     if (!files.length) { alert('ℹ️ مفيش ملفات مرفوعة حالياً'); return; }
-    if(!confirm(`⚠️ حذف ${files.length} ملف مرفوع؟\nلا يمكن التراجع!`)) return;
+    if (!confirm(`⚠️ حذف ${files.length} ملف مرفوع؟\nلا يمكن التراجع!`)) return;
     await clearAllFiles();
     location.reload();
   });
 }
 
-/* ================= اختصارات ================= */
-document.addEventListener("keydown", e=>{
-  if(e.key === "Escape") closeSide();
-  if(e.key === "/" && !/input/i.test(document.activeElement.tagName)){
+/* ================================================================
+   28) ⌨️ اختصارات لوحة المفاتيح
+   ================================================================ */
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeSide();
+  if (e.key === "/" && !/input/i.test(document.activeElement.tagName)) {
     e.preventDefault();
     const panes = [...document.querySelectorAll(".pane")];
-    const i = panes.findIndex(p=>p.classList.contains("show"));
-    const map = {0:"q1",1:"q2",2:"q3",3:"q4"};
-    const el = $(map[i]); if(el) el.focus();
+    const i = panes.findIndex(p => p.classList.contains("show"));
+    const map = { 0: "q1", 1: "q2", 2: "q3", 3: "q4" };
+    const el = $(map[i]); if (el) el.focus();
   }
 });
 
-/* =================================================================
-   🛡️ فحص وجود أي إدخال من المستخدم (لصفحة homework)
-   ================================================================= */
+/* ================================================================
+   29) 🛡️ فحص وجود إدخال من المستخدم
+   ================================================================ */
 function hasAnyUserInput() {
   if (document.querySelector('input[type="radio"]:checked')) return true;
   const textInputs = document.querySelectorAll('input[type="text"]');
@@ -2014,13 +2127,13 @@ function hasAnyUserInput() {
   try {
     const history = JSON.parse(localStorage.getItem('homework2-history') || '[]');
     if (history.length > 0) return true;
-  } catch(e) {}
+  } catch (e) { }
   return false;
 }
 
-/* =================================================================
-   🔔 إشعار التحديث
-   ================================================================= */
+/* ================================================================
+   30) 🔔 إشعار التحديث
+   ================================================================ */
 function showUpdatePrompt(newSW) {
   if (hasAnyUserInput()) {
     console.log('⚠️ [SW] يوجد إدخال — تأجيل التحديث');
@@ -2029,7 +2142,7 @@ function showUpdatePrompt(newSW) {
   }
   const existing = document.getElementById('sw-update-banner');
   if (existing) existing.remove();
-  
+
   const updateBanner = document.createElement('div');
   updateBanner.id = 'sw-update-banner';
   updateBanner.style.cssText = `
@@ -2068,26 +2181,18 @@ function showUpdatePrompt(newSW) {
   }, 30000);
 }
 
-/* =================================================================
-   ⚙️ تسجيل Service Worker
-   ================================================================= */
+/* ================================================================
+   31) ⚙️ Service Worker
+   ================================================================ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js', {
-      scope: './',
-      updateViaCache: 'none'
-    })
+    navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' })
       .then(reg => {
         console.log('✅ [SW] مسجّل بنجاح:', reg.scope);
-        
-        setInterval(() => {
-          reg.update().catch(() => {});
-        }, 30 * 60 * 1000);
-        
+        setInterval(() => { reg.update().catch(() => { }); }, 30 * 60 * 1000);
         reg.addEventListener('updatefound', () => {
           const newSW = reg.installing;
           if (!newSW) return;
-          
           newSW.addEventListener('statechange', () => {
             if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
               console.log('🎉 [SW] تحديث جديد جاهز');
@@ -2100,66 +2205,65 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-/* =================================================================
-   🔄 إعادة التحميل عند تفعيل SW جديد
-   ================================================================= */
 let refreshing = false;
-navigator.serviceWorker?.addEventListener('controllerchange', () => {
-  if (refreshing) return;
-  refreshing = true;
-  
-  if (hasAnyUserInput()) {
-    console.log('⚠️ [SW] يوجد إدخال — لن يُعاد التحميل');
-    refreshing = false;
-    return;
-  }
-  
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-  }
-  
-  console.log('🔄 [SW] إعادة تحميل الصفحة');
-  window.location.reload();
-});
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    if (hasAnyUserInput()) {
+      console.log('⚠️ [SW] يوجد إدخال — لن يُعاد التحميل');
+      refreshing = false;
+      return;
+    }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    console.log('🔄 [SW] إعادة تحميل الصفحة');
+    window.location.reload();
+  });
+}
 
 /* ================================================================
-   💾 Splash Screen Timer
+   32) 💾 Splash Screen Timer
    ================================================================ */
-(function(){
+(function () {
   const splash = document.getElementById('splashScreen');
   if (!splash) return;
   let hidden = false;
+  const HIDE_AFTER_LOAD = 1500;
+  const HIDE_AFTER_DOM = 3000;
+  const HARD_TIMEOUT = 8000;
   function hideSplash() {
     if (hidden) return;
     hidden = true;
-    splash.classList.add('hide');
-    setTimeout(() => {
-      if (splash.parentNode) splash.remove();
-    }, 700);
+    try {
+      splash.classList.add('hide');
+      setTimeout(() => { if (splash && splash.parentNode) splash.parentNode.removeChild(splash); }, 700);
+    } catch (e) {
+      if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+    }
   }
-  window.addEventListener('load', () => {
-    setTimeout(hideSplash, 1500);
-  });
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(hideSplash, 5000);
-  });
+  if (document.readyState === 'complete') setTimeout(hideSplash, 800);
+  else window.addEventListener('load', () => setTimeout(hideSplash, HIDE_AFTER_LOAD), { once: true });
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', () => setTimeout(hideSplash, HIDE_AFTER_DOM), { once: true });
+  else setTimeout(hideSplash, HIDE_AFTER_DOM);
+  setTimeout(hideSplash, HARD_TIMEOUT);
 })();
 
 /* ================================================================
-   📲 نظام تثبيت التطبيق — PWA Install Prompt
+   33) 📲 نظام تثبيت التطبيق PWA
    ================================================================ */
-(function(){
+(function () {
   'use strict';
-  
-  const isStandalone = 
+
+  const isStandalone =
     window.matchMedia('(display-mode: standalone)').matches ||
     window.matchMedia('(display-mode: fullscreen)').matches ||
     window.matchMedia('(display-mode: minimal-ui)').matches ||
     window.navigator.standalone === true ||
     document.referrer.includes('android-app://');
-  
+
   const installedFlag = localStorage.getItem('app-installed') === 'true';
-  
+
   if (isStandalone || installedFlag) {
     console.log('✅ التطبيق مثبت - لن يظهر بانر التثبيت');
     const b = document.getElementById('installBanner');
@@ -2168,9 +2272,9 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     if (h) h.style.display = 'none';
     return;
   }
-  
+
   console.log('⚠️ التطبيق غير مثبت - سيعرض البانر عند الإمكان');
-  
+
   let deferredPrompt = null;
   const banner = document.getElementById('installBanner');
   const installBtn = document.getElementById('installBtn');
@@ -2178,14 +2282,14 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   const headerBtn = document.getElementById('installHeaderBtn');
   const iosModal = document.getElementById('iosModal');
   const installOverlay = document.getElementById('installOverlay');
-  
+
   if (!banner) return;
-  
+
   const ua = navigator.userAgent;
   const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
   const isAndroid = /Android/.test(ua);
   const isDesktop = !isIOS && !isAndroid;
-  
+
   const dismissedTime = localStorage.getItem('install-dismissed');
   if (dismissedTime) {
     const daysSince = (Date.now() - +dismissedTime) / (1000 * 60 * 60 * 24);
@@ -2194,7 +2298,7 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
       return;
     }
   }
-  
+
   function showBanner() {
     if (localStorage.getItem('app-installed') === 'true') return;
     if (window.matchMedia('(display-mode: standalone)').matches) return;
@@ -2204,22 +2308,20 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
       localStorage.setItem('install-banner-views', (views + 1).toString());
     }
   }
-  
+
   function hideBanner(permanent = false) {
     if (banner) banner.style.display = 'none';
-    if (permanent) {
-      localStorage.setItem('install-dismissed', Date.now().toString());
-    }
+    if (permanent) localStorage.setItem('install-dismissed', Date.now().toString());
   }
-  
+
   function showHeaderBtn() {
     if (localStorage.getItem('app-installed') === 'true') return;
     if (window.matchMedia('(display-mode: standalone)').matches) return;
     if (headerBtn) headerBtn.style.display = 'inline-block';
   }
-  
-  window.openInstallModal = function() {
-    if (localStorage.getItem('app-installed') === 'true' || 
+
+  window.openInstallModal = function () {
+    if (localStorage.getItem('app-installed') === 'true' ||
         window.matchMedia('(display-mode: standalone)').matches) {
       alert('✅ التطبيق مثبت بالفعل على جهازك');
       return;
@@ -2233,42 +2335,36 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     } else {
       alert(
         '💡 لإضافة التطبيق:\n\n' +
-        (isDesktop 
+        (isDesktop
           ? '• Chrome: اضغط ⊕ في شريط العنوان\n• أو: القائمة ⋮ → تثبيت'
           : '• Chrome: القائمة ⋮ → "تثبيت التطبيق"')
       );
     }
   };
-  
-  window.closeIosModal = function() {
+
+  window.closeIosModal = function () {
     if (iosModal) iosModal.style.display = 'none';
     if (installOverlay) installOverlay.style.display = 'none';
     document.body.style.overflow = '';
   };
-  
+
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     console.log('📲 التطبيق قابل للتثبيت');
     showHeaderBtn();
-    setTimeout(() => {
-      if (window.scrollY < 300) showBanner();
-    }, 3000);
+    setTimeout(() => { if (window.scrollY < 300) showBanner(); }, 3000);
   });
-  
+
   if (isIOS) {
     showHeaderBtn();
     if (banner) {
       const bannerSubtitle = banner.querySelector('.install-text span');
-      if (bannerSubtitle) {
-        bannerSubtitle.textContent = 'اضغط على زر المشاركة ⬆️ ثم "إضافة للشاشة"';
-      }
+      if (bannerSubtitle) bannerSubtitle.textContent = 'اضغط على زر المشاركة ⬆️ ثم "إضافة للشاشة"';
     }
-    setTimeout(() => {
-      if (window.scrollY < 300) showBanner();
-    }, 5000);
+    setTimeout(() => { if (window.scrollY < 300) showBanner(); }, 5000);
   }
-  
+
   if (installBtn) {
     installBtn.addEventListener('click', async () => {
       if (isIOS) { window.openInstallModal(); return; }
@@ -2288,11 +2384,11 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
       deferredPrompt = null;
     });
   }
-  
+
   if (closeBtn) {
     closeBtn.addEventListener('click', () => { hideBanner(true); });
   }
-  
+
   window.addEventListener('appinstalled', () => {
     console.log('🎉 التطبيق اتثبت بنجاح');
     localStorage.setItem('app-installed', 'true');
@@ -2317,7 +2413,7 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
       setTimeout(() => toast.remove(), 4000);
     }, 500);
   });
-  
+
   let scrollTriggered = false;
   window.addEventListener('scroll', () => {
     if (localStorage.getItem('app-installed') === 'true') return;
@@ -2328,7 +2424,7 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
       if (!localStorage.getItem('install-dismissed')) showBanner();
     }
   }, { passive: true });
-  
+
   setInterval(() => {
     if (localStorage.getItem('app-installed') === 'true' ||
         window.matchMedia('(display-mode: standalone)').matches) {
@@ -2339,52 +2435,50 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
 })();
 
 /* ================================================================
-   📤 نظام مشاركة التطبيق
+   34) 📤 نظام مشاركة التطبيق
    ================================================================ */
-(function(){
+(function () {
   'use strict';
-  
+
   const SHARE_URL = window.location.origin + window.location.pathname;
   const SHARE_TITLE = 'منصة - مدارس حديد عز الرقمية';
   const SHARE_TEXT = '🎓 منصة تعليمية متكاملة - مدارس حديد عز الرقمية\nجرّبها الآن من خلال الرابط:';
-  
+
   const shareModal = document.getElementById('shareModal');
   const shareOverlay = document.getElementById('shareOverlay');
   const shareUrlInput = document.getElementById('shareUrlInput');
   const copyToast = document.getElementById('copyToast');
   const qrContainer = document.getElementById('qrContainer');
-  
+
   let qrcodeGenerated = false;
-  
-  window.openShareModal = function() {
+
+  window.openShareModal = function () {
     if (!shareModal) return;
     shareModal.style.display = 'flex';
     if (shareOverlay) shareOverlay.style.display = 'block';
     document.body.style.overflow = 'hidden';
     if (shareUrlInput) shareUrlInput.value = SHARE_URL;
   };
-  
-  window.closeShareModal = function() {
+
+  window.closeShareModal = function () {
     if (!shareModal) return;
     shareModal.style.display = 'none';
     if (shareOverlay) shareOverlay.style.display = 'none';
     document.body.style.overflow = '';
     window.hideQRCode();
   };
-  
-  window.copyShareUrl = function() {
+
+  window.copyShareUrl = function () {
     const url = SHARE_URL;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(() => {
         showCopyToast();
-      }).catch(() => {
-        fallbackCopy(url);
-      });
+      }).catch(() => fallbackCopy(url));
     } else {
       fallbackCopy(url);
     }
   };
-  
+
   function fallbackCopy(text) {
     const ta = document.createElement('textarea');
     ta.value = text;
@@ -2400,21 +2494,17 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     }
     document.body.removeChild(ta);
   }
-  
+
   function showCopyToast() {
     if (!copyToast) return;
     copyToast.classList.add('show');
     setTimeout(() => copyToast.classList.remove('show'), 2000);
   }
-  
-  window.shareNative = async function() {
+
+  window.shareNative = async function () {
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: SHARE_TITLE,
-          text: SHARE_TEXT,
-          url: SHARE_URL
-        });
+        await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: SHARE_URL });
         console.log('✅ تمت المشاركة');
         window.closeShareModal();
       } catch (err) {
@@ -2425,30 +2515,30 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
       alert('المتصفح لا يدعم المشاركة المباشرة.\nتم نسخ الرابط ✅');
     }
   };
-  
-  window.shareWhatsApp = function() {
+
+  window.shareWhatsApp = function () {
     const text = encodeURIComponent(SHARE_TEXT + '\n' + SHARE_URL);
     window.open('https://wa.me/?text=' + text, '_blank');
   };
-  
-  window.shareTelegram = function() {
+
+  window.shareTelegram = function () {
     const url = encodeURIComponent(SHARE_URL);
     const text = encodeURIComponent(SHARE_TEXT);
     window.open('https://t.me/share/url?url=' + url + '&text=' + text, '_blank');
   };
-  
-  window.shareFacebook = function() {
+
+  window.shareFacebook = function () {
     const url = encodeURIComponent(SHARE_URL);
     window.open('https://www.facebook.com/sharer/sharer.php?u=' + url, '_blank');
   };
-  
-  window.shareTwitter = function() {
+
+  window.shareTwitter = function () {
     const url = encodeURIComponent(SHARE_URL);
     const text = encodeURIComponent('🎓 منصة - مدارس حديد عز الرقمية');
     window.open('https://twitter.com/intent/tweet?url=' + url + '&text=' + text, '_blank');
   };
-  
-  window.showQRCode = function() {
+
+  window.showQRCode = function () {
     if (!qrContainer) return;
     if (!qrcodeGenerated) {
       const qrDiv = document.getElementById('qrcode');
@@ -2471,40 +2561,147 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     const urlBox = document.querySelector('.share-url-box');
     if (urlBox) urlBox.style.display = 'none';
   };
-  
-  window.hideQRCode = function() {
+
+  window.hideQRCode = function () {
     if (qrContainer) qrContainer.style.display = 'none';
     const options = document.querySelector('.share-options');
     if (options) options.style.display = 'grid';
     const urlBox = document.querySelector('.share-url-box');
     if (urlBox) urlBox.style.display = 'flex';
   };
-  
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && shareModal && shareModal.style.display === 'flex') {
       window.closeShareModal();
     }
   });
-  
 })();
 
 /* ================================================================
-   🚀 التهيئة النهائية
+   35) 📝 منطق صفحة الواجب (homework)
    ================================================================ */
-async function init(){
-  initTabs();
-  buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
-  updateSoundButton();
+function initHomeworkPage() {
+  const questions = document.querySelectorAll('.question[data-correct]');
+  const totalQuestions = questions.length;
+  const answeredSet = new Set();
 
-  if(localStorage.getItem("mech-theme") === "dark"){
-    document.documentElement.dataset.theme = "dark";
-    if ($("thBtn")) $("thBtn").textContent = "☀️ وضع نهاري";
+  if (totalQuestions > 0) {
+    questions.forEach(q => {
+      const correct = q.dataset.correct;
+      const radios = q.querySelectorAll('input[type="radio"]');
+      const feedback = q.querySelector('.feedback');
+
+      radios.forEach(radio => {
+        radio.addEventListener('change', () => {
+          radios.forEach(r => {
+            r.disabled = true;
+            const opt = r.closest('.option');
+            if (opt) opt.classList.add('disabled');
+          });
+
+          radios.forEach(r => {
+            if (r.value === correct) {
+              const opt = r.closest('.option');
+              if (opt) opt.classList.add('correct');
+            }
+          });
+
+          if (radio.value === correct) {
+            if (feedback) {
+              feedback.textContent = 'إجابة صحيحة';
+              feedback.className = 'feedback show ok';
+            }
+          } else {
+            const wrongOpt = radio.closest('.option');
+            if (wrongOpt) wrongOpt.classList.add('wrong');
+            if (feedback) {
+              feedback.textContent = `إجابة خطأ — الإجابة الصحيحة: ${correct}`;
+              feedback.className = 'feedback show no';
+            }
+          }
+
+          answeredSet.add(q);
+          updateProgress();
+        });
+      });
+    });
   }
 
-  if ($("q1")) $("q1").oninput = f1;
-  if ($("q2")) $("q2").oninput = f2;
-  if ($("q3")) $("q3").oninput = f3;
-  if ($("q4")) $("q4").oninput = f4;
+  function updateProgress() {
+    const fill = document.getElementById('progressFill');
+    if (!fill || totalQuestions === 0) return;
+    const percent = (answeredSet.size / totalQuestions) * 100;
+    fill.style.width = percent + '%';
+  }
+
+  const form = document.getElementById('homeworkForm');
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const unanswered = [...questions].filter(q => !q.querySelector('input[type="radio"]:checked'));
+      if (unanswered.length > 0) {
+        showToast(`من فضلك جاوب على ${unanswered.length} سؤال متبقٍ`, 'warn', 3000);
+        unanswered[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      let correctCount = 0;
+      questions.forEach(q => {
+        const checked = q.querySelector('input[type="radio"]:checked');
+        if (checked && checked.value === q.dataset.correct) correctCount++;
+      });
+
+      const total = questions.length;
+      const percent = Math.round((correctCount / total) * 100);
+
+      const scoreText = document.getElementById('scoreText');
+      const percentText = document.getElementById('percentText');
+      if (scoreText) scoreText.textContent = `${correctCount} / ${total}`;
+      if (percentText) {
+        percentText.textContent =
+          `النسبة: ${percent}% — ${percent >= 50 ? 'مبروك! 🎉' : 'حاول مرة أخرى 💪'}`;
+      }
+
+      const box = document.getElementById('resultBox');
+      if (box) {
+        box.classList.add('show');
+        box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      showToast(
+        percent >= 50 ? `مبروك! نتيجتك ${percent}%` : `نتيجتك ${percent}% — حاول مرة أخرى`,
+        percent >= 50 ? 'success' : 'warn',
+        4000
+      );
+
+      try {
+        const studentInput = document.querySelector('input[name="studentName"]');
+        const classInput = document.querySelector('input[name="class"]');
+        const history = JSON.parse(localStorage.getItem('homework2-history') || '[]');
+        history.push({
+          date: new Date().toISOString(),
+          score: correctCount,
+          total: total,
+          percent: percent,
+          studentName: studentInput ? studentInput.value : '',
+          className: classInput ? classInput.value : ''
+        });
+        localStorage.setItem('homework2-history', JSON.stringify(history));
+      } catch (e) { console.warn('⚠️ فشل حفظ السجل:', e); }
+    });
+  }
+}
+
+/* ================================================================
+   36) 🚀 التهيئة النهائية — تكتشف الصفحة تلقائياً
+   ================================================================ */
+async function init() {
+  console.log('🚀 [init] بدء التهيئة...');
+
+  // الثيم
+  const savedTheme = localStorage.getItem("mech-theme");
+  if (savedTheme) applyTheme(savedTheme);
 
   // تحديث أزرار الإعدادات
   document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -2523,12 +2720,53 @@ async function init(){
     };
   }
 
-  try{ await rebuildFromLinks(); }
-  catch(e){ console.warn('خطأ:', e); }
+  // زر الصوت
+  updateSoundButton();
+
+  // ===== كشف نوع الصفحة =====
+  const isHomeworkPage = !!document.getElementById('homeworkForm');
+
+  if (isHomeworkPage) {
+    console.log('📝 [init] صفحة الواجب');
+    initHomeworkPage();
+    return;
+  }
+
+  // ===== الصفحة الرئيسية =====
+  console.log('🏠 [init] الصفحة الرئيسية');
+  initTabs();
+  buildDict(); buildLessons(); buildDefs(); buildQBank(); buildNav(); startQuiz();
+
+  if ($("q1")) $("q1").oninput = f1;
+  if ($("q2")) $("q2").oninput = f2;
+  if ($("q3")) $("q3").oninput = f3;
+  if ($("q4")) $("q4").oninput = f4;
+
+  try { await rebuildFromLinks(); }
+  catch (e) { console.warn('خطأ:', e); }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+/* ================================================================
+   37) ▶️ نقطة الانطلاق — تنفيذ init مرة واحدة فقط
+   ================================================================ */
+(function bootstrap() {
+  let started = false;
+  function safeInit() {
+    if (started) return;
+    started = true;
+    try {
+      const r = init();
+      if (r && typeof r.then === 'function') {
+        r.catch(err => console.error('❌ [init] فشل التهيئة:', err));
+      }
+    } catch (err) {
+      console.error('❌ [init] خطأ متزامن:', err);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', safeInit, { once: true });
+  } else {
+    safeInit();
+  }
+})();
