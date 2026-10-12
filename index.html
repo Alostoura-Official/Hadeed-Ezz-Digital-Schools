@@ -281,5 +281,67 @@
 <!-- مكتبة QR Code -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>	
   <script src="js/app.js" defer></script>
+<script>
+/* ================================================================
+   ⚙️ تسجيل Service Worker
+   ================================================================ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', {
+      scope: './',
+      updateViaCache: 'none'
+    })
+      .then((reg) => {
+        console.log('✅ [SW] مسجّل:', reg.scope);
+        
+        // راقب التحديثات
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          if (!newSW) return;
+          
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('🎉 [SW] يوجد تحديث جديد');
+              
+              // 🛡️ لا تقاطع الطالب أثناء حل الواجب
+              const hasAnswers = document.querySelector('input[type="radio"]:checked');
+              const hasFormData = document.querySelector('input[name="studentName"]')?.value?.trim();
+              
+              if (hasAnswers || hasFormData) {
+                console.log('⚠️ يوجد إجابات — لن يُعرض التحديث الآن');
+                return;
+              }
+              
+              if (confirm('🎉 فيه نسخة جديدة من الموقع!\nهل تريد تحديث الصفحة الآن؟')) {
+                newSW.postMessage({ type: 'SKIP_WAITING' });
+              }
+            }
+          });
+        });
+      })
+      .catch((err) => console.warn('⚠️ [SW] فشل التسجيل:', err));
+  });
+}
+
+/* ================================================================
+   🔄 إعادة التحميل عند تفعيل SW جديد
+   ================================================================ */
+let refreshing = false;
+navigator.serviceWorker?.addEventListener('controllerchange', () => {
+  if (refreshing) return;
+  refreshing = true;
+  
+  // 🛡️ لا تعيد التحميل لو فيه إجابات
+  const hasAnswers = document.querySelector('input[type="radio"]:checked');
+  const hasFormData = document.querySelector('input[name="studentName"]')?.value?.trim();
+  
+  if (hasAnswers || hasFormData) {
+    console.log('⚠️ إجابات موجودة — لن يُعاد التحميل');
+    return;
+  }
+  
+  window.location.reload();
+});
+</script>	
 </body>
 </html>
