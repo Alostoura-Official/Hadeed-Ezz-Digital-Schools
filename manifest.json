@@ -5,10 +5,12 @@
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#ea7c0c",
   "theme_color": "#ea7c0c",
+  "categories": ["education", "productivity"],
   "icons": [
     {
       "src": "icons/icon-192.png",
