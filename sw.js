@@ -1,4 +1,4 @@
-const CACHE = 'hadid-eez-v33';
+const CACHE = 'hadid-eez-v34';
 
 const ASSETS = [
   // ====== الصفحات ======
@@ -36,7 +36,7 @@ const ASSETS = [
   './icons/favicon-32x32.png',
   './icons/favicon-16x16.png',
   './icons/apple-touch-icon.png',
-  './icons/logo.png'              // ⭐ مضاف
+  './icons/logo.png'
 ];
 
 /* ================================================================
@@ -66,7 +66,7 @@ self.addEventListener('install', (e) => {
       })
       .catch((err) => {
         console.error('❌ [SW] فشل التثبيت:', err);
-        return self.skipWaiting();  // لا تعلق التثبيت
+        return self.skipWaiting();
       })
   );
 });
@@ -84,20 +84,24 @@ self.addEventListener('activate', (e) => {
           keys
             .filter((k) => k !== CACHE && k.startsWith('hadid-eez-'))
             .map((k) => {
-              console.log('🗑️ [SW] حذف:', k);
+              console.log('🗑️ [SW] حذف كاش قديم:', k);
               return caches.delete(k);
             })
         )
       )
-      .then(() => self.clients.claim())
+      .then(() => {
+        console.log('✅ [SW] تم التفعيل');
+        return self.clients.claim();
+      })
   );
 });
 
 /* ================================================================
-   📨 MESSAGE
+   📨 MESSAGE — رسائل من الصفحة
    ================================================================ */
 self.addEventListener('message', (e) => {
   if (e.data && e.data.type === 'SKIP_WAITING') {
+    console.log('⚡ [SW] تفعيل فوري بطلب من الصفحة');
     self.skipWaiting();
   }
 });
@@ -108,19 +112,20 @@ self.addEventListener('message', (e) => {
 self.addEventListener('fetch', (e) => {
   const { request } = e;
 
+  // تجاهل الطلبات غير GET
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
 
-  // تجاهل Google Fonts (يستخدمها المتصفح من cache خاص به)
+  // تجاهل الطلبات الخارجية (Google Fonts لها كاش خاص بالمتصفح)
   if (url.origin !== self.location.origin) return;
 
-  /* ---------- 1) الصفحات (HTML) ---------- */
+  /* ---------- 1) الصفحات (Navigate / Document) ---------- */
   if (request.mode === 'navigate' || request.destination === 'document') {
     e.respondWith(
       caches.match(request, { ignoreSearch: true })
         .then((cached) => {
-          // حدّث الكاش في الخلفية (بدون انتظار)
+          // 🌐 تحديث في الخلفية
           const networkUpdate = fetch(request)
             .then((response) => {
               if (response && response.ok) {
@@ -134,7 +139,8 @@ self.addEventListener('fetch', (e) => {
           // 🎯 Cache First + Network Update
           return cached || networkUpdate.then((r) => {
             if (r) return r;
-            // 🆘 Fallback: افتح index.html
+            
+            // 🆘 Fallback: افتح index.html أو homework.html
             return caches.match('./index.html')
               .then((fallback) => fallback || caches.match('./homework.html'))
               .then((fallback) => fallback || new Response(
@@ -205,7 +211,6 @@ self.addEventListener('fetch', (e) => {
               return caches.match('./icons/logo.png')
                 .then((r) => r || new Response('', { status: 404 }));
             }
-            // 📄 Fallback عام
             return new Response('', { status: 404 });
           });
       })
