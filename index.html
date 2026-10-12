@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>منصة - مدارس حديد عز الرقمية</title>
+
 <!-- ✅ الأيقونات -->
-<link rel="preload" as="image" href="icons/splash.png">	
+<link rel="preload" as="image" href="icons/splash.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
@@ -16,7 +17,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="مدارس حديد عز">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">	
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/css2.css">
 <script src="js/lib/pdf.min.js"></script>
@@ -24,198 +26,128 @@
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/lib/pdf.worker.min.js';
 </script>
 <link rel="stylesheet" href="css/style.css">
-<style>
-/* ============================================================
-   🎨 زر الإعدادات المنسدل — يطابق صفحة homework.html
-   ============================================================ */
-.settings-wrap { position: relative; }
 
-.icon-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.3);
-  background: rgba(255,255,255,.15);
-  color: #fff;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  transition: all .25s;
-  font-family: inherit;
-  flex-shrink: 0;
-  vertical-align: middle;
-}
-.icon-btn:hover {
-  background: rgba(255,255,255,.28);
-  transform: translateY(-1px);
-}
-.icon-btn:active { transform: translateY(0) scale(.96); }
-.icon-btn.active {
-  background: rgba(255,255,255,.35);
-  border-color: rgba(255,255,255,.5);
-}
 
-.settings-menu {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  min-width: 280px;
-  background: #fff;
-  border: 1px solid #e6e8ee;
-  border-radius: 16px;
-  box-shadow: 0 20px 48px -12px rgba(16,24,40,.25);
-  padding: 16px;
-  opacity: 0;
-  transform: translateY(-8px) scale(.97);
-  pointer-events: none;
-  transition: all .25s;
-  z-index: 1001;
-  text-align: right;
-  color: #101828;
-}
-.settings-menu.open {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-}
-
-.settings-section {
-  padding: 10px 0;
-  border-bottom: 1px solid #e6e8ee;
-}
-.settings-section:last-child { border-bottom: none; padding-bottom: 0; }
-.settings-section:first-child { padding-top: 0; }
-
-.settings-label {
-  display: block;
-  font-size: 11.5px;
-  font-weight: 800;
-  color: #667085;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  margin-bottom: 10px;
-}
-
-.settings-options {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.opt-pill {
-  flex: 1;
-  min-width: 60px;
-  padding: 9px 12px;
-  border-radius: 10px;
-  border: 1px solid #e6e8ee;
-  background: #fafbfd;
-  color: #475467;
-  cursor: pointer;
-  font-family: inherit;
-  font-weight: 700;
-  font-size: 12.5px;
-  transition: all .2s;
-  text-align: center;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.opt-pill:hover {
-  background: #fff7ed;
-  border-color: rgba(234,124,12,.4);
-  color: #ea7c0c;
-}
-.opt-pill.active {
-  background: linear-gradient(135deg, #ea7c0c, #b45309);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 4px 12px -4px rgba(234,124,12,.35);
-}
-
-[data-theme="dark"] .settings-menu {
-  background: #151f31;
-  border-color: #2b3a52;
-  color: #e2e8f0;
-}
-[data-theme="dark"] .settings-section { border-bottom-color: #2b3a52; }
-[data-theme="dark"] .settings-label { color: #94a3b8; }
-[data-theme="dark"] .opt-pill {
-  background: #1f2937;
-  border-color: #2b3a52;
-  color: #c3ccdb;
-}
-[data-theme="dark"] .opt-pill:hover {
-  background: #1c2536;
-  border-color: rgba(234,124,12,.4);
-  color: #ea7c0c;
-}
-[data-theme="dark"] .opt-pill.active {
-  background: linear-gradient(135deg, #ea7c0c, #b45309);
-  color: #fff;
-}
-
-@media (max-width: 640px) {
-  .icon-btn { width: 38px; height: 38px; font-size: 16px; border-radius: 10px; }
-  .settings-menu {
-    min-width: 240px;
-    left: auto;
-    right: 0;
-    padding: 14px;
-  }
-}
-</style>
 </head>
 <body>
+
 <!-- ============ Splash Screen ============ -->
 <div id="splashScreen">
   <img src="icons/splash.png" alt="" id="splashImg">
   <div class="splash-loader"></div>
 </div>
-<header>
-  <h1>منصة - مدارس حديد عز الرقمية</h1>
-  <span>إعداد وتصميم : <strong style="color:#000">الأسطورة</strong></span> · 
-  <span>منصة تعليمية متكاملة</span> · 
-  <span>© "جميع الحقوق محفوظة"</span>
+<!-- إشعارات -->
+<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+<!-- ============================================================
+     🧭 الهيدر الاحترافي
+     ============================================================ -->
+<header class="app-header" id="appHeader">
+  <div class="header-inner">
+<!-- فهرس المنهج (موبايل) -->
+      <button class="header-btn menubtn" onclick="toggleSide()" title="فهرس المنهج">
+  ☰ <span class="label-text">فهرس</span>
+</button>
+    <!-- الشعار -->
+    <a href="index.html" class="brand" aria-label="مدارس حديد عز">
+      <div class="brand-logo" aria-hidden="true">
+        <img src="icons/logo.png"
+             alt=""
+             width="44"
+             height="44"
+             loading="eager"
+             decoding="async"
+             onerror="this.style.display='none'; this.parentElement.textContent='🎓';">
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">مدارس حديد عز</span>
+        <span class="brand-subtitle">Ezz Steel Schools</span>
+      </div>
+    </a>
 
-  <div class="btns">
-  <button class="btn menubtn" onclick="openSide()">☰ فهرس المنهج</button>
-  <button class="btn" id="soundBtn" onclick="toggleSound()">🔊 الصوت: مفعّل</button>
-  <button class="btn" onclick="window.print()">🖨️ طباعة</button>
-  <button class="btn" id="thBtn" onclick="theme()">🌙 وضع ليلي</button>
-  <button class="btn install-header-btn" id="installHeaderBtn" onclick="openInstallModal()" style="display:none">📲 تثبيت</button>
-  <button class="btn share-header-btn" onclick="openShareModal()">📤 مشاركة</button>
-  
-  <!-- ⚙️ زر الإعدادات -->
-  <div class="settings-wrap">
-    <button class="icon-btn" id="settingsBtn" onclick="toggleSettings(event)"
-            title="الإعدادات" aria-label="الإعدادات" aria-expanded="false">⚙️</button>
+    <!-- breadcrumb -->
+    <nav class="breadcrumb" aria-label="مسار التنقل">
+      <a href="index.html">الرئيسية</a>
+      <span class="sep">›</span>
+      <span class="current">المنصة التعليمية</span>
+    </nav>
 
-    <div class="settings-menu" id="settingsMenu" role="menu">
-      <!-- اللغة -->
-      <div class="settings-section">
-        <span class="settings-label">🌐 لغة النطق</span>
-        <div class="settings-options">
-          <button class="opt-pill lang-btn" data-lang="en-US" onclick="switchVoiceLang('en-US')">🇬🇧 إنجليزي</button>
-          <button class="opt-pill lang-btn" data-lang="it-IT" onclick="switchVoiceLang('it-IT')">🇮🇹 إيطالي</button>
+    <div class="header-spacer"></div>
+
+    <!-- أدوات الهيدر -->
+    <div class="header-tools">
+
+      <!-- زر الطباعة -->
+      <button class="icon-btn" onclick="window.print()" title="طباعة" aria-label="طباعة">
+        🖨️
+      </button>
+
+      <!-- زر الوضع الليلي -->
+      <button class="icon-btn" id="themeToggle" onclick="toggleTheme()"
+              title="تبديل الوضع الليلي" aria-label="تبديل الوضع الليلي">🌙</button>
+
+      <!-- زر الإعدادات -->
+      <div class="settings-wrap">
+        <button class="icon-btn" id="settingsBtn" onclick="toggleSettings(event)"
+                title="الإعدادات" aria-label="الإعدادات" aria-expanded="false">⚙️</button>
+
+        <div class="settings-menu" id="settingsMenu" role="menu">
+          <div class="settings-section">
+            <span class="settings-label">🌐 لغة النطق</span>
+            <div class="settings-options">
+              <button class="opt-pill lang-btn" data-lang="en-US" onclick="switchVoiceLang('en-US')">🇬🇧 إنجليزي</button>
+              <button class="opt-pill lang-btn" data-lang="it-IT" onclick="switchVoiceLang('it-IT')">🇮🇹 إيطالي</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <span class="settings-label">🎙️ نوع الصوت</span>
+            <div class="settings-options">
+              <button class="opt-pill gender-btn" data-gender="male" onclick="switchVoiceGender('male')">👨 رجل</button>
+              <button class="opt-pill gender-btn" data-gender="female" onclick="switchVoiceGender('female')">👩 امرأة</button>
+              <button class="opt-pill gender-btn" data-gender="any" onclick="switchVoiceGender('any')">🎙️ تلقائي</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- الجنس -->
-      <div class="settings-section">
-        <span class="settings-label">🎙️ نوع الصوت</span>
-        <div class="settings-options">
-          <button class="opt-pill gender-btn" data-gender="male" onclick="switchVoiceGender('male')">👨 رجل</button>
-          <button class="opt-pill gender-btn" data-gender="female" onclick="switchVoiceGender('female')">👩 امرأة</button>
-          <button class="opt-pill gender-btn" data-gender="any" onclick="switchVoiceGender('any')">🎙️ تلقائي</button>
-        </div>
-      </div>
+
+      <!-- زر التثبيت -->
+      <button class="header-btn" id="installHeaderBtn" onclick="openInstallModal()" style="display:none" title="تثبيت التطبيق">
+        📲 <span class="label-text">تثبيت</span>
+      </button>
+
+      
+
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     🏷️ بطاقة الترحيب
+     ============================================================ -->
+<div class="welcome-banner">
+  <div class="welcome-card">
+    <h1>منصة مدارس حديد عز الرقمية 🎓</h1>
+    <div class="welcome-sub">
+      <span>👨‍💻 إعداد: <strong>الأسطورة</strong></span>
+      <span>·</span>
+      <span>🎯 منصة تعليمية متكاملة</span>
+      <span>·</span>
+      
+    </div>
+    <div class="welcome-actions">
+      <!-- زر الصوت -->
+      <button class="header-btn" id="soundBtn" onclick="toggleSound()" title="تفعيل/إيقاف الصوت">
+        🔊 <span class="label-text">الصوت</span>
+      </button>
+      <!-- زر المشاركة -->
+      <button class="header-btn success" onclick="openShareModal()" title="مشاركة">
+        📤
+      </button>
+      
     </div>
   </div>
 </div>
-</header>
 
 <!-- ======== لوحة إضافة ملفات PDF ======== -->
 <div id="pdfPanel">
@@ -298,7 +230,7 @@
 <footer>💾 يعمل أوفلاين 100% • اختر مادتك من القائمة الجانبية ☰</footer>
 <footer>
     <span>منصة - مدارس حديد عز الرقمية</span> ·
-	<span>إعداد وتصميم : <strong style="color:#990000">الأسطورة</strong></span>
+    <span>إعداد وتصميم : <strong style="color:#990000">الأسطورة</strong></span>
     <span>© جميع الحقوق محفوظة</span>
 </footer>
 </div>
@@ -313,9 +245,9 @@
     <button id="pvPrev" onclick="pvGo(-1)">◀ السابق</button>
     <span class="pageinfo"><span id="pvCur">1</span> / <span id="pvTotal">1</span></span>
     <button id="pvNext" onclick="pvGo(1)">التالي ▶</button>
-	<button id="pvFullscreen" onclick="pvToggleFullscreen()" title="ملء الشاشة">⛶</button>
-  <button id="pvZoomOut" onclick="pvZoom(-1)" title="تصغير">➖</button>
-  <button id="pvZoomIn" onclick="pvZoom(1)" title="تكبير">➕</button>
+    <button id="pvFullscreen" onclick="pvToggleFullscreen()" title="ملء الشاشة">⛶</button>
+    <button id="pvZoomOut" onclick="pvZoom(-1)" title="تصغير">➖</button>
+    <button id="pvZoomIn" onclick="pvZoom(1)" title="تكبير">➕</button>
     <button class="close" onclick="pvClose()">✕ إغلاق</button>
   </div>
   <div id="pdfCanvasWrap"><div class="pdf-loading">⏳ جارٍ التحميل...</div></div>
@@ -344,14 +276,14 @@
     <div class="ios-modal-icon">📲</div>
     <h2>ثبّت التطبيق على iPhone</h2>
     <p class="ios-subtitle">اتبع الخطوات البسيطة دي</p>
-    
+
     <div class="ios-step">
       <div class="ios-step-num">1</div>
       <div class="ios-step-text">
         اضغط زر المشاركة <span class="ios-share-icon">⬆️</span> في شريط Safari السفلي
       </div>
     </div>
-    
+
     <div class="ios-step">
       <div class="ios-step-num">2</div>
       <div class="ios-step-text">
@@ -359,14 +291,14 @@
         <span class="ios-add-icon">➕</span>
       </div>
     </div>
-    
+
     <div class="ios-step">
       <div class="ios-step-num">3</div>
       <div class="ios-step-text">
         اضغط <strong>"إضافة"</strong> في الأعلى
       </div>
     </div>
-    
+
     <div class="ios-success">
       ✅ التطبيق سيظهر على الشاشة الرئيسية
     </div>
@@ -380,68 +312,64 @@
 <div id="shareModal" class="share-modal" style="display:none">
   <div class="share-modal-content">
     <button class="share-modal-close" onclick="closeShareModal()">✕</button>
-    
+
     <div class="share-modal-icon">📤</div>
     <h2>شارك التطبيق</h2>
     <p class="share-subtitle">اختر طريقة المشاركة</p>
-    
-    <!-- معاينة الرابط -->
+
     <div class="share-url-box">
       <input type="text" id="shareUrlInput" readonly value="">
       <button class="share-copy-inline" onclick="copyShareUrl()" title="نسخ">📋</button>
     </div>
-    
-    <!-- خيارات المشاركة -->
+
     <div class="share-options">
-      
+
       <button class="share-option" onclick="shareNative()">
         <span class="share-option-icon">📱</span>
         <span class="share-option-label">مشاركة</span>
       </button>
-      
+
       <button class="share-option" onclick="shareWhatsApp()">
         <span class="share-option-icon" style="background:#25D366">💬</span>
         <span class="share-option-label">واتساب</span>
       </button>
-      
+
       <button class="share-option" onclick="shareTelegram()">
         <span class="share-option-icon" style="background:#0088cc">✈️</span>
         <span class="share-option-label">تيليجرام</span>
       </button>
-      
+
       <button class="share-option" onclick="shareFacebook()">
         <span class="share-option-icon" style="background:#1877F2">f</span>
         <span class="share-option-label">فيسبوك</span>
       </button>
-      
+
       <button class="share-option" onclick="shareTwitter()">
         <span class="share-option-icon" style="background:#000">𝕏</span>
         <span class="share-option-label">تويتر / X</span>
       </button>
-      
+
       <button class="share-option" onclick="showQRCode()">
         <span class="share-option-icon" style="background:#ea7c0c">📷</span>
         <span class="share-option-label">QR Code</span>
       </button>
-      
+
       <button class="share-option" onclick="copyShareUrl()">
         <span class="share-option-icon" style="background:#6b7280">🔗</span>
         <span class="share-option-label">نسخ الرابط</span>
       </button>
-      
+
     </div>
-    
-    <!-- رسالة النسخ -->
+
     <div id="copyToast" class="copy-toast">✅ تم نسخ الرابط</div>
-    
-    <!-- QR Code Container -->
+
     <div id="qrContainer" class="qr-container" style="display:none">
       <h3>امسح الرمز لفتح التطبيق</h3>
       <div id="qrcode"></div>
       <p class="qr-hint">افتح كاميرا موبايلك ووجّهها للرمز</p>
       <button class="qr-close-btn" onclick="hideQRCode()">إغلاق</button>
     </div>
-    
+
   </div>
 </div>
 
@@ -449,181 +377,9 @@
 <div id="shareOverlay" class="share-overlay" style="display:none" onclick="closeShareModal()"></div>
 
 <!-- مكتبة QR Code -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>	
-    <script src="js/app.js" defer></script>
-  
-  <script>
-  /* ================================================================
-     ⚙️ إعدادات النطق — اللغة والجنس
-     ================================================================ */
-  (function() {
-    'use strict';
-    
-    // ===== إعدادات افتراضية =====
-    let voiceSettings = {
-      lang: localStorage.getItem('voice-lang') || 'en-US',
-      gender: localStorage.getItem('voice-gender') || 'any',
-      rate: parseFloat(localStorage.getItem('voice-rate')) || 0.85,
-      pitch: parseFloat(localStorage.getItem('voice-pitch')) || 1.0
-    };
-    
-    const VOICE_PRIORITY = {
-      'en': ['Google US English','Microsoft Aria Online','Microsoft Jenny Online','Samantha','Google UK English Female','Microsoft Zira','Microsoft David','Alex'],
-      'it': ['Google italiano','Microsoft Elsa Online','Microsoft Diego Online','Alice','Federica','Luca']
-    };
-    
-    // ===== كشف جنس الصوت =====
-    function detectGender(voice) {
-      if (!voice) return 'unknown';
-      const name = (voice.name || '').toLowerCase();
-      const maleKw = ['male','man','david','mark','james','george','luca','marco','paolo','matteo','diego','alex','daniel','tom','fred','oliver'];
-      const femaleKw = ['female','woman','zira','susan','hazel','samantha','aria','jenny','elsa','alice','federica','giulia','sara','karen','moira','tessa','victoria'];
-      for (const kw of maleKw) if (name.includes(kw)) return 'male';
-      for (const kw of femaleKw) if (name.includes(kw)) return 'female';
-      return 'unknown';
-    }
-    
-    // ===== اختيار أفضل صوت =====
-    function pickBestVoice(lang) {
-      const voices = window.speechSynthesis.getVoices();
-      const langPrefix = lang.split('-')[0];
-      const langVoices = voices.filter(v => v.lang.startsWith(langPrefix));
-      if (langVoices.length === 0) return null;
-      
-      if (voiceSettings.gender !== 'any') {
-        const priority = VOICE_PRIORITY[langPrefix] || [];
-        for (const name of priority) {
-          const found = langVoices.find(v => v.name.includes(name) && detectGender(v) === voiceSettings.gender);
-          if (found) return found;
-        }
-        const anyGenderMatch = langVoices.find(v => detectGender(v) === voiceSettings.gender);
-        if (anyGenderMatch) return anyGenderMatch;
-      }
-      
-      const priority = VOICE_PRIORITY[langPrefix] || [];
-      for (const name of priority) {
-        const found = langVoices.find(v => v.name.includes(name));
-        if (found) return found;
-      }
-      return langVoices[0];
-    }
-    
-    // ===== تبديل اللغة =====
-    window.switchVoiceLang = function(lang) {
-      voiceSettings.lang = lang;
-      localStorage.setItem('voice-lang', lang);
-      
-      document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.lang === lang);
-      });
-      
-      const sample = lang === 'en-US' ? 'English voice activated' : 'Voce italiana attivata';
-      speakSample(sample, lang);
-    };
-    
-    // ===== تبديل الجنس =====
-    window.switchVoiceGender = function(gender) {
-      voiceSettings.gender = gender;
-      localStorage.setItem('voice-gender', gender);
-      
-      document.querySelectorAll('.gender-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.gender === gender);
-      });
-      
-      const samples = {
-        'male': voiceSettings.lang === 'en-US' ? 'Male voice' : 'Voce maschile',
-        'female': voiceSettings.lang === 'en-US' ? 'Female voice' : 'Voce femminile',
-        'any': voiceSettings.lang === 'en-US' ? 'Default voice' : 'Voce predefinita'
-      };
-      speakSample(samples[gender] || samples['any']);
-    };
-    
-    // ===== نطق عيّنة =====
-    function speakSample(text, lang) {
-      if (!('speechSynthesis' in window)) return;
-      if (!lang) lang = voiceSettings.lang;
-      
-      window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = lang;
-      utter.rate = voiceSettings.rate;
-      utter.volume = 1;
-      
-      const voice = pickBestVoice(lang);
-      const voiceGender = detectGender(voice);
-      
-      if (voiceSettings.gender === 'female') {
-        utter.pitch = (voiceGender === 'female') ? 1.0 : 1.4;
-      } else if (voiceSettings.gender === 'male') {
-        utter.pitch = (voiceGender === 'male') ? 1.0 : 0.7;
-      } else {
-        utter.pitch = voiceSettings.pitch;
-      }
-      
-      if (voice) utter.voice = voice;
-      window.speechSynthesis.speak(utter);
-    }
-    
-    // ===== فتح/إغلاق قائمة الإعدادات =====
-    window.toggleSettings = function(e) {
-      e.stopPropagation();
-      const menu = document.getElementById('settingsMenu');
-      const btn = document.getElementById('settingsBtn');
-      if (!menu || !btn) return;
-      
-      const isOpen = menu.classList.toggle('open');
-      btn.setAttribute('aria-expanded', isOpen);
-      btn.classList.toggle('active', isOpen);
-    };
-    
-    // إغلاق القائمة عند النقر خارجها
-    document.addEventListener('click', (e) => {
-      const menu = document.getElementById('settingsMenu');
-      const btn = document.getElementById('settingsBtn');
-      if (menu && menu.classList.contains('open') && !menu.contains(e.target) && e.target !== btn) {
-        menu.classList.remove('open');
-        btn.setAttribute('aria-expanded', 'false');
-        btn.classList.remove('active');
-      }
-    });
-    
-    // إغلاق بمفتاح Escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        const menu = document.getElementById('settingsMenu');
-        const btn = document.getElementById('settingsBtn');
-        if (menu && menu.classList.contains('open')) {
-          menu.classList.remove('open');
-          btn.setAttribute('aria-expanded', 'false');
-          btn.classList.remove('active');
-        }
-      }
-    });
-    
-    // ===== التهيئة =====
-    document.addEventListener('DOMContentLoaded', () => {
-      // تحديث أزرار اللغة
-      document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.lang === voiceSettings.lang);
-      });
-      
-      // تحديث أزرار الجنس
-      document.querySelectorAll('.gender-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.gender === voiceSettings.gender);
-      });
-      
-      console.log('🎙️ [Voice Settings] إعدادات جاهزة:', voiceSettings);
-    });
-    
-    // تحميل الأصوات
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => {
-        const voices = window.speechSynthesis.getVoices();
-        console.log('🎙️ [Voice Settings] الأصوات المتاحة:', voices.length);
-      };
-    }
-  })();
-  </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="js/app.js" defer></script>
+
+
 </body>
 </html>
