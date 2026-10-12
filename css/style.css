@@ -1,3 +1,4 @@
+
 /* ================================================================
    🎨 Design Tokens — المتغيرات الأساسية
    ================================================================ */
@@ -339,9 +340,26 @@ body::before {
 }
 
 .header-btn.success {
-  background: linear-gradient(135deg, #16a34a, #059669);
-  color: #fff;
-  border-color: transparent;
+  background: #ffffff;
+  color: #101828;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 2px 8px -2px rgba(16, 24, 40, .12);
+  transition: all .25s var(--ease);
+}
+
+.header-btn.success:hover {
+  background: #f9fafb;
+  color: var(--primary);
+  border-color: rgba(234, 124, 12, .4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px -4px rgba(16, 24, 40, .18);
+}
+
+/* في الوضع الليلي: نخلي الحدود واضحة */
+[data-theme="dark"] .header-btn.success {
+  background: #f9fafb;
+  color: #101828;
+  border-color: rgba(255, 255, 255, .15);
 }
 
 /* زر العودة */
@@ -1786,10 +1804,7 @@ td.en:hover .spk, td.it:hover .spk { opacity: 1; }
 
 .btn-speak:hover { transform: scale(1.05); }
 
-#soundBtn {
-  background: linear-gradient(135deg, #009246, #16a34a) !important;
-  color: #fff !important;
-}
+
 
 /* التظليل أثناء النطق */
 .speaking {
@@ -2849,13 +2864,6 @@ td.en:hover .spk, td.it:hover .spk { opacity: 1; }
   .back-btn .label { display: none; }
   .back-btn .arrow { font-size: 16px; }
 
-  .settings-menu { 
-    min-width: 240px; 
-    left: auto; 
-    right: 0; 
-    padding: 14px; 
-  }
-
   .welcome-banner { 
     padding: 0 12px; 
     margin: 14px auto 18px; 
@@ -3005,7 +3013,7 @@ footer {
   .back-btn { padding: 0 12px; height: 38px; font-size: 12px; }
   .back-btn .label { display: none; }
   .back-btn::before { content: "العودة"; font-size: 16px; }
-  .settings-menu { min-width: 240px; left: auto; right: 0; padding: 14px; }
+  .settings-menu {padding: 14px; }
   
   .welcome-banner { padding: 0 12px; margin: 14px auto 18px; }
   .welcome-card { padding: 22px 20px; border-radius: var(--radius); }
