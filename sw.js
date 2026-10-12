@@ -1,4 +1,4 @@
-const CACHE = 'hadid-eez-v38';
+const CACHE = 'hadid-eez-v40';
 
 const ASSETS = [
   // ====== الصفحات ======
