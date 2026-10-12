@@ -1,22 +1,18 @@
-
 /* ================================================================
    🎨 Design Tokens — المتغيرات الأساسية
    ================================================================ */
 :root {
-  /* الألوان الأساسية */
   --primary: #ea7c0c;
   --primary-600: #d96b05;
   --primary-700: #b45309;
   --primary-soft: #fff7ed;
   --primary-glow: rgba(234, 124, 12, .35);
-  
-  /* مختصرات قديمة للتوافق */
+
   --acc: #ea7c0c;
   --acc2: #1e3a8a;
   --def: #fff7ed;
   --note: #ecfdf5;
 
-  /* الخلفيات */
   --bg: #eef1f7;
   --bg-grad-1: #e8ecf5;
   --bg-grad-2: #f6f1ea;
@@ -27,27 +23,23 @@
   --border: #e6e8ee;
   --border-strong: #d5d9e2;
 
-  /* النصوص */
   --text: #101828;
   --text-2: #475467;
   --gray: #667085;
   --gray-2: #98a2b3;
   --muted: #667085;
 
-  /* الألوان الدلالية */
   --red: #d92d20;
   --red-soft: #fef3f2;
   --green: #079455;
   --green-soft: #ecfdf3;
   --blue: #2563eb;
 
-  /* الأنصاف */
   --radius-sm: 10px;
   --radius: 14px;
   --radius-lg: 20px;
   --radius-xl: 28px;
 
-  /* الظلال */
   --shadow: 0 2px 10px rgba(0,0,0,.07);
   --shadow-xs: 0 1px 2px rgba(16,24,40,.05);
   --shadow-sm: 0 2px 6px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
@@ -55,11 +47,9 @@
   --shadow-lg: 0 20px 48px -12px rgba(16,24,40,.18);
   --shadow-primary: 0 10px 30px -8px var(--primary-glow);
 
-  /* الحركة */
   --ease: cubic-bezier(.22,1,.36,1);
   --ease-bounce: cubic-bezier(.34,1.56,.64,1);
 
-  /* الهيدر */
   --header-h: 72px;
 }
 
@@ -84,16 +74,7 @@
   --def: #1d2a1a;
   --note: #12251c;
 }
-/* ================================================================
-   📐 إزاحة التبويبات — يمنع اختفاء المحتوى تحت الهيدر
-   ================================================================ */
-.pane {
-  scroll-margin-top: calc(var(--header-h, 72px) + 20px);
-}
 
-.sub, .qb-les > h2 {
-  scroll-margin-top: calc(var(--header-h, 72px) + 80px);
-}
 /* ================================================================
    🌍 الأساسيات
    ================================================================ */
@@ -106,9 +87,8 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  overflow-x: clip;            /* ✅ بدل hidden — لا يكسر sticky */
 }
-
-
 
 body {
   font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
@@ -123,10 +103,8 @@ body {
   transition: background .4s var(--ease), color .3s var(--ease);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  
-  /* ⭐ الأهم: padding يعوّض الهيدر الثابت */
   padding-top: var(--header-h, 72px);
-
+  overflow-x: clip;            /* ✅ بدل hidden */
 }
 
 body::before {
@@ -138,6 +116,17 @@ body::before {
   pointer-events: none;
   z-index: 0;
   mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, #000 20%, transparent 75%);
+}
+
+/* ================================================================
+   📐 إزاحة التبويبات
+   ================================================================ */
+.pane {
+  scroll-margin-top: calc(var(--header-h, 72px) + 20px);
+}
+
+.sub, .qb-les > h2 {
+  scroll-margin-top: calc(var(--header-h, 72px) + 80px);
 }
 
 /* ================================================================
@@ -172,7 +161,6 @@ body::before {
   gap: 16px;
 }
 
-/* ---------- الشعار ---------- */
 .brand {
   display: flex;
   align-items: center;
@@ -229,7 +217,6 @@ body::before {
   letter-spacing: .3px;
 }
 
-/* ---------- Breadcrumb ---------- */
 .breadcrumb {
   display: flex;
   align-items: center;
@@ -256,7 +243,6 @@ body::before {
 
 .header-spacer { flex: 1; }
 
-/* ---------- أدوات الهيدر ---------- */
 .header-tools {
   display: flex;
   align-items: center;
@@ -264,7 +250,6 @@ body::before {
   flex-shrink: 0;
 }
 
-/* أزرار أيقونية */
 .icon-btn {
   width: 42px;
   height: 42px;
@@ -298,7 +283,6 @@ body::before {
   box-shadow: var(--shadow-primary);
 }
 
-/* أزرار النص */
 .header-btn {
   display: inline-flex;
   align-items: center;
@@ -339,6 +323,7 @@ body::before {
   transform: translateY(-2px);
 }
 
+/* ✅ زر المشاركة — خلفية بيضاء */
 .header-btn.success {
   background: #ffffff;
   color: #101828;
@@ -355,14 +340,12 @@ body::before {
   box-shadow: 0 6px 16px -4px rgba(16, 24, 40, .18);
 }
 
-/* في الوضع الليلي: نخلي الحدود واضحة */
 [data-theme="dark"] .header-btn.success {
   background: #f9fafb;
   color: #101828;
   border-color: rgba(255, 255, 255, .15);
 }
 
-/* زر العودة */
 .back-btn {
   display: inline-flex;
   align-items: center;
@@ -381,15 +364,16 @@ body::before {
   transition: all .25s var(--ease);
   flex-shrink: 0;
 }
+
 .back-btn:hover {
   background: var(--primary-soft);
   color: var(--primary);
   border-color: rgba(234,124,12,.4);
   transform: translateY(-1px);
 }
+
 .back-btn .arrow { transition: transform .25s var(--ease); }
 .back-btn:hover .arrow { transform: translateX(-4px); }
-
 
 /* ================================================================
    ⚙️ قائمة الإعدادات
@@ -639,18 +623,26 @@ body::before {
 }
 
 /* ================================================================
-   📐 التخطيط الأساسي (index.html)
+   📐 التخطيط الأساسي
    ================================================================ */
 .layout {
   display: flex;
   align-items: flex-start;
+  gap: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
+/* ================================================================
+   🗂️ القائمة الجانبية — sticky
+   ================================================================ */
 #side {
   width: 300px;
   flex-shrink: 0;
   position: sticky;
-  top: calc(var(--header-h, 72px) + 20px);
+  top: calc(var(--header-h, 72px) + 14px);
+  align-self: flex-start;                              /* ✅ مهم للـ sticky في flex */
+  max-height: calc(100vh - var(--header-h, 72px) - 28px);
   overflow-y: auto;
   background: var(--surface);
   border-radius: var(--radius-lg);
@@ -658,6 +650,13 @@ body::before {
   margin: 14px;
   padding: 14px 12px;
   scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+
+#side::-webkit-scrollbar { width: 6px; }
+#side::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 99px;
 }
 
 #side .ttl {
@@ -694,7 +693,7 @@ body::before {
 }
 
 /* ================================================================
-   🌳 شجرة المواد (index.html)
+   🌳 شجرة المواد
    ================================================================ */
 .subj-gt {
   width: 100%;
@@ -811,22 +810,22 @@ body::before {
   background: rgba(0,0,0,.55);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  z-index: 199;
+  z-index: 1999;                                       /* ✅ رفعناها */
   opacity: 0;
   transition: opacity .3s ease;
 }
 
-.sideback.show { display: block; opacity: 1; }
+.sideback.show {  opacity: 1; }
 .menubtn { display: none; }
 
 /* ================================================================
    🧩 العمود الرئيسي والتبويبات
    ================================================================ */
 .mcol {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 0;                                          /* ✅ بدل flex: 1 */
+  min-width: 0;                                         /* ✅ مهم لمنع تمدد الجداول */
+  max-width: 100%;                                      /* ✅ مهم */
   padding: 0 14px 40px;
-  max-width: 1000px;
 }
 
 .tabs {
@@ -974,11 +973,35 @@ body::before {
 .sec-h .rng { font-size: 11.5px; color: var(--muted); }
 .sec.closed .sec-b { display: none; }
 
+/* ✅ الحاوية المسؤولة عن التمرير الأفقي */
+.sec-b {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  width: 100%;
+  display: block;
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+}
+
+.sec-b::-webkit-scrollbar { height: 8px; }
+.sec-b::-webkit-scrollbar-track {
+  background: var(--bg);
+  border-radius: 99px;
+}
+.sec-b::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 99px;
+  opacity: .8;
+}
+
 table {
   width: 100%;
   min-width: 720px;
   border-collapse: collapse;
   table-layout: auto;
+  display: table;
 }
 
 th {
@@ -987,6 +1010,7 @@ th {
   font-size: 12.5px;
   padding: 8px 11px;
   text-align: right;
+  white-space: nowrap;
 }
 
 td {
@@ -1395,7 +1419,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--c) 8%, transparent); }
 .result h3 { font-size: 22px; margin: 10px 0; }
 
 /* ================================================================
-   📄 بطاقات الواجب (homework.html)
+   📄 بطاقات الواجب
    ================================================================ */
 .card {
   background: var(--surface);
@@ -1523,7 +1547,6 @@ tbody tr:hover { background: color-mix(in srgb, var(--c) 8%, transparent); }
   100% { transform: scale(1); }
 }
 
-/* أزرار النطق */
 .speak-btn {
   background: linear-gradient(135deg, var(--blue), #1e40af);
   color: #fff;
@@ -1579,7 +1602,6 @@ tbody tr:hover { background: color-mix(in srgb, var(--c) 8%, transparent); }
   50% { box-shadow: 0 0 0 9px rgba(234,124,12,.12), 0 0 34px rgba(234,124,12,.85); }
 }
 
-/* التغذية الراجعة */
 .feedback {
   margin-top: 14px;
   padding: 13px 18px;
@@ -1613,7 +1635,6 @@ tbody tr:hover { background: color-mix(in srgb, var(--c) 8%, transparent); }
   border-inline-start: 4px solid var(--red);
 }
 
-/* حقول الإدخال */
 input[type="text"] {
   width: 100%;
   padding: 14px 4px;
@@ -1631,7 +1652,6 @@ input[type="text"] {
 input[type="text"]::placeholder { color: var(--gray-2); font-weight: 400; }
 input[type="text"]:focus { border-bottom-color: var(--primary); }
 
-/* زر الإرسال */
 .submit-wrap {
   text-align: center;
   padding: 28px;
@@ -1663,7 +1683,6 @@ input[type="text"]:focus { border-bottom-color: var(--primary); }
   box-shadow: 0 18px 44px -10px var(--primary-glow);
 }
 
-/* صندوق النتيجة */
 .result-box {
   display: none;
   text-align: center;
@@ -1804,9 +1823,31 @@ td.en:hover .spk, td.it:hover .spk { opacity: 1; }
 
 .btn-speak:hover { transform: scale(1.05); }
 
+/* ================================================================
+   🔊 زر الصوت — أبيض لما يشتغل
+   ================================================================ */
+#soundBtn {
+  background: #ffffff;
+  color: #101828;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 2px 8px -2px rgba(16, 24, 40, .12);
+  transition: all .25s var(--ease);
+}
 
+#soundBtn:hover {
+  background: #f9fafb;
+  color: var(--primary);
+  border-color: rgba(234, 124, 12, .4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px -4px rgba(16, 24, 40, .18);
+}
 
-/* التظليل أثناء النطق */
+[data-theme="dark"] #soundBtn {
+  background: #f9fafb;
+  color: #101828;
+  border-color: rgba(255, 255, 255, .15);
+}
+
 .speaking {
   background: linear-gradient(90deg, #fef08a, #fde047) !important;
   color: #000 !important;
@@ -2621,7 +2662,7 @@ td.en:hover .spk, td.it:hover .spk { opacity: 1; }
 }
 
 /* ================================================================
-   🖼️ عارض PDF — نسخة محسّنة
+   🖼️ عارض PDF
    ================================================================ */
 #pdfViewer {
   display: none;
@@ -2638,7 +2679,7 @@ td.en:hover .spk, td.it:hover .spk { opacity: 1; }
   overflow: hidden;
 }
 
-#pdfViewer.show { 
+#pdfViewer.show {
   display: flex;
   animation: pdfFadeIn .3s var(--ease);
 }
@@ -2699,13 +2740,8 @@ td.en:hover .spk, td.it:hover .spk { opacity: 1; }
   cursor: not-allowed;
 }
 
-.pdf-viewer-bar .close { 
-  background: #dc2626;
-}
-
-.pdf-viewer-bar .close:hover {
-  background: #b91c1c;
-}
+.pdf-viewer-bar .close { background: #dc2626; }
+.pdf-viewer-bar .close:hover { background: #b91c1c; }
 
 .pdf-viewer-bar .pageinfo {
   font-size: 13px;
@@ -2776,19 +2812,18 @@ td.en:hover .spk, td.it:hover .spk { opacity: 1; }
   border-color: rgba(234, 124, 12, .5);
 }
 
-.pdf-thumb.on { 
+.pdf-thumb.on {
   border-color: var(--primary);
   transform: scale(1.08);
   box-shadow: 0 0 12px var(--primary-glow);
 }
 
-.pdf-thumb canvas { 
-  display: block; 
-  width: 60px; 
-  height: auto; 
+.pdf-thumb canvas {
+  display: block;
+  width: 60px;
+  height: auto;
 }
 
-/* أزرار التحكم الإضافية */
 #pvFullscreen, #pvZoomIn, #pvZoomOut {
   background: linear-gradient(135deg, #1e3a8a, #2563eb);
   min-width: 42px;
@@ -2802,11 +2837,7 @@ td.en:hover .spk, td.it:hover .spk { opacity: 1; }
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
 }
 
-/* الوضع المُلء الشاشة */
-#pdfViewer:fullscreen { 
-  padding: 0; 
-  background: #000;
-}
+#pdfViewer:fullscreen { padding: 0; background: #000; }
 
 #pdfViewer:fullscreen .pdf-viewer-bar {
   background: rgba(20, 20, 20, 0.98);
@@ -2820,93 +2851,6 @@ td.en:hover .spk, td.it:hover .spk { opacity: 1; }
 #pdfViewer:fullscreen #pdfCanvasWrap {
   background: #1a1a1a;
   padding: 12px;
-}
-
-/* ================================================================
-   📱 Responsive — الجوال الصغير
-   ================================================================ */
-@media (max-width: 640px) {
-  body {
-    padding: var(--header-h, 64px) 12px 44px;
-  }
-
-  .app-header { margin: 0; }
-  .header-inner { padding: 0 14px; gap: 10px; }
-
-  .brand-logo { 
-    width: 38px; 
-    height: 38px; 
-    font-size: 19px; 
-    border-radius: 10px; 
-  }
-  .brand-title { font-size: 14px; }
-  .brand-subtitle { font-size: 10px; }
-
-  .icon-btn { 
-    width: 38px; 
-    height: 38px; 
-    font-size: 16px; 
-    border-radius: 10px; 
-  }
-
-  .header-btn { 
-    padding: 0 12px; 
-    height: 38px; 
-    font-size: 12px; 
-  }
-  .header-btn .label-text { display: none; }
-
-  .back-btn { 
-    padding: 0 12px; 
-    height: 38px; 
-    font-size: 12px; 
-  }
-  .back-btn .label { display: none; }
-  .back-btn .arrow { font-size: 16px; }
-
-  .welcome-banner { 
-    padding: 0 12px; 
-    margin: 14px auto 18px; 
-  }
-  .welcome-card { 
-    padding: 22px 20px; 
-    border-radius: var(--radius); 
-  }
-  .welcome-card h1 { font-size: 20px; }
-  .welcome-btn { 
-    padding: 9px 14px; 
-    font-size: 12px; 
-  }
-
-  .card { 
-    padding: 20px 18px; 
-    border-radius: var(--radius); 
-  }
-  .question h3 { font-size: 15px; }
-  .option { 
-    padding: 12px 13px; 
-    gap: 10px; 
-  }
-  .option .opt-text { font-size: 14px; }
-  .speak-btn { 
-    width: 36px; 
-    height: 36px; 
-    font-size: 14px; 
-  }
-  .opt-speak { 
-    width: 30px; 
-    height: 30px; 
-    font-size: 12px; 
-  }
-  .submit-btn { 
-    padding: 14px 38px; 
-    font-size: 15px; 
-  }
-
-  .tab {
-    font-size: 11.5px !important;
-    padding: 7px 12px !important;
-  }
 }
 
 /* ================================================================
@@ -2960,66 +2904,80 @@ footer {
 }
 
 /* ================================================================
-   📱 Responsive — الموبايل والتجاوب
+   📱 Responsive — تابلت (≤ 920px)
+   القائمة الجانبية تتحول لدرج منبثق
    ================================================================ */
 @media (max-width: 920px) {
   :root {
     --header-h: 64px;
   }
-  
+
   .breadcrumb { display: none; }
   .layout { display: block; }
-  
+
+  .sideback {
+    z-index: 1999;
+  }
+
   #side {
     position: fixed;
-    top: 70PX;
+    top: 62px;
     right: 0;
-    bottom: 0;
-    width: min(320px, 88vw);
+    
+    height: 100vh;
+    max-height: 100vh;
     margin: 0;
     border-radius: 16px 0 0 16px;
-    max-height: 100vh;
-    z-index: 200;
+    z-index: 2000;                          /* ✅ أعلى من sideback */
     transform: translateX(100%);
     transition: transform .3s ease;
     box-shadow: -10px 0 40px rgba(0,0,0,.2);
+    overflow-y: auto;
+    
   }
-  
-  #side.open { transform: none; }
+
+  #side.open { transform: translateX(0); }   /* ✅ قيمة صريحة بدل none */
   .menubtn { display: inline-flex; }
-  
+
   .mcol { padding: 0 12px 40px; }
-  
+
   .tabs {
     position: sticky;
     top: var(--header-h, 64px);
   }
 }
 
+/* ================================================================
+   📱 Responsive — موبايل (≤ 640px)
+   ================================================================ */
 @media (max-width: 640px) {
-  body { 
-    padding: var(--header-h, 64px) 12px 44px;  /* ✅ يحافظ على إزاحة الهيدر */
+  :root {
+    --header-h: 60px;
   }
-}
-  
-  .app-header { margin: 0; }
+
+  body {
+    padding: var(--header-h) 12px 44px;
+  }
+
   .header-inner { padding: 0 14px; gap: 10px; }
   .brand-logo { width: 38px; height: 38px; font-size: 19px; border-radius: 10px; }
   .brand-title { font-size: 14px; }
   .brand-subtitle { font-size: 10px; }
+
   .icon-btn { width: 38px; height: 38px; font-size: 16px; border-radius: 10px; }
   .header-btn { padding: 0 12px; height: 38px; font-size: 12px; }
   .header-btn .label-text { display: none; }
+
   .back-btn { padding: 0 12px; height: 38px; font-size: 12px; }
   .back-btn .label { display: none; }
-  .back-btn::before { content: "العودة"; font-size: 16px; }
-  .settings-menu {padding: 14px; }
-  
+
+  .settings-menu { padding: 14px; }
+
   .welcome-banner { padding: 0 12px; margin: 14px auto 18px; }
   .welcome-card { padding: 22px 20px; border-radius: var(--radius); }
   .welcome-card h1 { font-size: 18px; }
   .welcome-btn { padding: 9px 14px; font-size: 12px; }
-  
+
   .card { padding: 20px 18px; border-radius: var(--radius); }
   .question h3 { font-size: 15px; }
   .option { padding: 12px 13px; gap: 10px; }
@@ -3027,21 +2985,30 @@ footer {
   .speak-btn { width: 36px; height: 36px; font-size: 14px; }
   .opt-speak { width: 30px; height: 30px; font-size: 12px; }
   .submit-btn { padding: 14px 38px; font-size: 15px; }
-  
+
   .tab {
-    font-size: 11.5px !important;
-    padding: 7px 12px !important;
+    font-size: 11.5px;
+    padding: 7px 12px;
   }
+
+  /* ✅ الجداول — min-width مناسب للموبايل */
+  table { min-width: 640px; }
 }
 
+/* ================================================================
+   📱 Responsive — موبايل صغير (≤ 480px)
+   ================================================================ */
 @media (max-width: 480px) {
-  .sec-b table { min-width: 620px; font-size: 11px; }
-  .sec-b th, .sec-b td { padding: 6px 5px; font-size: 10.5px; }
+  table { min-width: 580px; }
+  .sec-b th, .sec-b td { padding: 6px 5px; font-size: 11px; }
   .sec-b td.en, .sec-b td.it { font-size: 11px; }
   .sec-b td.pro, .sec-b td.pro-it { font-size: 10px; }
   .sec-h h2 { font-size: 13px; }
 }
 
+/* ================================================================
+   📱 Responsive — موبايل ضيق جداً (≤ 400px)
+   ================================================================ */
 @media (max-width: 400px) {
   .brand-subtitle { display: none; }
   .icon-btn { width: 36px; height: 36px; font-size: 15px; }
@@ -3092,22 +3059,22 @@ footer {
   .toast-container {
     display: none !important;
   }
-  
+
   body { background: #fff; color: #000; padding: 0; }
   .layout { display: block; }
   .mcol, .container { max-width: none; padding: 0; }
   .pane { display: block !important; }
   .ph { display: block; text-align: center; margin-bottom: 10px; }
-  
+
   .sec, .sub, .unit > h2, .qcard, .card {
     box-shadow: none;
     border: 1px solid #999;
     page-break-inside: avoid;
   }
-  
+
   .sec.closed .sec-b,
   .sub.closed .sub-b { display: block !important; }
-  
+
   .ansbox { display: block !important; }
   .sec-b { overflow: visible; }
   .sec-b table { min-width: 0; width: 100%; font-size: 10px; }
