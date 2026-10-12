@@ -84,8 +84,13 @@ function updateSoundButton() {
   if (!btn) return;
   btn.textContent = soundOn ? '🔊 الصوت: مفعّل' : '🔇 الصوت: متوقف';
   btn.style.background = soundOn
-    ? 'linear-gradient(135deg, #009246, #16a34a)'
-    : 'linear-gradient(135deg, #6b7280, #4b5563)';
+    ? '#ffffff'
+    : 'linear-gradient(135deg, #ef4444, #dc2626)';
+  btn.style.color = soundOn ? '#101828' : '#ffffff';
+  btn.style.borderColor = soundOn ? '#e6e8ee' : 'transparent';
+  btn.style.boxShadow = soundOn
+    ? '0 2px 8px -2px rgba(16, 24, 40, .12)'
+    : '0 4px 14px -4px rgba(239, 68, 68, .5)';
 }
 
 /* ================================================================
