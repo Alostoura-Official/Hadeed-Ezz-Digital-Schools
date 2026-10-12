@@ -2139,11 +2139,7 @@ function hasAnyUserInput() {
    30) 🔔 إشعار التحديث
    ================================================================ */
 function showUpdatePrompt(newSW) {
-  if (hasAnyUserInput()) {
-    console.log('⚠️ [SW] يوجد إدخال — تأجيل التحديث');
-    window.__pendingSW = newSW;
-    return;
-  }
+  // ✅ شيلنا شرط hasAnyUserInput — البانر يظهر دايماً
   const existing = document.getElementById('sw-update-banner');
   if (existing) existing.remove();
 
@@ -2152,10 +2148,10 @@ function showUpdatePrompt(newSW) {
   updateBanner.style.cssText = `
     position: fixed; top: 20px; left: 50%;
     transform: translateX(-50%) translateY(-100px);
-    background: linear-gradient(135deg, #ea7c0c, #b45309);
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
     color: #fff; padding: 14px 20px; border-radius: 14px;
     font-family: 'Tajawal', sans-serif; font-weight: 700; font-size: 14px;
-    box-shadow: 0 10px 30px rgba(234, 124, 12, 0.5);
+    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.5);
     z-index: 100000; display: flex; align-items: center; gap: 12px;
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     max-width: 90vw; cursor: pointer;
@@ -2170,13 +2166,25 @@ function showUpdatePrompt(newSW) {
     " onclick="event.stopPropagation(); this.closest('#sw-update-banner').remove();">✕</button>
   `;
   document.body.appendChild(updateBanner);
+
   requestAnimationFrame(() => {
     updateBanner.style.transform = 'translateX(-50%) translateY(0)';
   });
+
   updateBanner.onclick = () => {
     updateBanner.remove();
-    newSW.postMessage({ type: 'SKIP_WAITING' });
+    // 🔥 لو الـ SW موجود، ابعتله SKIP_WAITING
+    if (newSW && typeof newSW.postMessage === 'function') {
+      newSW.postMessage({ type: 'SKIP_WAITING' });
+    } else {
+      // احتياطي: reload مباشر بـ cache-busting
+      const url = new URL(window.location.href);
+      url.searchParams.set('_v', Date.now());
+      window.location.replace(url.toString());
+    }
   };
+
+  // اخفاء تلقائي بعد 30 ثانية
   setTimeout(() => {
     if (updateBanner.parentNode) {
       updateBanner.style.transform = 'translateX(-50%) translateY(-100px)';
@@ -2193,7 +2201,25 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' })
       .then(reg => {
         console.log('✅ [SW] مسجّل بنجاح:', reg.scope);
-        setInterval(() => { reg.update().catch(() => { }); }, 30 * 60 * 1000);
+
+        // 🔥 افحص التحديثات كل دقيقة بدل 30
+        setInterval(() => { reg.update().catch(() => { }); }, 60 * 1000);
+
+        // 🔥 افحص لما المستخدم يرجع للتبويب (مهم جداً للموبايل)
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            reg.update().catch(() => { });
+          }
+        });
+
+        // 🔥 افحص لما النت يرجع (بعد ما يكون مقطوع)
+        window.addEventListener('online', () => {
+          reg.update().catch(() => { });
+        });
+
+        // افحص أول ما الصفحة تحمل
+        reg.update().catch(() => { });
+
         reg.addEventListener('updatefound', () => {
           const newSW = reg.installing;
           if (!newSW) return;
@@ -2209,22 +2235,32 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+/* ---------- استقبال رسالة RELOAD من الـ SW ---------- */
 let refreshing = false;
 if (navigator.serviceWorker) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'RELOAD') {
+      if (refreshing) return;
+      refreshing = true;
+      console.log('🔄 [SW] رسالة RELOAD — إعادة تحميل...');
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+      // cache-busting في الـ URL عشان نتخطى الكاش
+      const url = new URL(window.location.href);
+      url.searchParams.set('_v', Date.now());
+      window.location.replace(url.toString());
+    }
+  });
+
+  /* controllerchange — احتياطي */
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (refreshing) return;
     refreshing = true;
-    if (hasAnyUserInput()) {
-      console.log('⚠️ [SW] يوجد إدخال — لن يُعاد التحميل');
-      refreshing = false;
-      return;
-    }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     console.log('🔄 [SW] إعادة تحميل الصفحة');
     window.location.reload();
   });
 }
-
 /* ================================================================
    32) 💾 Splash Screen Timer
    ================================================================ */
