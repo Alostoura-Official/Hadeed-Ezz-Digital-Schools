@@ -5,8 +5,59 @@ let currentRowEl = null;
 let isSpeakingSection = false;
 let currentSectionSi = null;
 
+/* ================================================================
+   🎙️ إعدادات النطق (اللغة والجنس)
+   ================================================================ */
+let voiceSettings = {
+  lang: localStorage.getItem('voice-lang') || 'en-US',
+  gender: localStorage.getItem('voice-gender') || 'any',
+  rate: parseFloat(localStorage.getItem('voice-rate')) || 0.85,
+  pitch: parseFloat(localStorage.getItem('voice-pitch')) || 1.0
+};
+
+const VOICE_PRIORITY = {
+  'en': ['Google US English','Microsoft Aria Online','Microsoft Jenny Online','Samantha','Google UK English Female','Microsoft Zira','Microsoft David','Alex'],
+  'it': ['Google italiano','Microsoft Elsa Online','Microsoft Diego Online','Alice','Federica','Luca']
+};
+
+/* ---------- كشف جنس الصوت ---------- */
+function detectGender(voice) {
+  if (!voice) return 'unknown';
+  const name = (voice.name || '').toLowerCase();
+  const maleKw = ['male','man','david','mark','james','george','luca','marco','paolo','matteo','diego','alex','daniel','tom','fred','oliver'];
+  const femaleKw = ['female','woman','zira','susan','hazel','samantha','aria','jenny','elsa','alice','federica','giulia','sara','karen','moira','tessa','victoria'];
+  for (const kw of maleKw) if (name.includes(kw)) return 'male';
+  for (const kw of femaleKw) if (name.includes(kw)) return 'female';
+  return 'unknown';
+}
+
+/* ---------- اختيار أفضل صوت ---------- */
+function pickBestVoice(lang) {
+  const voices = window.speechSynthesis.getVoices();
+  const langPrefix = lang.split('-')[0];
+  const langVoices = voices.filter(v => v.lang.startsWith(langPrefix));
+  if (langVoices.length === 0) return null;
+
+  if (voiceSettings.gender !== 'any') {
+    const priority = VOICE_PRIORITY[langPrefix] || [];
+    for (const name of priority) {
+      const found = langVoices.find(v => v.name.includes(name) && detectGender(v) === voiceSettings.gender);
+      if (found) return found;
+    }
+    const anyGenderMatch = langVoices.find(v => detectGender(v) === voiceSettings.gender);
+    if (anyGenderMatch) return anyGenderMatch;
+  }
+
+  const priority = VOICE_PRIORITY[langPrefix] || [];
+  for (const name of priority) {
+    const found = langVoices.find(v => v.name.includes(name));
+    if (found) return found;
+  }
+  return langVoices[0];
+}
+
 /* ---------- نطق كلمة فردية ---------- */
-function speak(text, lang = 'en-US', rate = 0.85, el = null) {
+function speak(text, lang = null, rate = null, el = null) {
   if (currentSpokenEl) {
     currentSpokenEl.classList.remove('speaking');
     currentSpokenEl = null;
@@ -22,17 +73,28 @@ function speak(text, lang = 'en-US', rate = 0.85, el = null) {
     return; 
   }
   
+  if (!lang) lang = voiceSettings.lang;
+  if (rate === null) rate = voiceSettings.rate;
+  
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang;
   utter.rate = rate;
-  utter.pitch = 1;
   utter.volume = 1;
   
-  const voices = window.speechSynthesis.getVoices();
-  const preferred = voices.find(v => v.lang === lang)
-                 || voices.find(v => v.lang.startsWith(lang.split('-')[0]));
-  if (preferred) utter.voice = preferred;
+  // 🎯 استخدام نظام اختيار الصوت الجديد
+  const voice = pickBestVoice(lang);
+  const voiceGender = detectGender(voice);
+  
+  if (voiceSettings.gender === 'female') {
+    utter.pitch = (voiceGender === 'female') ? 1.0 : 1.4;
+  } else if (voiceSettings.gender === 'male') {
+    utter.pitch = (voiceGender === 'male') ? 1.0 : 0.7;
+  } else {
+    utter.pitch = voiceSettings.pitch;
+  }
+  
+  if (voice) utter.voice = voice;
   
   if (el) {
     el.classList.add('speaking');
@@ -104,6 +166,7 @@ function speakSection(si) {
     
     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
     
+    // ===== نطق الإنجليزي =====
     if (enCell) {
       enCell.classList.add('speaking');
       currentSpokenEl = enCell;
@@ -111,7 +174,10 @@ function speakSection(si) {
     
     const uEN = new SpeechSynthesisUtterance(words[i][1]);
     uEN.lang = 'en-US';
-    uEN.rate = 0.85;
+    uEN.rate = voiceSettings.rate;
+    
+    const enVoice = pickBestVoice('en-US');
+    if (enVoice) uEN.voice = enVoice;
     
     uEN.onend = () => {
       if (!isSpeakingSection || currentSectionSi !== si) return;
@@ -119,6 +185,7 @@ function speakSection(si) {
       if (enCell) enCell.classList.remove('speaking');
       currentSpokenEl = null;
       
+      // ===== نطق الإيطالي =====
       if (itCell) {
         itCell.classList.add('speaking');
         currentSpokenEl = itCell;
@@ -126,7 +193,10 @@ function speakSection(si) {
       
       const uIT = new SpeechSynthesisUtterance(words[i][2]);
       uIT.lang = 'it-IT';
-      uIT.rate = 0.85;
+      uIT.rate = voiceSettings.rate;
+      
+      const itVoice = pickBestVoice('it-IT');
+      if (itVoice) uIT.voice = itVoice;
       
       uIT.onend = () => {
         if (!isSpeakingSection || currentSectionSi !== si) return;
@@ -186,9 +256,76 @@ function stopSpeaking() {
   currentSpokenEl = null;
 }
 
-/* =================================================================
+/* ================================================================
+   🔄 تبديل اللغة والجنس (من قائمة الإعدادات)
+   ================================================================ */
+window.switchVoiceLang = function(lang) {
+  voiceSettings.lang = lang;
+  localStorage.setItem('voice-lang', lang);
+  
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+  
+  const sample = lang === 'en-US' ? 'English voice activated' : 'Voce italiana attivata';
+  speak(sample, lang);
+};
+
+window.switchVoiceGender = function(gender) {
+  voiceSettings.gender = gender;
+  localStorage.setItem('voice-gender', gender);
+  
+  document.querySelectorAll('.gender-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.gender === gender);
+  });
+  
+  const samples = {
+    'male': voiceSettings.lang === 'en-US' ? 'Male voice' : 'Voce maschile',
+    'female': voiceSettings.lang === 'en-US' ? 'Female voice' : 'Voce femminile',
+    'any': voiceSettings.lang === 'en-US' ? 'Default voice' : 'Voce predefinita'
+  };
+  speak(samples[gender] || samples['any']);
+};
+
+/* ================================================================
+   ⚙️ قائمة الإعدادات — فتح/إغلاق
+   ================================================================ */
+window.toggleSettings = function(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('settingsMenu');
+  const btn = document.getElementById('settingsBtn');
+  if (!menu || !btn) return;
+  
+  const isOpen = menu.classList.toggle('open');
+  btn.setAttribute('aria-expanded', isOpen);
+  btn.classList.toggle('active', isOpen);
+};
+
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('settingsMenu');
+  const btn = document.getElementById('settingsBtn');
+  if (menu && menu.classList.contains('open') && !menu.contains(e.target) && e.target !== btn) {
+    menu.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.classList.remove('active');
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const menu = document.getElementById('settingsMenu');
+    const btn = document.getElementById('settingsBtn');
+    if (menu && menu.classList.contains('open')) {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.classList.remove('active');
+    }
+  }
+});
+
+/* ================================================================
    1) المواد الدراسية الرئيسية
-   ================================================================= */
+   ================================================================ */
 const SUBJECTS = {
   mech:      { name: "ميكاترونكس",       icon: "⚙️", color: "#2563eb" },
   english:   { name: "لغة إنجليزية",      icon: "🇬🇧", color: "#16a34a" },
@@ -202,9 +339,9 @@ const SUBJECTS = {
   other:     { name: "مواد أخرى",         icon: "📁", color: "#64748b" }
 };
 
-/* =================================================================
+/* ================================================================
    2) بيانات القاموس
-   ================================================================= */
+   ================================================================ */
 let SECTIONS = [
 {n:"أساسيات الميكاترونكس والتحكم",c:"#2563eb",subj:"mech",t:[
   [1,"Mechatronics","Meccatronica","ميكاترونكس","ميكاترونيكا","الميكاترونكس"],
@@ -443,9 +580,9 @@ let SECTIONS = [
 ]}
 ];
 
-/* =================================================================
+/* ================================================================
    3) المنهج — مواد ← وحدات ← دروس
-   ================================================================= */
+   ================================================================ */
 let CURRICULUM = {
   italian: [
     { u: "Unità 1 — Grammatica", t: "Articoli e Nomi", subs: [
@@ -682,9 +819,9 @@ let CURRICULUM = {
   other: []
 };
 
-/* =================================================================
+/* ================================================================
    4) التعريفات
-   ================================================================= */
+   ================================================================ */
 let DEFS=[
 ["Safety","السلامة","A condition in which people are not exposed to unacceptable levels of danger."],
 ["Occupational Health","الصحة المهنية","Protecting and supporting physical, mental and social well-being in relation to the work performed and its conditions."],
@@ -707,9 +844,9 @@ let DEFS=[
 ["Partly Completed Machinery","آلة غير مكتملة","Subassembly for incorporation into other machinery — needs Declaration of Incorporation."],
 ["Health Surveillance","الرقابة الصحية","Medical exams/tests by the Occupational Health Doctor to monitor worker fitness."]];
 
-/* =================================================================
+/* ================================================================
    5) بنك الأسئلة
-   ================================================================= */
+   ================================================================ */
 let QB=[
 {les:"LESSON 1 — Foundations of Occupational Health and Safety",qs:[
 {k:"tf",n:1,s:"A hazard is the injury that happens to a worker.",a:false,c:"الخطر (Hazard) هو مصدر الضرر المحتمل — الإصابة نفسها هي الضرر (Harm)."},
@@ -787,9 +924,9 @@ let QB=[
 {k:"sc",n:71,pre:"Scenario 10 — وصل مكوّن (صمام سيرفو / وحدة طاقة هيدروليكية) بإقرار دمج وتعليمات تجميع. زميلك: «عنده أوراق CE يبقى نستخدمه كماكينة مستقلة».",s:"(a) Is the colleague correct? (b) What type of equipment is this? (c) What documents should accompany it?",a:"(a) لا — لا يجوز استخدامه كآلة مستقلة (b) على الأرجح Partly Completed Machinery (c) Declaration of Incorporation + Assembly instructions."},
 {k:"sc",n:72,pre:"Scenario 11 — معدّة في منطقة انفجارية محتملة عليها CE و Ex معًا. عامل: «علامة Ex تعني مقاومة انفجار في كل مكان — لا نحتاج أي فحوصات إضافية».",s:"(a) Is the worker correct? (b) What must still be followed? (c) What if unsure about suitability for the zone?",a:"(a) لا (b) معلومات المعدة + تصنيف المنطقة المصرح به + تعليمات المنتِج + إجراءات الموقع + ضوابط المهمة (c) يُبلغ ويستشير المشرف ويتحقق من الانطباق قبل الاستخدام."}]}];
 
-/* =================================================================
+/* ================================================================
    6) الاختبار السريع
-   ================================================================= */
+   ================================================================ */
 const QUIZ=[
 {q:"Which two responsibilities of the Employer cannot be delegated?",o:["Conducting the risk assessment and appointing the Head of Prevention","Supervising daily work and buying safety equipment","Conducting health examinations and representing workers"],a:0,e:"واجبات صاحب العمل غير القابلة للتفويض: إجراء/توثيق تقييم المخاطر + تعيين رئيس خدمة الوقاية والحماية."},
 {q:"What is the main role of the Supervisor (Preposto)?",o:["To carry out medical examinations on workers","To oversee the correct execution of work and ensure instructions are followed","To represent worker interests during safety meetings"],a:1,e:"المشرف يشرف على التنفيذ اليومي الصحيح للعمل وضمان اتباع التعليمات."},
@@ -1180,10 +1317,12 @@ function theme(){
 
 /* ================= زر الصعود ================= */
 const goToTopButton=document.getElementById('go-to-top-button');
-window.addEventListener('scroll',()=>{
-  goToTopButton.style.display=window.scrollY>100?'flex':'none';
-});
-goToTopButton.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+if (goToTopButton) {
+  window.addEventListener('scroll',()=>{
+    goToTopButton.style.display=window.scrollY>100?'flex':'none';
+  });
+  goToTopButton.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+}
 
 /* =================================================================
    نظام PDF — رفع الملفات من الجهاز
@@ -1285,9 +1424,6 @@ function toUint8ArraySafe(data) {
     for (let i = 0; i < data.byteLength; i++) copy[i] = data[i];
     return copy;
   }
-  if (typeof Blob !== 'undefined' && data instanceof Blob) {
-    throw new Error('Blob غير مدعوم في الدالة المتزامنة');
-  }
   throw new Error('نوع بيانات غير مدعوم: ' + Object.prototype.toString.call(data));
 }
 
@@ -1382,12 +1518,8 @@ function parseQBank(text){
     const line = lines[i];
     if(/^(True|False|صح|خطأ)\s*[:：\-]/i.test(line) || /\?\s*$/.test(line)){
       const q = line;
-      const opts = [];
       let j = i + 1;
-      while(j < lines.length && /^[a-dA-D1-4][\)\.\-:]\s*/.test(lines[j])){
-        opts.push(lines[j].replace(/^[a-dA-D1-4][\)\.\-:]\s*/,'').trim());
-        j++;
-      }
+      while(j < lines.length && /^[a-dA-D1-4][\)\.\-:]\s*/.test(lines[j])) j++;
       let answer = 'يرجى مراجعة المصدر.';
       const ansMatch = lines.slice(i, j).join(' ').match(/Answer|الإجابة\s*[:：]\s*(.+)/i);
       if(ansMatch) answer = ansMatch[1];
@@ -1732,49 +1864,52 @@ if (pdfFileInput) {
   });
 }
 
-document.getElementById('addPdfBtn').addEventListener('click', async ()=>{
-  const subj = $('pdfSubject').value;
-  const type = $('pdfType').value;
-  let name = $('pdfName').value.trim();
-  if(!selectedFile){ alert('❌ لازم تختار ملف PDF أولاً'); return; }
-  if(!name) name = selectedFile.name.replace(/\.pdf$/i, '');
-  const btn = $('addPdfBtn');
-  btn.disabled = true;
-  btn.textContent = '⏳...';
-  const status = $('pdfStatus');
-  if (status) status.textContent = '⏳ جارٍ إضافة الملف...';
-  try {
-    const data = new Blob([await readFileAsArrayBuffer(selectedFile)], { type: 'application/pdf' });
-    const fileRecord = {
-      id: 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-      name, subj, type,
-      size: selectedFile.size,
-      fileName: selectedFile.name,
-      data,
-      addedAt: Date.now()
-    };
-    await addFileToDB(fileRecord);
-    selectedFile = null;
-    if ($('pdfFile')) $('pdfFile').value = '';
-    if ($('pdfName')) $('pdfName').value = '';
-    updateSelectedFileDisplay();
-    await rebuildFromLinks();
-    if (status) {
-      status.innerHTML = `✅ تمت إضافة "${name}" بنجاح إلى ${SUBJECTS[subj]?.name || subj}`;
-      setTimeout(() => {
-        if (status) status.textContent = `💡 الملف في: ${SUBJECTS[subj]?.name || subj} → ${type}`;
-      }, 3000);
+const addPdfBtn = document.getElementById('addPdfBtn');
+if (addPdfBtn) {
+  addPdfBtn.addEventListener('click', async ()=>{
+    const subj = $('pdfSubject').value;
+    const type = $('pdfType').value;
+    let name = $('pdfName').value.trim();
+    if(!selectedFile){ alert('❌ لازم تختار ملف PDF أولاً'); return; }
+    if(!name) name = selectedFile.name.replace(/\.pdf$/i, '');
+    const btn = $('addPdfBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳...';
+    const status = $('pdfStatus');
+    if (status) status.textContent = '⏳ جارٍ إضافة الملف...';
+    try {
+      const data = new Blob([await readFileAsArrayBuffer(selectedFile)], { type: 'application/pdf' });
+      const fileRecord = {
+        id: 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        name, subj, type,
+        size: selectedFile.size,
+        fileName: selectedFile.name,
+        data,
+        addedAt: Date.now()
+      };
+      await addFileToDB(fileRecord);
+      selectedFile = null;
+      if ($('pdfFile')) $('pdfFile').value = '';
+      if ($('pdfName')) $('pdfName').value = '';
+      updateSelectedFileDisplay();
+      await rebuildFromLinks();
+      if (status) {
+        status.innerHTML = `✅ تمت إضافة "${name}" بنجاح إلى ${SUBJECTS[subj]?.name || subj}`;
+        setTimeout(() => {
+          if (status) status.textContent = `💡 الملف في: ${SUBJECTS[subj]?.name || subj} → ${type}`;
+        }, 3000);
+      }
+      showAddSuccessToast(name, SUBJECTS[subj]?.name || subj);
+    } catch(err){
+      console.error('❌', err);
+      alert('❌ فشل إضافة الملف: ' + err.message);
+      if (status) status.textContent = '❌ فشل الإضافة';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '➕ إضافة';
     }
-    showAddSuccessToast(name, SUBJECTS[subj]?.name || subj);
-  } catch(err){
-    console.error('❌', err);
-    alert('❌ فشل إضافة الملف: ' + err.message);
-    if (status) status.textContent = '❌ فشل الإضافة';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '➕ إضافة';
-  }
-});
+  });
+}
 
 function showAddSuccessToast(fileName, subjectName) {
   const toast = document.createElement('div');
@@ -1806,13 +1941,16 @@ function showAddSuccessToast(fileName, subjectName) {
   }, 3000);
 }
 
-document.getElementById('clearPdf').addEventListener('click', async ()=>{
-  const files = await getAllFiles();
-  if (!files.length) { alert('ℹ️ مفيش ملفات مرفوعة حالياً'); return; }
-  if(!confirm(`⚠️ حذف ${files.length} ملف مرفوع؟\nلا يمكن التراجع!`)) return;
-  await clearAllFiles();
-  location.reload();
-});
+const clearPdfBtn = document.getElementById('clearPdf');
+if (clearPdfBtn) {
+  clearPdfBtn.addEventListener('click', async ()=>{
+    const files = await getAllFiles();
+    if (!files.length) { alert('ℹ️ مفيش ملفات مرفوعة حالياً'); return; }
+    if(!confirm(`⚠️ حذف ${files.length} ملف مرفوع؟\nلا يمكن التراجع!`)) return;
+    await clearAllFiles();
+    location.reload();
+  });
+}
 
 /* ================= اختصارات ================= */
 document.addEventListener("keydown", e=>{
@@ -1826,47 +1964,24 @@ document.addEventListener("keydown", e=>{
   }
 });
 
-/* ================= التهيئة ================= */
-async function init(){
-  initTabs();
-  buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
-  if(localStorage.getItem("mech-theme") === "dark"){
-    document.documentElement.dataset.theme = "dark";
-    $("thBtn").textContent = "☀️ وضع نهاري";
-  }
-  $("q1").oninput = f1;
-  $("q2").oninput = f2;
-  $("q3").oninput = f3;
-  $("q4").oninput = f4;
-  try{ await rebuildFromLinks(); }
-  catch(e){ console.warn('خطأ:', e); }
-}
-init();
-
 /* =================================================================
-   🛡️ فحص وجود أي إدخال من المستخدم
+   🛡️ فحص وجود أي إدخال من المستخدم (لصفحة homework)
    ================================================================= */
 function hasAnyUserInput() {
-  // 1) أي راديو محدد
   if (document.querySelector('input[type="radio"]:checked')) return true;
-  
-  // 2) أي حقل نصي فيه قيمة
   const textInputs = document.querySelectorAll('input[type="text"]');
   for (const input of textInputs) {
     if (input.value && input.value.trim()) return true;
   }
-  
-  // 3) أي إجابة مسجلة سابقاً
   try {
     const history = JSON.parse(localStorage.getItem('homework2-history') || '[]');
     if (history.length > 0) return true;
   } catch(e) {}
-  
   return false;
 }
 
 /* =================================================================
-   🔔 إشعار التحديث الأنيق
+   🔔 إشعار التحديث
    ================================================================= */
 function showUpdatePrompt(newSW) {
   if (hasAnyUserInput()) {
@@ -1874,7 +1989,6 @@ function showUpdatePrompt(newSW) {
     window.__pendingSW = newSW;
     return;
   }
-  
   const existing = document.getElementById('sw-update-banner');
   if (existing) existing.remove();
   
@@ -1917,7 +2031,7 @@ function showUpdatePrompt(newSW) {
 }
 
 /* =================================================================
-   ⚙️ تسجيل Service Worker (PWA) — نسخة نهائية
+   ⚙️ تسجيل Service Worker
    ================================================================= */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1949,21 +2063,19 @@ if ('serviceWorker' in navigator) {
 }
 
 /* =================================================================
-   🔄 إعادة التحميل عند تفعيل SW جديد — مع كل الحمايات
+   🔄 إعادة التحميل عند تفعيل SW جديد
    ================================================================= */
 let refreshing = false;
 navigator.serviceWorker?.addEventListener('controllerchange', () => {
   if (refreshing) return;
   refreshing = true;
   
-  // 🛡️ حماية موسّعة
   if (hasAnyUserInput()) {
     console.log('⚠️ [SW] يوجد إدخال — لن يُعاد التحميل');
     refreshing = false;
     return;
   }
   
-  // 🛑 أوقف كل الأصوات قبل إعادة التحميل
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
@@ -1972,7 +2084,9 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   window.location.reload();
 });
 
-/* ============ Splash Screen Timer ============ */
+/* ================================================================
+   💾 Splash Screen Timer
+   ================================================================ */
 (function(){
   const splash = document.getElementById('splashScreen');
   if (!splash) return;
@@ -1993,9 +2107,9 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   });
 })();
 
-/* ================================================
-   نظام تثبيت التطبيق — PWA Install Prompt (v2)
-   ================================================ */
+/* ================================================================
+   📲 نظام تثبيت التطبيق — PWA Install Prompt
+   ================================================================ */
 (function(){
   'use strict';
   
@@ -2186,9 +2300,9 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   }, 30000);
 })();
 
-/* ================================================
-   نظام مشاركة التطبيق
-   ================================================ */
+/* ================================================================
+   📤 نظام مشاركة التطبيق
+   ================================================================ */
 (function(){
   'use strict';
   
@@ -2335,3 +2449,47 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   });
   
 })();
+
+/* ================================================================
+   🚀 التهيئة النهائية
+   ================================================================ */
+async function init(){
+  initTabs();
+  buildDict();buildLessons();buildDefs();buildQBank();buildNav();startQuiz();
+
+  if(localStorage.getItem("mech-theme") === "dark"){
+    document.documentElement.dataset.theme = "dark";
+    if ($("thBtn")) $("thBtn").textContent = "☀️ وضع نهاري";
+  }
+
+  if ($("q1")) $("q1").oninput = f1;
+  if ($("q2")) $("q2").oninput = f2;
+  if ($("q3")) $("q3").oninput = f3;
+  if ($("q4")) $("q4").oninput = f4;
+
+  // تحديث أزرار الإعدادات
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === voiceSettings.lang);
+  });
+  document.querySelectorAll('.gender-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.gender === voiceSettings.gender);
+  });
+
+  // تحميل الأصوات
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => {
+      const voices = window.speechSynthesis.getVoices();
+      console.log('🎙️ الأصوات المتاحة:', voices.length);
+    };
+  }
+
+  try{ await rebuildFromLinks(); }
+  catch(e){ console.warn('خطأ:', e); }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
