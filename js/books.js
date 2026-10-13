@@ -87,7 +87,7 @@ const BOOKS_CONFIG = {
     {
       title: "أساسيات الميكاترونكس",
       titleEn: "Mechatronics Basics",
-      file: "Mech-Unit-1-SB-14-Sept2026.pdf",
+      file: "Mech-Unit 1-SB 14 Sept2026.pdf",
       cover: "cover.png"
     }
   ]
