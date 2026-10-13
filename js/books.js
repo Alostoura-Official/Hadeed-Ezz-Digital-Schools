@@ -85,9 +85,21 @@ const BOOKS_CONFIG = {
     folder: "books/mech",
     books: [
       {
-        title: "أساسيات الميكاترونكس",
-        titleEn: "Mechatronics Basics",
-        file: "mech-grade1-term1.pdf",
+        title: "الوحدة 1 — الدرس 1",
+        titleEn: "Unit 1 — Lesson 1",
+        file: "mech-g1-t1-l1.pdf",
+        cover: "cover.png"
+      },
+      {
+        title: "الوحدة 1 — الدرس 2",
+        titleEn: "Unit 1 — Lesson 2",
+        file: "mech-g1-t1-l2.pdf",
+        cover: "cover.png"
+      },
+      {
+        title: "الوحدة 1 — الدرس 3",
+        titleEn: "Unit 1 — Lesson 3",
+        file: "mech-g1-t1-l3.pdf",
         cover: "cover.png"
       }
     ]
