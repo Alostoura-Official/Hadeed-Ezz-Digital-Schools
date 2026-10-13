@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>المكتبة الرقمية — مدارس حديد عز</title>
+<meta name="theme-color" content="#ea7c0c">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/books.css">
+</head>
+<body>
+
+<!-- ============================================================
+     🧭 الهيدر
+     ============================================================ -->
+<header class="app-header" id="appHeader">
+  <div class="header-inner">
+    <a href="index.html" class="brand" aria-label="مدارس حديد عز">
+      <div class="brand-logo" aria-hidden="true">
+        <img src="icons/logo.png" alt="" width="44" height="44"
+             loading="eager" decoding="async"
+             onerror="this.style.display='none'; this.parentElement.textContent='🎓';">
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">مدارس حديد عز</span>
+        <span class="brand-subtitle">Ezz Steel Schools</span>
+      </div>
+    </a>
+
+    <nav class="breadcrumb" aria-label="مسار التنقل">
+      <a href="index.html">الرئيسية</a>
+      <span class="sep">›</span>
+      <span class="current">المكتبة الرقمية</span>
+    </nav>
+
+    <div class="header-spacer"></div>
+
+    <div class="header-tools">
+      <a href="index.html" class="back-btn" aria-label="العودة للمنصة">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">العودة</span>
+      </a>
+      <button class="icon-btn" id="themeToggle" onclick="toggleTheme()"
+              title="تبديل الوضع الليلي" aria-label="تبديل الوضع الليلي">🌙</button>
+      <div class="settings-wrap">
+        <button class="icon-btn" id="settingsBtn" onclick="toggleSettings(event)"
+                title="الإعدادات" aria-label="الإعدادات" aria-expanded="false">⚙️</button>
+        <div class="settings-menu" id="settingsMenu" role="menu">
+          <div class="settings-section">
+            <span class="settings-label">🌐 لغة الترجمة</span>
+            <div class="settings-options">
+              <button class="opt-pill trans-btn" data-lang="ar" onclick="switchTransLang('ar')">🇪🇬 عربي</button>
+              <button class="opt-pill trans-btn" data-lang="en" onclick="switchTransLang('en')">🇬🇧 إنجليزي</button>
+              <button class="opt-pill trans-btn" data-lang="it" onclick="switchTransLang('it')">🇮🇹 إيطالي</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+<!-- ============================================================
+     📚 المحتوى الرئيسي
+     ============================================================ -->
+<main class="books-container">
+
+  <!-- بطاقة الترحيب -->
+  <div class="welcome-card">
+    <h1>📚 المكتبة الرقمية</h1>
+    <p>اختر المادة لعرض الكتب والمراجع</p>
+    <div class="welcome-note">اضغط على أي كتاب لفتحه وقراءته مع الترجمة الفورية</div>
+  </div>
+
+  <!-- شريط البحث والتصفية -->
+  <div class="books-toolbar">
+    <div class="books-search">
+      <span>🔍</span>
+      <input type="text" id="booksSearch" placeholder="ابحث في الكتب..." autocomplete="off">
+      <span class="count" id="booksCount"></span>
+    </div>
+    <div class="books-filters" id="booksFilters"></div>
+  </div>
+
+  <!-- شبكة المواد -->
+  <section class="subjects-grid" id="subjectsGrid"></section>
+
+  <!-- شبكة الكتب -->
+  <section class="books-grid-wrap" id="booksGridWrap" style="display:none">
+    <div class="books-header">
+      <button class="back-to-subjects" onclick="backToSubjects()">
+        <span>←</span> العودة للمواد
+      </button>
+      <h2 id="currentSubjectTitle"></h2>
+      <span class="badge" id="currentSubjectCount"></span>
+    </div>
+    <div class="books-grid" id="booksGrid"></div>
+  </section>
+
+  <!-- لا يوجد نتائج -->
+  <div class="empty-state" id="emptyState" style="display:none">
+    <div class="empty-icon">📭</div>
+    <h3>لا يوجد نتائج</h3>
+    <p>جرب البحث بكلمة أخرى</p>
+  </div>
+
+</main>
+
+<!-- ============================================================
+     📖 عارض PDF مع الترجمة
+     ============================================================ -->
+<div id="readerViewer" class="reader-viewer">
+  <div class="reader-bar">
+    <button class="reader-close" onclick="closeReader()" title="إغلاق">✕</button>
+    <span class="reader-title" id="readerTitle">كتاب</span>
+    <div class="reader-controls">
+      <button id="readerPrev" onclick="readerGo(-1)">◀</button>
+      <span class="reader-pageinfo">
+        <span id="readerCur">1</span> / <span id="readerTotal">1</span>
+      </span>
+      <button id="readerNext" onclick="readerGo(1)">▶</button>
+      <button id="readerZoomOut" onclick="readerZoom(-1)" title="تصغير">➖</button>
+      <button id="readerZoomIn" onclick="readerZoom(1)" title="تكبير">➕</button>
+      <button id="readerTrans" onclick="toggleTranslation()" title="الترجمة">🌐</button>
+      <button id="readerFullscreen" onclick="readerFullscreen()" title="ملء الشاشة">⛶</button>
+    </div>
+  </div>
+  <div class="reader-body">
+    <div id="readerCanvasWrap">
+      <div class="reader-loading">⏳ جارٍ التحميل...</div>
+    </div>
+    <aside class="translation-panel" id="translationPanel">
+      <div class="trans-header">
+        <h3>🌐 الترجمة الفورية</h3>
+        <button onclick="clearTranslation()" title="مسح">🗑️</button>
+      </div>
+      <div class="trans-lang-tabs">
+        <button class="trans-tab active" data-lang="ar" onclick="setTransLang('ar')">🇪🇬 عربي</button>
+        <button class="trans-tab" data-lang="en" onclick="setTransLang('en')">🇬🇧 English</button>
+        <button class="trans-tab" data-lang="it" onclick="setTransLang('it')">🇮🇹 Italiano</button>
+      </div>
+      <div class="trans-content" id="transContent">
+        <div class="trans-empty">
+          <div class="trans-empty-icon">📝</div>
+          <p>اضغط على أي نص في الصفحة<br>أو حدد نصاً للترجمة</p>
+        </div>
+      </div>
+      <div class="trans-input-wrap">
+        <textarea id="transInput" placeholder="اكتب أو الصق النص هنا للترجمة..." rows="3"></textarea>
+        <button onclick="translateInput()" class="trans-go">ترجم</button>
+      </div>
+    </aside>
+  </div>
+  <div class="reader-thumbs" id="readerThumbs"></div>
+</div>
+
+<!-- Overlay -->
+<div class="reader-overlay" id="readerOverlay" onclick="closeReader()"></div>
+
+<script src="js/lib/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/lib/pdf.worker.min.js';
+</script>
+<script src="js/app.js" defer></script>
+<script src="js/books.js" defer></script>
+
+</body>
+</html>
