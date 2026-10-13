@@ -78,20 +78,20 @@ const BOOKS_CONFIG = {
 
   /* ---------- ⚙️ ميكاترونكس ---------- */
   mech: {
-  name: "ميكاترونكس",
-  nameEn: "Mechatronics",
-  icon: "⚙️",
-  color: "#2563eb",
-  folder: "books/mech",
-  books: [
-    {
-      title: "أساسيات الميكاترونكس",
-      titleEn: "Mechatronics Basics",
-      file: "Mech-Unit 1-SB 14 Sept2026.pdf",
-      cover: "cover.png"
-    }
-  ]
-}
+    name: "ميكاترونكس",
+    nameEn: "Mechatronics",
+    icon: "⚙️",
+    color: "#2563eb",
+    folder: "books/mech",
+    books: [
+      {
+        title: "أساسيات الميكاترونكس",
+        titleEn: "Mechatronics Basics",
+        file: "Mech-Unit 1-SB 14 Sept2026.pdf",
+        cover: "cover.png"
+      }
+    ]
+  },
 
   /* ---------- ⚛️ فيزياء ---------- */
   physics: {
@@ -111,7 +111,6 @@ const BOOKS_CONFIG = {
   }
 
 };
-
 /* ================================================================
    2) 🌐 حالة التطبيق
    ================================================================ */
