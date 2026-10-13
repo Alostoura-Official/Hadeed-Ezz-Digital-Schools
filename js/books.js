@@ -70,7 +70,7 @@ const BOOKS_CONFIG = {
       {
         title: "الرياضيات — الصف الأول — الترم الأول",
         titleEn: "Math - Grade 1 - Term 1",
-        file: "math-g1-t1.pdf",           // ✅ الاسم الفعلي
+        file: "math-g1-t1.pdf",
         cover: "cover.png"
       }
     ]
@@ -113,34 +113,20 @@ const BOOKS_CONFIG = {
 };
 
 /* ================================================================
-   2) 🌐 حالة التطبيق — داخل IIFE عشان نتجنب تعارض الأسماء
+   2) 🌐 حالة التطبيق
    ================================================================ */
-const BooksState = (function() {
-  return {
-    currentFilter: 'all',
-    searchQuery: '',
-    activeSubject: null,
-    readerPdf: null,
-    readerPage: 1,
-    readerZoomLevel: 1,                                  // ✅ renamed
-    transLang: localStorage.getItem('books-trans-lang') || 'ar',
-    translationVisible: true,
-    selectedTextSpans: []
-  };
-})();
+let currentFilter = 'all';
+let searchQuery = '';
+let activeSubject = null;
+let readerPdf = null;
+let readerPage = 1;
+let transLang = localStorage.getItem('books-trans-lang') || 'ar';
+let translationVisible = true;
+let selectedTextSpans = [];
 
-/* Aliases مختصرة للاستخدام الداخلي */
-let currentFilter = BooksState.currentFilter;
-let searchQuery = BooksState.searchQuery;
-let activeSubject = BooksState.activeSubject;
-let readerPdf = BooksState.readerPdf;
-let readerPage = BooksState.readerPage;
-let transLang = BooksState.transLang;
-let translationVisible = BooksState.translationVisible;
-let selectedTextSpans = BooksState.selectedTextSpans;
-
-// ⚠️ ممنوع استخدام let لـ readerZoom — هنستخدم اسم فريد
+// ✅ اسم فريد لتجنب التعارض مع app.js
 let bookReaderZoom = 1;
+let bookResizeTimer = null;
 
 /* ================================================================
    3) 🚀 التهيئة
@@ -335,7 +321,6 @@ function renderBooks(subjKey) {
   if (emptyState) emptyState.style.display = 'none';
 
   grid.innerHTML = books.map((book) => {
-    // ✅ ترميز المسار لدعم المسافات
     const coverPath = encodeURI(`${subj.folder}/${book.cover}`);
     const filePath  = encodeURI(`${subj.folder}/${book.file}`);
     const safeTitle = esc(book.title);
@@ -397,7 +382,7 @@ async function openReader(filePath, title, color) {
 
   try {
     const loadingTask = pdfjsLib.getDocument({
-      url: encodeURI(filePath),      // ✅ encode
+      url: encodeURI(filePath),
       cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
       cMapPacked: true,
       useSystemFonts: true
@@ -445,7 +430,7 @@ async function renderPage(n) {
     const containerW = canvasWrap.clientWidth - 40 || 800;
     const vp1 = page.getViewport({ scale: 1 });
     const baseScale = Math.min(containerW / vp1.width, 1.8);
-    const scale = baseScale * bookReaderZoom;      // ✅ اسم فريد
+    const scale = baseScale * bookReaderZoom;
     const vp = page.getViewport({ scale });
 
     const canvas = document.createElement('canvas');
@@ -534,7 +519,6 @@ async function buildTextLayer(page, viewport, container) {
 async function translateWithGoogle(text, targetLang) {
   if (!text || !text.trim()) return '';
 
-  // اختصار اللغات
   const langMap = { ar: 'ar', en: 'en', it: 'it' };
   const tl = langMap[targetLang] || 'ar';
 
@@ -542,10 +526,9 @@ async function translateWithGoogle(text, targetLang) {
 
   try {
     const response = await fetch(url);
-    if (!response.ok) throw new Error('Network error');
+    if (!response.ok) throw new Error('Network error ' + response.status);
     const data = await response.json();
 
-    // النتيجة شكلها: [[["الترجمة","النص الأصلي",null,null,...],...],...]
     if (data && data[0] && Array.isArray(data[0])) {
       return data[0].map(item => item[0]).join('');
     }
@@ -557,6 +540,75 @@ async function translateWithGoogle(text, targetLang) {
   }
 }
 
+/* قاموس احتياطي (يُستخدم لو فشل Google) */
+const SIMPLE_DICT = {
+  "the": "الـ", "and": "و", "of": "من", "to": "إلى", "in": "في",
+  "is": "هو", "are": "هم", "was": "كان", "were": "كانوا", "be": "يكون",
+  "this": "هذا", "that": "ذلك", "these": "هؤلاء", "those": "أولئك",
+  "book": "كتاب", "page": "صفحة", "chapter": "فصل", "lesson": "درس",
+  "student": "طالب", "teacher": "معلم", "school": "مدرسة", "class": "فصل",
+  "math": "رياضيات", "physics": "فيزياء", "chemistry": "كيمياء",
+  "biology": "أحياء", "english": "إنجليزي", "italian": "إيطالي",
+  "science": "علم", "technology": "تقنية", "computer": "حاسوب",
+  "water": "ماء", "air": "هواء", "fire": "نار", "earth": "أرض",
+  "energy": "طاقة", "force": "قوة", "motion": "حركة", "speed": "سرعة",
+  "light": "ضوء", "heat": "حرارة", "sound": "صوت", "power": "قدرة",
+  "number": "رقم", "equation": "معادلة", "formula": "صيغة", "result": "نتيجة",
+  "example": "مثال", "exercise": "تمرين", "question": "سؤال", "answer": "جواب",
+  "find": "أوجد", "added": "أُضيف", "when": "عندما", "ratio": "نسبة",
+  "proportion": "تناسب", "antecedent": "المقدم", "consequent": "التالي"
+};
+
+const ITALIAN_DICT = {
+  "il": "الـ", "lo": "الـ", "la": "الـ", "i": "الـ", "gli": "الـ", "le": "الـ",
+  "e": "و", "di": "من", "a": "إلى", "in": "في", "è": "هو", "sono": "هم",
+  "libro": "كتاب", "pagina": "صفحة", "capitolo": "فصل", "lezione": "درس",
+  "studente": "طالب", "insegnante": "معلم", "scuola": "مدرسة", "classe": "فصل",
+  "matematica": "رياضيات", "fisica": "فيزياء", "chimica": "كيمياء",
+  "biologia": "أحياء", "inglese": "إنجليزي", "italiano": "إيطالي",
+  "scienza": "علم", "tecnologia": "تقنية", "computer": "حاسوب",
+  "acqua": "ماء", "aria": "هواء", "fuoco": "نار", "terra": "أرض",
+  "energia": "طاقة", "forza": "قوة", "moto": "حركة", "velocità": "سرعة",
+  "luce": "ضوء", "calore": "حرارة", "suono": "صوت", "potenza": "قدرة",
+  "numero": "رقم", "equazione": "معادلة", "formula": "صيغة", "risultato": "نتيجة",
+  "esempio": "مثال", "esercizio": "تمرين", "domanda": "سؤال", "risposta": "جواب",
+  "sì": "نعم", "no": "لا", "buono": "جيد", "cattivo": "سيء", "nuovo": "جديد",
+  "vecchio": "قديم", "grande": "كبير", "piccolo": "صغير", "primo": "أول", "ultimo": "أخير"
+};
+
+function simpleTranslate(text, targetLang) {
+  if (!text) return '';
+
+  const words = text.split(/(\s+|[.,!?;:()\[\]{}"'])/);
+  const result = words.map(word => {
+    const clean = word.toLowerCase().trim();
+    if (!clean) return word;
+
+    if (targetLang === 'ar') {
+      if (SIMPLE_DICT[clean]) return SIMPLE_DICT[clean];
+      if (ITALIAN_DICT[clean]) return ITALIAN_DICT[clean];
+    } else if (targetLang === 'en') {
+      for (const [en, ar] of Object.entries(SIMPLE_DICT)) {
+        if (ar === clean) return en;
+      }
+      for (const [it, ar] of Object.entries(ITALIAN_DICT)) {
+        if (ar === clean) return it;
+      }
+    } else if (targetLang === 'it') {
+      for (const [it, ar] of Object.entries(ITALIAN_DICT)) {
+        if (ar === clean) return it;
+      }
+      for (const [en, ar] of Object.entries(SIMPLE_DICT)) {
+        if (ar === clean) return en;
+      }
+    }
+
+    return word;
+  });
+
+  return result.join('');
+}
+
 /* الدالة الرئيسية للترجمة */
 async function translateText(text) {
   if (!text || !text.trim()) return;
@@ -564,11 +616,9 @@ async function translateText(text) {
   const content = document.getElementById('transContent');
   if (!content) return;
 
-  // إزالة الحالة الفارغة
   const empty = content.querySelector('.trans-empty');
   if (empty) empty.remove();
 
-  // 🔄 إظهار "جارٍ الترجمة..."
   const loadingItem = document.createElement('div');
   loadingItem.className = 'trans-item trans-loading';
   loadingItem.innerHTML = `
@@ -580,10 +630,8 @@ async function translateText(text) {
   content.insertBefore(loadingItem, content.firstChild);
   content.scrollTop = 0;
 
-  // 🌐 الترجمة الحقيقية
   const translated = await translateWithGoogle(text, transLang);
 
-  // 🔄 استبدال العنصر بالترجمة الفعلية
   loadingItem.innerHTML = `
     <div class="original">${esc(text)}</div>
     <div class="translated">${esc(translated)}</div>
@@ -591,8 +639,75 @@ async function translateText(text) {
   `;
   loadingItem.classList.remove('trans-loading');
 
-  // إظهار اللوحة لو مخفية
   if (!translationVisible) toggleTranslation();
+}
+
+function getLangLabel(lang) {
+  return { ar: '🇪🇬 عربي', en: '🇬🇧 English', it: '🇮🇹 Italiano' }[lang] || lang;
+}
+
+function setTransLang(lang) {
+  transLang = lang;
+  localStorage.setItem('books-trans-lang', lang);
+  updateTransButtons();
+
+  document.querySelectorAll('.trans-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.lang === lang);
+  });
+
+  showToast(`🌐 تم تغيير لغة الترجمة إلى ${getLangLabel(lang)}`, 'success', 1800);
+}
+
+function switchTransLang(lang) {
+  setTransLang(lang);
+  const menu = document.getElementById('settingsMenu');
+  const btn = document.getElementById('settingsBtn');
+  if (menu) menu.classList.remove('open');
+  if (btn) btn.classList.remove('active');
+}
+
+function updateTransButtons() {
+  document.querySelectorAll('.trans-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.lang === transLang);
+  });
+  document.querySelectorAll('.trans-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === transLang);
+  });
+}
+
+function clearTranslation() {
+  const content = document.getElementById('transContent');
+  if (!content) return;
+  content.innerHTML = `
+    <div class="trans-empty">
+      <div class="trans-empty-icon">📝</div>
+      <p>اضغط على أي نص في الصفحة<br>أو حدد نصاً للترجمة</p>
+    </div>
+  `;
+  document.querySelectorAll('.text-span.selected').forEach(s => s.classList.remove('selected'));
+}
+
+function translateInput() {
+  const input = document.getElementById('transInput');
+  if (!input || !input.value.trim()) return;
+  translateText(input.value.trim());
+  input.value = '';
+}
+
+function toggleTranslation() {
+  translationVisible = !translationVisible;
+  const panel = document.getElementById('translationPanel');
+  const btn = document.getElementById('readerTrans');
+
+  if (panel) {
+    if (window.innerWidth <= 900) {
+      panel.classList.toggle('open', translationVisible);
+    } else {
+      panel.classList.toggle('hidden', !translationVisible);
+    }
+  }
+
+  if (btn) btn.classList.toggle('active', translationVisible);
 }
 
 /* ================================================================
@@ -633,7 +748,7 @@ function readerGo(dir) {
 }
 
 function readerZoom(dir) {
-  bookReaderZoom = Math.max(0.5, Math.min(3, bookReaderZoom + dir * 0.2));   // ✅
+  bookReaderZoom = Math.max(0.5, Math.min(3, bookReaderZoom + dir * 0.2));
   renderPage(readerPage);
 }
 
@@ -663,7 +778,7 @@ function closeReader() {
   document.body.style.overflow = '';
   readerPdf = null;
   readerPage = 1;
-  bookReaderZoom = 1;                 // ✅
+  bookReaderZoom = 1;
 
   if (canvasWrap) canvasWrap.innerHTML = '<div class="reader-loading">⏳ جارٍ التحميل...</div>';
   if (thumbs) thumbs.innerHTML = '';
@@ -703,10 +818,9 @@ function esc(s) {
   );
 }
 
-let resizeTimer;
 window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
+  clearTimeout(bookResizeTimer);
+  bookResizeTimer = setTimeout(() => {
     if (readerPdf) renderPage(readerPage);
   }, 300);
 });
