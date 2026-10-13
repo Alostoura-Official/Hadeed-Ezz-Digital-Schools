@@ -60,21 +60,21 @@ const BOOKS_CONFIG = {
   },
 
   /* ---------- 🔢 رياضيات ---------- */
-  math: {
-    name: "رياضيات",
-    nameEn: "Mathematics",
-    icon: "🔢",
-    color: "#7c3aed",
-    folder: "books/math",
-    books: [
-      {
-        title: "الرياضيات العامة",
-        titleEn: "General Mathematics",
-        file: "math-g1-t1.pdf",
-        cover: "cover.png"
-      }
-    ]
-  },
+math: {
+  name: "رياضيات",
+  nameEn: "Mathematics",
+  icon: "🔢",
+  color: "#7c3aed",
+  folder: "books/math",
+  books: [
+    {
+      title: "الرياضيات — الصف الأول — الترم الأول",
+      titleEn: "Math - Grade 1 - Term 1",
+      file: "math-grade1-term1.pdf",
+      cover: "cover.png"
+    }
+  ]
+},
 
   /* ---------- ⚙️ ميكاترونكس ---------- */
   mech: {
