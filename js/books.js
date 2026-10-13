@@ -527,167 +527,72 @@ async function buildTextLayer(page, viewport, container) {
 }
 
 /* ================================================================
-   10) 🌐 الترجمة
+   10) 🌐 الترجمة — مع Google Translate API
    ================================================================ */
-const SIMPLE_DICT = {
-  "the": "الـ", "and": "و", "of": "من", "to": "إلى", "in": "في",
-  "is": "هو", "are": "هم", "was": "كان", "were": "كانوا", "be": "يكون",
-  "this": "هذا", "that": "ذلك", "these": "هؤلاء", "those": "أولئك",
-  "book": "كتاب", "page": "صفحة", "chapter": "فصل", "lesson": "درس",
-  "student": "طالب", "teacher": "معلم", "school": "مدرسة", "class": "فصل",
-  "math": "رياضيات", "physics": "فيزياء", "chemistry": "كيمياء",
-  "biology": "أحياء", "english": "إنجليزي", "italian": "إيطالي",
-  "science": "علم", "technology": "تقنية", "computer": "حاسوب",
-  "water": "ماء", "air": "هواء", "fire": "نار", "earth": "أرض",
-  "energy": "طاقة", "force": "قوة", "motion": "حركة", "speed": "سرعة",
-  "light": "ضوء", "heat": "حرارة", "sound": "صوت", "power": "قدرة",
-  "number": "رقم", "equation": "معادلة", "formula": "صيغة", "result": "نتيجة",
-  "example": "مثال", "exercise": "تمرين", "question": "سؤال", "answer": "جواب",
-  "yes": "نعم", "no": "لا", "good": "جيد", "bad": "سيء", "new": "جديد",
-  "old": "قديم", "big": "كبير", "small": "صغير", "first": "أول", "last": "أخير"
-};
 
-const ITALIAN_DICT = {
-  "il": "الـ", "lo": "الـ", "la": "الـ", "i": "الـ", "gli": "الـ", "le": "الـ",
-  "e": "و", "di": "من", "a": "إلى", "in": "في", "è": "هو", "sono": "هم",
-  "libro": "كتاب", "pagina": "صفحة", "capitolo": "فصل", "lezione": "درس",
-  "studente": "طالب", "insegnante": "معلم", "scuola": "مدرسة", "classe": "فصل",
-  "matematica": "رياضيات", "fisica": "فيزياء", "chimica": "كيمياء",
-  "biologia": "أحياء", "inglese": "إنجليزي", "italiano": "إيطالي",
-  "scienza": "علم", "tecnologia": "تقنية", "computer": "حاسوب",
-  "acqua": "ماء", "aria": "هواء", "fuoco": "نار", "terra": "أرض",
-  "energia": "طاقة", "forza": "قوة", "moto": "حركة", "velocità": "سرعة",
-  "luce": "ضوء", "calore": "حرارة", "suono": "صوت", "potenza": "قدرة",
-  "numero": "رقم", "equazione": "معادلة", "formula": "صيغة", "risultato": "نتيجة",
-  "esempio": "مثال", "esercizio": "تمرين", "domanda": "سؤال", "risposta": "جواب",
-  "sì": "نعم", "no": "لا", "buono": "جيد", "cattivo": "سيء", "nuovo": "جديد",
-  "vecchio": "قديم", "grande": "كبير", "piccolo": "صغير", "primo": "أول", "ultimo": "أخير"
-};
+/* ترجمة عبر Google Translate (مجاني بدون API key) */
+async function translateWithGoogle(text, targetLang) {
+  if (!text || !text.trim()) return '';
 
-function simpleTranslate(text, targetLang) {
-  if (!text) return '';
+  // اختصار اللغات
+  const langMap = { ar: 'ar', en: 'en', it: 'it' };
+  const tl = langMap[targetLang] || 'ar';
 
-  const words = text.split(/(\s+|[.,!?;:()\[\]{}"'])/);
-  const result = words.map(word => {
-    const clean = word.toLowerCase().trim();
-    if (!clean) return word;
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
 
-    if (targetLang === 'ar') {
-      if (SIMPLE_DICT[clean]) return SIMPLE_DICT[clean];
-      if (ITALIAN_DICT[clean]) return ITALIAN_DICT[clean];
-    } else if (targetLang === 'en') {
-      for (const [en, ar] of Object.entries(SIMPLE_DICT)) {
-        if (ar === clean) return en;
-      }
-      for (const [it, ar] of Object.entries(ITALIAN_DICT)) {
-        if (ar === clean) return it;
-      }
-    } else if (targetLang === 'it') {
-      for (const [it, ar] of Object.entries(ITALIAN_DICT)) {
-        if (ar === clean) return it;
-      }
-      for (const [en, ar] of Object.entries(SIMPLE_DICT)) {
-        if (ar === clean) return en;
-      }
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Network error');
+    const data = await response.json();
+
+    // النتيجة شكلها: [[["الترجمة","النص الأصلي",null,null,...],...],...]
+    if (data && data[0] && Array.isArray(data[0])) {
+      return data[0].map(item => item[0]).join('');
     }
-
-    return word;
-  });
-
-  return result.join('');
+    return text;
+  } catch (err) {
+    console.error('❌ Google Translate فشل:', err);
+    // fallback للقاموس المحلي
+    return simpleTranslate(text, targetLang);
+  }
 }
 
+/* الدالة الرئيسية للترجمة */
 async function translateText(text) {
   if (!text || !text.trim()) return;
 
   const content = document.getElementById('transContent');
   if (!content) return;
 
+  // إزالة الحالة الفارغة
   const empty = content.querySelector('.trans-empty');
   if (empty) empty.remove();
 
-  const translated = simpleTranslate(text, transLang);
+  // 🔄 إظهار "جارٍ الترجمة..."
+  const loadingItem = document.createElement('div');
+  loadingItem.className = 'trans-item trans-loading';
+  loadingItem.innerHTML = `
+    <div class="original">${esc(text)}</div>
+    <div class="translated" style="color: var(--gray); font-style: italic;">
+      ⏳ جارٍ الترجمة...
+    </div>
+  `;
+  content.insertBefore(loadingItem, content.firstChild);
+  content.scrollTop = 0;
 
-  const item = document.createElement('div');
-  item.className = 'trans-item';
-  item.innerHTML = `
+  // 🌐 الترجمة الحقيقية
+  const translated = await translateWithGoogle(text, transLang);
+
+  // 🔄 استبدال العنصر بالترجمة الفعلية
+  loadingItem.innerHTML = `
     <div class="original">${esc(text)}</div>
     <div class="translated">${esc(translated)}</div>
     <span class="lang-badge">${getLangLabel(transLang)}</span>
   `;
+  loadingItem.classList.remove('trans-loading');
 
-  content.insertBefore(item, content.firstChild);
-  content.scrollTop = 0;
-
+  // إظهار اللوحة لو مخفية
   if (!translationVisible) toggleTranslation();
-}
-
-function getLangLabel(lang) {
-  return { ar: '🇪🇬 عربي', en: '🇬🇧 English', it: '🇮🇹 Italiano' }[lang] || lang;
-}
-
-function setTransLang(lang) {
-  transLang = lang;
-  localStorage.setItem('books-trans-lang', lang);
-  updateTransButtons();
-
-  document.querySelectorAll('.trans-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.lang === lang);
-  });
-
-  showToast(`🌐 تم تغيير لغة الترجمة إلى ${getLangLabel(lang)}`, 'success', 1800);
-}
-
-function switchTransLang(lang) {
-  setTransLang(lang);
-  const menu = document.getElementById('settingsMenu');
-  const btn = document.getElementById('settingsBtn');
-  if (menu) menu.classList.remove('open');
-  if (btn) btn.classList.remove('active');
-}
-
-function updateTransButtons() {
-  document.querySelectorAll('.trans-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.lang === transLang);
-  });
-  document.querySelectorAll('.trans-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.lang === transLang);
-  });
-}
-
-function clearTranslation() {
-  const content = document.getElementById('transContent');
-  if (!content) return;
-  content.innerHTML = `
-    <div class="trans-empty">
-      <div class="trans-empty-icon">📝</div>
-      <p>اضغط على أي نص في الصفحة<br>أو حدد نصاً للترجمة</p>
-    </div>
-  `;
-  document.querySelectorAll('.text-span.selected').forEach(s => s.classList.remove('selected'));
-}
-
-function translateInput() {
-  const input = document.getElementById('transInput');
-  if (!input || !input.value.trim()) return;
-  translateText(input.value.trim());
-  input.value = '';
-}
-
-function toggleTranslation() {
-  translationVisible = !translationVisible;
-  const panel = document.getElementById('translationPanel');
-  const btn = document.getElementById('readerTrans');
-
-  if (panel) {
-    if (window.innerWidth <= 900) {
-      panel.classList.toggle('open', translationVisible);
-    } else {
-      panel.classList.toggle('hidden', !translationVisible);
-    }
-  }
-
-  if (btn) btn.classList.toggle('active', translationVisible);
 }
 
 /* ================================================================
