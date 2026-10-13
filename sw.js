@@ -1,14 +1,16 @@
-const CACHE = 'hadid-eez-v40';
+const CACHE = 'hadid-eez-v41';
 
 const ASSETS = [
   // ====== الصفحات ======
   './',
   './index.html',
   './homework.html',
+  './books.html',
 
   // ====== CSS ======
   './css/style.css',
   './css/css2.css',
+  './css/books.css',
 
   // ====== الخطوط العربية المحلية ======
   './css/fonts/tajawal-400-arabic.woff2',
@@ -22,6 +24,7 @@ const ASSETS = [
 
   // ====== JavaScript ======
   './js/app.js',
+  './js/books.js',
   './js/lib/pdf.min.js',
   './js/lib/pdf.worker.min.js',
   './js/lib/qrcode.min.js',
