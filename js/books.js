@@ -60,21 +60,21 @@ const BOOKS_CONFIG = {
   },
 
   /* ---------- 🔢 رياضيات ---------- */
-math: {
-  name: "رياضيات",
-  nameEn: "Mathematics",
-  icon: "🔢",
-  color: "#7c3aed",
-  folder: "books/math",
-  books: [
-    {
-      title: "الرياضيات — الصف الأول — الترم الأول",
-      titleEn: "Math - Grade 1 - Term 1",
-      file: "math-grade1-term1.pdf",
-      cover: "cover.png"
-    }
-  ]
-},
+  math: {
+    name: "رياضيات",
+    nameEn: "Mathematics",
+    icon: "🔢",
+    color: "#7c3aed",
+    folder: "books/math",
+    books: [
+      {
+        title: "الرياضيات — الصف الأول — الترم الأول",
+        titleEn: "Math - Grade 1 - Term 1",
+        file: "math-g1-t1.pdf",           // ✅ الاسم الفعلي
+        cover: "cover.png"
+      }
+    ]
+  },
 
   /* ---------- ⚙️ ميكاترونكس ---------- */
   mech: {
@@ -111,18 +111,36 @@ math: {
   }
 
 };
+
 /* ================================================================
-   2) 🌐 حالة التطبيق
+   2) 🌐 حالة التطبيق — داخل IIFE عشان نتجنب تعارض الأسماء
    ================================================================ */
-let currentFilter = 'all';
-let searchQuery = '';
-let activeSubject = null;
-let readerPdf = null;
-let readerPage = 1;
-let readerZoom = 1;
-let transLang = localStorage.getItem('books-trans-lang') || 'ar';
-let translationVisible = true;
-let selectedTextSpans = [];
+const BooksState = (function() {
+  return {
+    currentFilter: 'all',
+    searchQuery: '',
+    activeSubject: null,
+    readerPdf: null,
+    readerPage: 1,
+    readerZoomLevel: 1,                                  // ✅ renamed
+    transLang: localStorage.getItem('books-trans-lang') || 'ar',
+    translationVisible: true,
+    selectedTextSpans: []
+  };
+})();
+
+/* Aliases مختصرة للاستخدام الداخلي */
+let currentFilter = BooksState.currentFilter;
+let searchQuery = BooksState.searchQuery;
+let activeSubject = BooksState.activeSubject;
+let readerPdf = BooksState.readerPdf;
+let readerPage = BooksState.readerPage;
+let transLang = BooksState.transLang;
+let translationVisible = BooksState.translationVisible;
+let selectedTextSpans = BooksState.selectedTextSpans;
+
+// ⚠️ ممنوع استخدام let لـ readerZoom — هنستخدم اسم فريد
+let bookReaderZoom = 1;
 
 /* ================================================================
    3) 🚀 التهيئة
@@ -130,7 +148,6 @@ let selectedTextSpans = [];
 function initBooks() {
   console.log('📚 [books] بدء التهيئة...');
 
-  // الثيم
   const savedTheme = localStorage.getItem('mech-theme');
   if (savedTheme === 'dark') {
     document.documentElement.dataset.theme = 'dark';
@@ -138,7 +155,6 @@ function initBooks() {
     if (btn) btn.textContent = '☀️';
   }
 
-  // الترجمة
   updateTransButtons();
   const readerTrans = document.getElementById('readerTrans');
   if (readerTrans) readerTrans.classList.add('active');
@@ -146,7 +162,6 @@ function initBooks() {
   renderFilters();
   renderSubjects();
 
-  // البحث
   const searchInput = document.getElementById('booksSearch');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
@@ -159,7 +174,6 @@ function initBooks() {
     });
   }
 
-  // زر الترجمة في العارض
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       const viewer = document.getElementById('readerViewer');
@@ -171,7 +185,7 @@ function initBooks() {
 }
 
 /* ================================================================
-   4) 🎨 عرض الفلاتر
+   4) 🎨 الفلاتر
    ================================================================ */
 function renderFilters() {
   const wrap = document.getElementById('booksFilters');
@@ -213,7 +227,7 @@ function setFilter(subjKey) {
 function renderSubjects() {
   const grid = document.getElementById('subjectsGrid');
   const booksWrap = document.getElementById('booksGridWrap');
-  const emptyState = document.getElementById('emptyState');
+  const emptyState = document.getElementById('booksEmptyState');
   if (!grid) return;
 
   grid.style.display = 'grid';
@@ -221,9 +235,8 @@ function renderSubjects() {
 
   let subjects = Object.entries(BOOKS_CONFIG);
 
-  // فلترة البحث
   if (searchQuery) {
-    subjects = subjects.filter(([key, s]) => {
+    subjects = subjects.filter(([, s]) => {
       const inSubject = s.name.toLowerCase().includes(searchQuery) ||
                        s.nameEn.toLowerCase().includes(searchQuery);
       const inBooks = s.books.some(b =>
@@ -261,7 +274,7 @@ function renderSubjects() {
 }
 
 /* ================================================================
-   6) 📖 فتح مادة — عرض كتبها
+   6) 📖 فتح مادة
    ================================================================ */
 function openSubject(subjKey) {
   const subj = BOOKS_CONFIG[subjKey];
@@ -280,8 +293,6 @@ function openSubject(subjKey) {
   if (count) count.textContent = `${subj.books.length} كتاب`;
 
   renderBooks(subjKey);
-
-  // تمرير لأعلى
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -299,7 +310,7 @@ function backToSubjects() {
    ================================================================ */
 function renderBooks(subjKey) {
   const grid = document.getElementById('booksGrid');
-  const emptyState = document.getElementById('emptyState');
+  const emptyState = document.getElementById('booksEmptyState');
   if (!grid) return;
 
   const subj = BOOKS_CONFIG[subjKey];
@@ -307,7 +318,6 @@ function renderBooks(subjKey) {
 
   let books = subj.books;
 
-  // فلترة البحث
   if (searchQuery) {
     books = books.filter(b =>
       b.title.toLowerCase().includes(searchQuery) ||
@@ -324,14 +334,18 @@ function renderBooks(subjKey) {
 
   if (emptyState) emptyState.style.display = 'none';
 
-  grid.innerHTML = books.map((book, idx) => {
-    const coverPath = `${subj.folder}/${book.cover}`;
-    const filePath = `${subj.folder}/${book.file}`;
+  grid.innerHTML = books.map((book) => {
+    // ✅ ترميز المسار لدعم المسافات
+    const coverPath = encodeURI(`${subj.folder}/${book.cover}`);
+    const filePath  = encodeURI(`${subj.folder}/${book.file}`);
+    const safeTitle = esc(book.title);
+    const safeTitleEn = esc(book.titleEn);
+
     return `
       <div class="book-card" style="--bc:${subj.color}"
-           onclick="openReader('${filePath}', '${esc(book.title)}', '${subj.color}')">
+           onclick="openReader('${filePath}', '${safeTitle}', '${subj.color}')">
         <div class="book-cover">
-          <img src="${coverPath}" alt="${esc(book.title)}"
+          <img src="${coverPath}" alt="${safeTitle}"
                loading="lazy"
                onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;cover-fallback&quot;>📕</div>';">
           <div class="cover-overlay">
@@ -339,10 +353,9 @@ function renderBooks(subjKey) {
           </div>
         </div>
         <div class="book-info">
-          <div class="book-title">${esc(book.title)}</div>
+          <div class="book-title">${safeTitle}</div>
           <div class="book-meta">
-            <span>${esc(book.titleEn)}</span>
-            ${book.pages ? `<span class="dot">•</span><span>${book.pages} صفحة</span>` : ''}
+            <span>${safeTitleEn}</span>
           </div>
         </div>
       </div>
@@ -384,7 +397,7 @@ async function openReader(filePath, title, color) {
 
   try {
     const loadingTask = pdfjsLib.getDocument({
-      url: filePath,
+      url: encodeURI(filePath),      // ✅ encode
       cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
       cMapPacked: true,
       useSystemFonts: true
@@ -432,7 +445,7 @@ async function renderPage(n) {
     const containerW = canvasWrap.clientWidth - 40 || 800;
     const vp1 = page.getViewport({ scale: 1 });
     const baseScale = Math.min(containerW / vp1.width, 1.8);
-    const scale = baseScale * readerZoom;
+    const scale = baseScale * bookReaderZoom;      // ✅ اسم فريد
     const vp = page.getViewport({ scale });
 
     const canvas = document.createElement('canvas');
@@ -451,10 +464,8 @@ async function renderPage(n) {
     canvasWrap.innerHTML = '';
     canvasWrap.appendChild(canvas);
 
-    // ✅ طبقة النص للترجمة
     await buildTextLayer(page, vp, canvasWrap);
 
-    // تحديث المصغرات
     document.querySelectorAll('.reader-thumb').forEach((t, i) => {
       t.classList.toggle('on', i + 1 === n);
     });
@@ -470,7 +481,7 @@ async function renderPage(n) {
 }
 
 /* ================================================================
-   9) 🔤 طبقة النص (Text Layer) للترجمة
+   9) 🔤 طبقة النص
    ================================================================ */
 async function buildTextLayer(page, viewport, container) {
   try {
@@ -499,11 +510,9 @@ async function buildTextLayer(page, viewport, container) {
       span.style.whiteSpace = 'pre';
       span.dataset.text = item.str;
 
-      // ✅ عند الضغط — ترجم
       span.addEventListener('click', (e) => {
         e.stopPropagation();
         translateText(item.str);
-        // تحديد بصري
         document.querySelectorAll('.text-span.selected').forEach(s => s.classList.remove('selected'));
         span.classList.add('selected');
       });
@@ -520,10 +529,7 @@ async function buildTextLayer(page, viewport, container) {
 /* ================================================================
    10) 🌐 الترجمة
    ================================================================ */
-
-// قاموس ترجمة مبسط (يمكن استبداله بـ API)
 const SIMPLE_DICT = {
-  // إنجليزي → عربي
   "the": "الـ", "and": "و", "of": "من", "to": "إلى", "in": "في",
   "is": "هو", "are": "هم", "was": "كان", "were": "كانوا", "be": "يكون",
   "this": "هذا", "that": "ذلك", "these": "هؤلاء", "those": "أولئك",
@@ -567,11 +573,9 @@ function simpleTranslate(text, targetLang) {
     if (!clean) return word;
 
     if (targetLang === 'ar') {
-      // إنجليزي → عربي
       if (SIMPLE_DICT[clean]) return SIMPLE_DICT[clean];
       if (ITALIAN_DICT[clean]) return ITALIAN_DICT[clean];
     } else if (targetLang === 'en') {
-      // عربي → إنجليزي (عكسي)
       for (const [en, ar] of Object.entries(SIMPLE_DICT)) {
         if (ar === clean) return en;
       }
@@ -579,7 +583,6 @@ function simpleTranslate(text, targetLang) {
         if (ar === clean) return it;
       }
     } else if (targetLang === 'it') {
-      // إنجليزي/عربي → إيطالي
       for (const [it, ar] of Object.entries(ITALIAN_DICT)) {
         if (ar === clean) return it;
       }
@@ -600,14 +603,11 @@ async function translateText(text) {
   const content = document.getElementById('transContent');
   if (!content) return;
 
-  // إزالة الحالة الفارغة
   const empty = content.querySelector('.trans-empty');
   if (empty) empty.remove();
 
-  // الترجمة
   const translated = simpleTranslate(text, transLang);
 
-  // إنشاء عنصر
   const item = document.createElement('div');
   item.className = 'trans-item';
   item.innerHTML = `
@@ -619,7 +619,6 @@ async function translateText(text) {
   content.insertBefore(item, content.firstChild);
   content.scrollTop = 0;
 
-  // إظهار اللوحة لو مخفية
   if (!translationVisible) toggleTranslation();
 }
 
@@ -632,7 +631,6 @@ function setTransLang(lang) {
   localStorage.setItem('books-trans-lang', lang);
   updateTransButtons();
 
-  // تحديث التبويبات
   document.querySelectorAll('.trans-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.lang === lang);
   });
@@ -642,7 +640,6 @@ function setTransLang(lang) {
 
 function switchTransLang(lang) {
   setTransLang(lang);
-  // إغلاق الإعدادات
   const menu = document.getElementById('settingsMenu');
   const btn = document.getElementById('settingsBtn');
   if (menu) menu.classList.remove('open');
@@ -731,7 +728,7 @@ function readerGo(dir) {
 }
 
 function readerZoom(dir) {
-  readerZoom = Math.max(0.5, Math.min(3, readerZoom + dir * 0.2));
+  bookReaderZoom = Math.max(0.5, Math.min(3, bookReaderZoom + dir * 0.2));   // ✅
   renderPage(readerPage);
 }
 
@@ -761,7 +758,7 @@ function closeReader() {
   document.body.style.overflow = '';
   readerPdf = null;
   readerPage = 1;
-  readerZoom = 1;
+  bookReaderZoom = 1;                 // ✅
 
   if (canvasWrap) canvasWrap.innerHTML = '<div class="reader-loading">⏳ جارٍ التحميل...</div>';
   if (thumbs) thumbs.innerHTML = '';
@@ -801,7 +798,6 @@ function esc(s) {
   );
 }
 
-// إعادة الرسم عند تغيير حجم النافذة
 let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
