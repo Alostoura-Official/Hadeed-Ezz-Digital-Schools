@@ -70,7 +70,7 @@ const BOOKS_CONFIG = {
       {
         title: "الرياضيات العامة",
         titleEn: "General Mathematics",
-        file: "book.pdf",
+        file: "math-g1-t1.pdf",
         cover: "cover.png"
       }
     ]
