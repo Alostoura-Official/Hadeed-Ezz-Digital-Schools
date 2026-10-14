@@ -1,5 +1,5 @@
 /* ================================================================
-   📚 Books Library — JavaScript
+   📚 Books Library — 
    صفحة المكتبة الرقمية — مع ترجمة نصية وصوتية
    ================================================================ */
 'use strict';
@@ -547,9 +547,9 @@ async function openReader(filePath, title, color) {
  * 🔢 عرض صفحة معينة من الكتاب
  * @param {number} n - رقم الصفحة
  */
+
 async function renderPage(n) {
-  if (!readerPdf) return;
-  if (n < 1 || n > readerPdf.numPages) return;
+  if (!readerPdf || n < 1 || n > readerPdf.numPages) return;
 
   readerPage = n;
 
@@ -558,52 +558,88 @@ async function renderPage(n) {
   const nextBtn = document.getElementById('readerNext');
   const canvasWrap = document.getElementById('readerCanvasWrap');
 
+  if (!canvasWrap) return;
+
   if (curEl) curEl.textContent = n;
   if (prevBtn) prevBtn.disabled = n <= 1;
   if (nextBtn) nextBtn.disabled = n >= readerPdf.numPages;
 
   try {
     const page = await readerPdf.getPage(n);
-    const containerW = canvasWrap.clientWidth - 40 || 800;
-    const vp1 = page.getViewport({ scale: 1 });
-    const baseScale = Math.min(containerW / vp1.width, 1.8);
-    const scale = baseScale * bookReaderZoom;
-    const vp = page.getViewport({ scale });
 
-    /* 🎨 رسم الصفحة على canvas */
+    const availableWidth = Math.max(200, canvasWrap.clientWidth - 40);
+    const baseViewport = page.getViewport({ scale: 1 });
+
+    const fitScale = Math.min(availableWidth / baseViewport.width, 1.8);
+    const scale = fitScale * bookReaderZoom;
+    const viewport = page.getViewport({ scale });
+
+    const dpr = window.devicePixelRatio || 1;
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
 
-    canvas.width = Math.floor(vp.width * dpr);
-    canvas.height = Math.floor(vp.height * dpr);
-    canvas.style.width = Math.floor(vp.width) + 'px';
-    canvas.style.height = Math.floor(vp.height) + 'px';
-    canvas.style.maxWidth = '100%';
+    if (!ctx) throw new Error('تعذر إنشاء Canvas Context');
 
-    ctx.scale(dpr, dpr);
-    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    canvas.width = Math.ceil(viewport.width * dpr);
+    canvas.height = Math.ceil(viewport.height * dpr);
 
-    canvasWrap.innerHTML = '';
-    canvasWrap.appendChild(canvas);
+    Object.assign(canvas.style, {
+      display: 'block',
+      width: `${viewport.width}px`,
+      height: `${viewport.height}px`,
+      maxWidth: 'none',
+      flex: 'none',
+      margin: '0',
+      padding: '0',
+      border: '0'
+    });
 
-    /* 🔤 بناء طبقة النص للترجمة */
-    await buildTextLayer(page, vp, canvasWrap);
+    /* الحاوية المشتركة للصفحة وطبقة النص */
+    const pageWrap = document.createElement('div');
+    pageWrap.className = 'reader-page';
 
-    /* 🎯 تمييز المصغرة الحالية */
-    document.querySelectorAll('.reader-thumb').forEach((t, i) => {
-      t.classList.toggle('on', i + 1 === n);
+    Object.assign(pageWrap.style, {
+      position: 'relative',
+      width: `${viewport.width}px`,
+      height: `${viewport.height}px`,
+      flex: '0 0 auto',
+      margin: '0 auto',
+      padding: '0',
+      border: '0',
+      overflow: 'hidden',
+      background: '#fff'
+    });
+
+    pageWrap.appendChild(canvas);
+
+    /* استبدال الصفحة السابقة */
+    canvasWrap.replaceChildren(pageWrap);
+
+    /* رسم الصفحة */
+    await page.render({
+      canvasContext: ctx,
+      viewport,
+      transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null
+    }).promise;
+
+    /* بناء طبقة النص داخل الحاوية نفسها */
+    await buildTextLayer(page, viewport, pageWrap);
+
+    /* تحديث المصغرات */
+    document.querySelectorAll('.reader-thumb').forEach((thumb, i) => {
+      thumb.classList.toggle('on', i + 1 === n);
     });
 
     canvasWrap.scrollTop = 0;
+    canvasWrap.scrollLeft = 0;
 
   } catch (err) {
     console.error('renderPage:', err);
-    if (canvasWrap) {
-      canvasWrap.innerHTML = `<div class="reader-loading">❌ فشل عرض الصفحة ${n}</div>`;
-    }
+    canvasWrap.innerHTML =
+      `<div class="reader-loading">❌ فشل عرض الصفحة ${n}</div>`;
   }
 }
+
 
 /* ================================================================
    9) 🔤 طبقة النص (Text Layer)
@@ -619,51 +655,100 @@ async function renderPage(n) {
  * @param {Object} viewport - الأبعاد
  * @param {HTMLElement} container - الحاوية
  */
+
 async function buildTextLayer(page, viewport, container) {
   try {
     const textContent = await page.getTextContent();
+
     const layer = document.createElement('div');
     layer.className = 'text-layer';
-    layer.style.width = viewport.width + 'px';
-    layer.style.height = viewport.height + 'px';
+
+    Object.assign(layer.style, {
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      width: `${viewport.width}px`,
+      height: `${viewport.height}px`,
+      overflow: 'hidden',
+      pointerEvents: 'none',
+      margin: '0',
+      padding: '0',
+      border: '0',
+      transform: 'none'
+    });
 
     textContent.items.forEach(item => {
-      if (!item.str || !item.str.trim()) return;
+      if (!item.str || !item.str.trim() || !item.transform) return;
 
-      /* 📐 حساب موقع النص */
-      const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+      const tx = pdfjsLib.Util.transform(
+        viewport.transform,
+        item.transform
+      );
+
       const fontHeight = Math.hypot(tx[2], tx[3]);
-      const left = tx[4];
-      const top = tx[5] - fontHeight;
 
-      /* 📝 إنشاء span شفاف */
+      if (!Number.isFinite(fontHeight) || fontHeight <= 0) return;
+
+      const fontStyle = textContent.styles?.[item.fontName] || {};
+
+      /* استخدام مقاييس الخط عند توفرها */
+      const ascent = Number.isFinite(fontStyle.ascent)
+        ? fontStyle.ascent
+        : Number.isFinite(fontStyle.descent)
+          ? 1 + fontStyle.descent
+          : 0.8;
+
+      const top = tx[5] - fontHeight * ascent;
+      const angle = Math.atan2(tx[1], tx[0]);
+
       const span = document.createElement('span');
       span.className = 'text-span';
       span.textContent = item.str;
-      span.style.left = left + 'px';
-      span.style.top = top + 'px';
-      span.style.fontSize = fontHeight + 'px';
-      span.style.fontFamily = 'sans-serif';
-      span.style.lineHeight = '1';
-      span.style.whiteSpace = 'pre';
       span.dataset.text = item.str;
 
-      /* 🎯 عند الضغط: ترجمة */
-      span.addEventListener('click', (e) => {
-        e.stopPropagation();
-        translateText(item.str);
-        document.querySelectorAll('.text-span.selected').forEach(s => s.classList.remove('selected'));
+      Object.assign(span.style, {
+        position: 'absolute',
+        left: `${tx[4]}px`,
+        top: `${top}px`,
+        fontSize: `${fontHeight}px`,
+        fontFamily: 'sans-serif',
+        fontWeight: '400',
+        lineHeight: '1',
+        whiteSpace: 'pre',
+        direction: 'ltr',
+        display: 'inline-block',
+        width: 'max-content',
+        margin: '0',
+        padding: '0',
+        border: '0',
+        color: 'transparent',
+        transformOrigin: '0 0',
+        transform: angle ? `rotate(${angle}rad)` : 'none',
+        pointerEvents: 'auto',
+        cursor: 'pointer',
+        userSelect: 'text'
+      });
+
+      span.addEventListener('click', event => {
+        event.stopPropagation();
+
+        document.querySelectorAll('.text-span.selected')
+          .forEach(el => el.classList.remove('selected'));
+
         span.classList.add('selected');
+        translateText(item.str);
       });
 
       layer.appendChild(span);
     });
 
     container.appendChild(layer);
+
   } catch (err) {
     console.warn('⚠️ فشل بناء طبقة النص:', err);
   }
 }
+
 
 /* ================================================================
    10) 🌐 الترجمة (Translation)
@@ -1020,9 +1105,6 @@ function translateInput() {
 
 /**
  * 👁️ إظهار/إخفاء لوحة الترجمة
- */
-/**
- * 👁️ إظهار/إخفاء لوحة الترجمة
  * - على الموبايل: تُفتح كدرج جانبي مع overlay
  * - على الديسكتوب: تُخفى/تظهر عادي
  */
@@ -1031,17 +1113,27 @@ function toggleTranslation() {
   const panel = document.getElementById('translationPanel');
   const btn = document.getElementById('readerTrans');
   const overlay = document.getElementById('transOverlay');
+  const isMobile = window.innerWidth <= 900;
 
   if (!panel) return;
 
-  if (window.innerWidth <= 900) {
+  /* 🧹 امسح الحالة القديمة (لتجنب التعارض) */
+  panel.classList.remove('open', 'hidden');
+  if (overlay) overlay.classList.remove('show');
+
+  if (isMobile) {
     /* 📱 موبايل: درج جانبي */
-    panel.classList.toggle('open', translationVisible);
-    if (overlay) overlay.classList.toggle('show', translationVisible);
+    if (translationVisible) {
+      panel.classList.add('open');
+      if (overlay) overlay.classList.add('show');
+    } else {
+      panel.classList.add('hidden');
+    }
   } else {
     /* 💻 ديسكتوب: إخفاء/إظهار عادي */
-    panel.classList.toggle('hidden', !translationVisible);
-    if (overlay) overlay.classList.remove('show');
+    if (!translationVisible) {
+      panel.classList.add('hidden');
+    }
   }
 
   if (btn) btn.classList.toggle('active', translationVisible);
