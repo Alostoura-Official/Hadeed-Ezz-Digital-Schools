@@ -721,13 +721,17 @@ async function buildTextLayer(page, viewport, container) {
       width: `${viewport.width}px`,
       height: `${viewport.height}px`,
       overflow: 'hidden',
-      pointerEvents: 'none',        /* ✅ الحاوية شفافة للنقرات */
+      pointerEvents: 'none',
       margin: '0',
       padding: '0',
       border: '0',
       transform: 'none',
       transformOrigin: '0 0'
     });
+
+    /* ✅✅✅ الحل: تعيين --scale-factor قبل renderTextLayer */
+    /* PDF.js 3.x يحتاج هذا المتغير لضبط المواضع بشكل صحيح */
+    textLayerDiv.style.setProperty('--scale-factor', viewport.scale);
 
     container.appendChild(textLayerDiv);
 
@@ -744,9 +748,11 @@ async function buildTextLayer(page, viewport, container) {
 
     /* 🎨 تحويل الـ spans إلى قابلة للضغط */
     const spans = textLayerDiv.querySelectorAll('span');
+    console.log(`🔤 عدد النصوص في الصفحة: ${spans.length}`);
+
     spans.forEach(span => {
       span.style.cursor = 'pointer';
-      span.style.pointerEvents = 'auto';    /* ✅ كل span يقبل النقر */
+      span.style.pointerEvents = 'auto';
 
       span.addEventListener('click', event => {
         event.stopPropagation();
