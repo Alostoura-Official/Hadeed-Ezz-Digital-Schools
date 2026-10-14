@@ -1,5 +1,6 @@
 /* ================================================================
    📚 Books Library — JavaScript
+   صفحة المكتبة الرقمية — مع ترجمة نصية وصوتية
    ================================================================ */
 'use strict';
 
@@ -8,7 +9,7 @@
    ================================================================ */
 const BOOKS_CONFIG = {
 
-  /* ---------- 📗 عربي ---------- */
+    /* ---------- 📗 عربي ---------- */
   arabic: {
     name: "لغة عربية",
     nameEn: "Arabic",
@@ -17,9 +18,9 @@ const BOOKS_CONFIG = {
     folder: "books/arabic",
     books: [
       {
-        title: "النحو والصرف",
-        titleEn: "Grammar & Morphology",
-        file: "book.pdf",
+        title: "اللغة العربية — الصف الأول — الترم الأول",
+        titleEn: "Arabic - Grade 1 - Term 1",
+        file: "arabic-grade1-term1.pdf",
         cover: "cover.png"
       }
     ]
@@ -125,27 +126,55 @@ const BOOKS_CONFIG = {
 };
 
 /* ================================================================
-   2) 🌐 حالة التطبيق
+   2) 🌐 حالة التطبيق (State Variables)
+   ----------------------------------------------------------------
+   - متغيرات عامة تُستخدم في كل دوال المكتبة
+   - كل متغير له اسم فريد لتجنب التعارض مع app.js
    ================================================================ */
+
+/** 🎯 الفلتر الحالي (all = كل المواد) */
 let currentFilter = 'all';
+
+/** 🔍 نص البحث الحالي */
 let searchQuery = '';
+
+/** 📖 المادة النشطة حالياً (null = عرض المواد) */
 let activeSubject = null;
+
+/** 📄 كائن PDF الحالي المحمّل في العارض */
 let readerPdf = null;
+
+/** 🔢 رقم الصفحة الحالية في العارض */
 let readerPage = 1;
+
+/** 🌐 لغة الترجمة الحالية (ar/en/it) */
 let transLang = localStorage.getItem('books-trans-lang') || 'ar';
+
+/** 👁️ هل لوحة الترجمة ظاهرة؟ */
 let translationVisible = true;
+
+/** ✅ النصوص المحددة حالياً */
 let selectedTextSpans = [];
 
-// ✅ اسم فريد لتجنب التعارض مع app.js
+/** 🔍 مستوى التكبير في العارض (اسم فريد لتجنب تعارض app.js) */
 let bookReaderZoom = 1;
+
+/** ⏱️ مؤقت resize (اسم فريد) */
 let bookResizeTimer = null;
 
+/** 🔊 هل النطق التلقائي مفعّل؟ (يُحمَّل من localStorage) */
+let autoSpeakEnabled = localStorage.getItem('books-auto-speak') !== '0';
+
 /* ================================================================
-   3) 🚀 التهيئة
+   3) 🚀 التهيئة (Initialization)
+   ----------------------------------------------------------------
+   - تُنفَّذ مرة واحدة عند فتح الصفحة
+   - تحمّل الثيم، الإعدادات، الفلاتر، المواد
    ================================================================ */
 function initBooks() {
   console.log('📚 [books] بدء التهيئة...');
 
+  /* 🎨 تحميل الثيم المحفوظ */
   const savedTheme = localStorage.getItem('mech-theme');
   if (savedTheme === 'dark') {
     document.documentElement.dataset.theme = 'dark';
@@ -153,13 +182,24 @@ function initBooks() {
     if (btn) btn.textContent = '☀️';
   }
 
+  /* 🔊 تحميل إعداد النطق التلقائي */
+  autoSpeakEnabled = localStorage.getItem('books-auto-speak') !== '0';
+  const autoSpeakBtn = document.getElementById('readerAutoSpeak');
+  if (autoSpeakBtn) {
+    autoSpeakBtn.classList.toggle('active', autoSpeakEnabled);
+    autoSpeakBtn.textContent = autoSpeakEnabled ? '🔊' : '🔇';
+  }
+
+  /* 🌐 تحديث أزرار الترجمة */
   updateTransButtons();
   const readerTrans = document.getElementById('readerTrans');
   if (readerTrans) readerTrans.classList.add('active');
 
+  /* 🎨 عرض الفلاتر والمواد */
   renderFilters();
   renderSubjects();
 
+  /* 🔍 ربط صندوق البحث */
   const searchInput = document.getElementById('booksSearch');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
@@ -172,6 +212,7 @@ function initBooks() {
     });
   }
 
+  /* ⌨️ زر Escape لإغلاق العارض */
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       const viewer = document.getElementById('readerViewer');
@@ -183,8 +224,15 @@ function initBooks() {
 }
 
 /* ================================================================
-   4) 🎨 الفلاتر
+   4) 🎨 الفلاتر (Filters)
+   ----------------------------------------------------------------
+   - renderFilters: يعرض أزرار تصفية المواد
+   - setFilter: يفعّل فلتر مادة معينة
    ================================================================ */
+
+/**
+ * 🎨 عرض أزرار التصفية حسب المواد المتاحة
+ */
 function renderFilters() {
   const wrap = document.getElementById('booksFilters');
   if (!wrap) return;
@@ -205,6 +253,10 @@ function renderFilters() {
   wrap.innerHTML = html;
 }
 
+/**
+ * 🎯 تفعيل فلتر معين
+ * @param {string} subjKey - مفتاح المادة ('all' أو اسم المادة)
+ */
 function setFilter(subjKey) {
   currentFilter = subjKey;
   document.querySelectorAll('.filter-chip').forEach(c => {
@@ -220,8 +272,14 @@ function setFilter(subjKey) {
 }
 
 /* ================================================================
-   5) 🗂️ عرض المواد
+   5) 🗂️ عرض المواد (Subjects Grid)
    ================================================================ */
+
+/**
+ * 🗂️ عرض شبكة المواد (بطاقات المواد)
+ * - يطبّق فلتر البحث لو موجود
+ * - يخفي شبكة الكتب ويظهر المواد
+ */
 function renderSubjects() {
   const grid = document.getElementById('subjectsGrid');
   const booksWrap = document.getElementById('booksGridWrap');
@@ -233,6 +291,7 @@ function renderSubjects() {
 
   let subjects = Object.entries(BOOKS_CONFIG);
 
+  /* 🔍 فلترة حسب البحث */
   if (searchQuery) {
     subjects = subjects.filter(([, s]) => {
       const inSubject = s.name.toLowerCase().includes(searchQuery) ||
@@ -245,6 +304,7 @@ function renderSubjects() {
     });
   }
 
+  /* ❌ لا يوجد نتائج */
   if (subjects.length === 0) {
     grid.innerHTML = '';
     if (emptyState) emptyState.style.display = 'block';
@@ -253,6 +313,7 @@ function renderSubjects() {
 
   if (emptyState) emptyState.style.display = 'none';
 
+  /* 🎨 إنشاء البطاقات */
   grid.innerHTML = subjects.map(([key, subj]) => {
     const count = subj.books.length;
     const isEmpty = count === 0;
@@ -272,8 +333,13 @@ function renderSubjects() {
 }
 
 /* ================================================================
-   6) 📖 فتح مادة
+   6) 📖 فتح مادة (Open Subject)
    ================================================================ */
+
+/**
+ * 📖 فتح مادة معينة وعرض كتبها
+ * @param {string} subjKey - مفتاح المادة
+ */
 function openSubject(subjKey) {
   const subj = BOOKS_CONFIG[subjKey];
   if (!subj) return;
@@ -291,9 +357,28 @@ function openSubject(subjKey) {
   if (count) count.textContent = `${subj.books.length} كتاب`;
 
   renderBooks(subjKey);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  /* 🎯 تمرير ذكي: بداية شبكة الكتب */
+  setTimeout(() => {
+    const booksWrap = document.getElementById('booksGridWrap');
+    if (!booksWrap) return;
+
+    const header = document.getElementById('appHeader');
+    const headerH = header ? header.offsetHeight : 72;
+
+    const targetTop = booksWrap.getBoundingClientRect().top + window.scrollY;
+    const minScroll = targetTop - headerH - 20;
+
+    window.scrollTo({
+      top: Math.max(0, minScroll),
+      behavior: 'smooth'
+    });
+  }, 80);
 }
 
+/**
+ * ← العودة لعرض المواد (إغلاق مادة)
+ */
 function backToSubjects() {
   activeSubject = null;
   const grid = document.getElementById('subjectsGrid');
@@ -301,11 +386,33 @@ function backToSubjects() {
   if (grid) grid.style.display = 'grid';
   if (booksWrap) booksWrap.style.display = 'none';
   renderSubjects();
+
+  /* 🎯 تمرير لأعلى المواد عند الرجوع */
+  setTimeout(() => {
+    const subjectsGrid = document.getElementById('subjectsGrid');
+    if (!subjectsGrid) return;
+
+    const header = document.getElementById('appHeader');
+    const headerH = header ? header.offsetHeight : 72;
+
+    const targetTop = subjectsGrid.getBoundingClientRect().top + window.scrollY;
+    const minScroll = targetTop - headerH - 20;
+
+    window.scrollTo({
+      top: Math.max(0, minScroll),
+      behavior: 'smooth'
+    });
+  }, 80);
 }
 
 /* ================================================================
-   7) 📚 عرض الكتب
+   7) 📚 عرض الكتب (Books Grid)
    ================================================================ */
+
+/**
+ * 📚 عرض شبكة كتب مادة معينة
+ * @param {string} subjKey - مفتاح المادة
+ */
 function renderBooks(subjKey) {
   const grid = document.getElementById('booksGrid');
   const emptyState = document.getElementById('booksEmptyState');
@@ -316,6 +423,7 @@ function renderBooks(subjKey) {
 
   let books = subj.books;
 
+  /* 🔍 فلترة حسب البحث */
   if (searchQuery) {
     books = books.filter(b =>
       b.title.toLowerCase().includes(searchQuery) ||
@@ -332,6 +440,7 @@ function renderBooks(subjKey) {
 
   if (emptyState) emptyState.style.display = 'none';
 
+  /* 🎨 إنشاء بطاقات الكتب — مع encodeURI لتجنب مشاكل المسافات */
   grid.innerHTML = books.map((book) => {
     const coverPath = encodeURI(`${subj.folder}/${book.cover}`);
     const filePath  = encodeURI(`${subj.folder}/${book.file}`);
@@ -362,14 +471,25 @@ function renderBooks(subjKey) {
   updateCount(books.length);
 }
 
+/**
+ * 🔢 تحديث عدد الكتب المعروضة
+ * @param {number} n - عدد الكتب
+ */
 function updateCount(n) {
   const el = document.getElementById('booksCount');
   if (el) el.textContent = n > 0 ? `${n} كتاب` : '';
 }
 
 /* ================================================================
-   8) 📖 عارض PDF
+   8) 📖 عارض PDF (PDF Reader)
    ================================================================ */
+
+/**
+ * 📖 فتح كتاب في العارض
+ * @param {string} filePath - مسار ملف PDF (مشفَّر مسبقاً)
+ * @param {string} title - عنوان الكتاب
+ * @param {string} color - لون المادة
+ */
 async function openReader(filePath, title, color) {
   if (typeof pdfjsLib === 'undefined') {
     showToast('❌ مكتبة عرض PDF لم تُحمَّل', 'error');
@@ -393,8 +513,9 @@ async function openReader(filePath, title, color) {
   if (thumbs) thumbs.innerHTML = '';
 
   try {
+    /* 📥 تحميل PDF — بدون encodeURI إضافي (لأن filePath مُرمَّز مسبقاً) */
     const loadingTask = pdfjsLib.getDocument({
-      url: encodeURI(filePath),
+      url: filePath,
       cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
       cMapPacked: true,
       useSystemFonts: true
@@ -422,6 +543,10 @@ async function openReader(filePath, title, color) {
   }
 }
 
+/**
+ * 🔢 عرض صفحة معينة من الكتاب
+ * @param {number} n - رقم الصفحة
+ */
 async function renderPage(n) {
   if (!readerPdf) return;
   if (n < 1 || n > readerPdf.numPages) return;
@@ -445,6 +570,7 @@ async function renderPage(n) {
     const scale = baseScale * bookReaderZoom;
     const vp = page.getViewport({ scale });
 
+    /* 🎨 رسم الصفحة على canvas */
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
@@ -461,8 +587,10 @@ async function renderPage(n) {
     canvasWrap.innerHTML = '';
     canvasWrap.appendChild(canvas);
 
+    /* 🔤 بناء طبقة النص للترجمة */
     await buildTextLayer(page, vp, canvasWrap);
 
+    /* 🎯 تمييز المصغرة الحالية */
     document.querySelectorAll('.reader-thumb').forEach((t, i) => {
       t.classList.toggle('on', i + 1 === n);
     });
@@ -478,8 +606,19 @@ async function renderPage(n) {
 }
 
 /* ================================================================
-   9) 🔤 طبقة النص
+   9) 🔤 طبقة النص (Text Layer)
+   ----------------------------------------------------------------
+   - تضيف طبقة شفافة فوق الـ canvas
+   - كل جملة نصية تُصبح قابلة للضغط
+   - عند الضغط: ترجمة فورية
    ================================================================ */
+
+/**
+ * 🔤 بناء طبقة النص القابل للضغط
+ * @param {Object} page - كائن الصفحة من pdfjs
+ * @param {Object} viewport - الأبعاد
+ * @param {HTMLElement} container - الحاوية
+ */
 async function buildTextLayer(page, viewport, container) {
   try {
     const textContent = await page.getTextContent();
@@ -491,11 +630,13 @@ async function buildTextLayer(page, viewport, container) {
     textContent.items.forEach(item => {
       if (!item.str || !item.str.trim()) return;
 
+      /* 📐 حساب موقع النص */
       const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
       const fontHeight = Math.hypot(tx[2], tx[3]);
       const left = tx[4];
       const top = tx[5] - fontHeight;
 
+      /* 📝 إنشاء span شفاف */
       const span = document.createElement('span');
       span.className = 'text-span';
       span.textContent = item.str;
@@ -507,6 +648,7 @@ async function buildTextLayer(page, viewport, container) {
       span.style.whiteSpace = 'pre';
       span.dataset.text = item.str;
 
+      /* 🎯 عند الضغط: ترجمة */
       span.addEventListener('click', (e) => {
         e.stopPropagation();
         translateText(item.str);
@@ -524,10 +666,21 @@ async function buildTextLayer(page, viewport, container) {
 }
 
 /* ================================================================
-   10) 🌐 الترجمة — مع Google Translate API
+   10) 🌐 الترجمة (Translation)
+   ----------------------------------------------------------------
+   - translateWithGoogle: ترجمة عبر API جوجل (مجاني)
+   - simpleTranslate: قاموس احتياطي
+   - translateText: الدالة الرئيسية (مع صوت + نسخ)
+   - speakTranslation: نطق الترجمة
+   - copyToClipboard: نسخ للحافظة
    ================================================================ */
 
-/* ترجمة عبر Google Translate (مجاني بدون API key) */
+/**
+ * 🌐 ترجمة عبر Google Translate API (مجاني بدون API key)
+ * @param {string} text - النص المراد ترجمته
+ * @param {string} targetLang - اللغة الهدف (ar/en/it)
+ * @returns {Promise<string>} النص المترجم
+ */
 async function translateWithGoogle(text, targetLang) {
   if (!text || !text.trim()) return '';
 
@@ -547,12 +700,12 @@ async function translateWithGoogle(text, targetLang) {
     return text;
   } catch (err) {
     console.error('❌ Google Translate فشل:', err);
-    // fallback للقاموس المحلي
+    /* 🆘 fallback للقاموس المحلي */
     return simpleTranslate(text, targetLang);
   }
 }
 
-/* قاموس احتياطي (يُستخدم لو فشل Google) */
+/* 📚 قاموس احتياطي (يُستخدم لو فشل Google) */
 const SIMPLE_DICT = {
   "the": "الـ", "and": "و", "of": "من", "to": "إلى", "in": "في",
   "is": "هو", "are": "هم", "was": "كان", "were": "كانوا", "be": "يكون",
@@ -588,6 +741,12 @@ const ITALIAN_DICT = {
   "vecchio": "قديم", "grande": "كبير", "piccolo": "صغير", "primo": "أول", "ultimo": "أخير"
 };
 
+/**
+ * 📚 ترجمة بسيطة كلمة بكلمة (احتياطي)
+ * @param {string} text - النص
+ * @param {string} targetLang - اللغة
+ * @returns {string} الترجمة
+ */
 function simpleTranslate(text, targetLang) {
   if (!text) return '';
 
@@ -621,16 +780,115 @@ function simpleTranslate(text, targetLang) {
   return result.join('');
 }
 
-/* الدالة الرئيسية للترجمة */
+/* ================================================================
+   🔊 دالة النطق (Speech Synthesis)
+   ================================================================ */
+
+/**
+ * 🔊 نطق نص باللغة المحددة
+ * - يستخدم دالة speak من app.js لو موجودة
+ * - fallback لـ Web Speech API مباشرة
+ * @param {string} text - النص المراد نطقه
+ * @param {HTMLElement} btnEl - زر التشغيل (للتأثير البصري)
+ */
+function speakTranslation(text, btnEl) {
+  if (!text || !text.trim()) return;
+
+  /* 🎯 اختصار اللغة */
+  const langMap = {
+    ar: 'ar-EG',     /* عربي مصري */
+    en: 'en-US',     /* إنجليزي أمريكي */
+    it: 'it-IT'      /* إيطالي */
+  };
+  const lang = langMap[transLang] || 'ar-EG';
+
+  /* 🎯 استخدام دالة speak من app.js */
+  if (typeof speak === 'function') {
+    speak(text, lang, 0.85, btnEl);
+  } else {
+    /* 🆘 fallback: Web Speech API مباشرة */
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      u.rate = 0.85;
+
+      if (btnEl) {
+        btnEl.classList.add('speaking-now');
+        u.onend = () => btnEl.classList.remove('speaking-now');
+        u.onerror = () => btnEl.classList.remove('speaking-now');
+      }
+
+      window.speechSynthesis.speak(u);
+    } else {
+      showToast('❌ المتصفح لا يدعم النطق', 'error');
+    }
+  }
+}
+
+/* ================================================================
+   📋 دالة النسخ (Clipboard)
+   ================================================================ */
+
+/**
+ * 📋 نسخ نص للحافظة
+ * @param {string} text - النص
+ * @param {HTMLElement} btnEl - الزر (للتأثير البصري)
+ */
+async function copyToClipboard(text, btnEl) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      /* 🆘 fallback للمتصفحات القديمة */
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+
+    if (btnEl) {
+      const original = btnEl.textContent;
+      btnEl.textContent = '✅';
+      btnEl.classList.add('copied');
+      setTimeout(() => {
+        btnEl.textContent = original;
+        btnEl.classList.remove('copied');
+      }, 1500);
+    }
+
+    showToast('✅ تم نسخ الترجمة', 'success', 1500);
+  } catch (err) {
+    console.error('Copy error:', err);
+    showToast('❌ فشل النسخ', 'error');
+  }
+}
+
+/* ================================================================
+   🌐 الدالة الرئيسية للترجمة
+   ================================================================ */
+
+/**
+ * 🌐 ترجمة نص وعرضه مع صوت وزر نسخ
+ * - تظهر "جارٍ الترجمة..." أثناء الانتظار
+ * - بعد الترجمة: النص + الصوت + زر النسخ
+ * @param {string} text - النص المراد ترجمته
+ */
 async function translateText(text) {
   if (!text || !text.trim()) return;
 
   const content = document.getElementById('transContent');
   if (!content) return;
 
+  /* 🗑️ إزالة الحالة الفارغة */
   const empty = content.querySelector('.trans-empty');
   if (empty) empty.remove();
 
+  /* ⏳ عرض "جارٍ الترجمة..." */
   const loadingItem = document.createElement('div');
   loadingItem.className = 'trans-item trans-loading';
   loadingItem.innerHTML = `
@@ -642,22 +900,63 @@ async function translateText(text) {
   content.insertBefore(loadingItem, content.firstChild);
   content.scrollTop = 0;
 
+  /* 🌐 الترجمة الفعلية */
   const translated = await translateWithGoogle(text, transLang);
 
+  /* 🎨 بناء العنصر النهائي: النص + الصوت + النسخ */
   loadingItem.innerHTML = `
-    <div class="original">${esc(text)}</div>
+    <div class="trans-header-row">
+      <div class="original">${esc(text)}</div>
+      <button class="trans-speak-btn" title="اسمع الترجمة" aria-label="اسمع الترجمة">🔊</button>
+    </div>
     <div class="translated">${esc(translated)}</div>
-    <span class="lang-badge">${getLangLabel(transLang)}</span>
+    <div class="trans-footer">
+      <span class="lang-badge">${getLangLabel(transLang)}</span>
+      <button class="trans-copy-btn" title="انسخ الترجمة" aria-label="انسخ الترجمة">📋</button>
+    </div>
   `;
   loadingItem.classList.remove('trans-loading');
 
+  /* 🔊 ربط زر النطق */
+  const speakBtn = loadingItem.querySelector('.trans-speak-btn');
+  if (speakBtn) {
+    speakBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      speakTranslation(translated, speakBtn);
+    });
+  }
+
+  /* 📋 ربط زر النسخ */
+  const copyBtn = loadingItem.querySelector('.trans-copy-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      copyToClipboard(translated, copyBtn);
+    });
+  }
+
+  /* 🔊 تشغيل صوتي تلقائي (لو مفعّل) */
+  if (autoSpeakEnabled && speakBtn) {
+    speakTranslation(translated, speakBtn);
+  }
+
+  /* 👁️ إظهار لوحة الترجمة لو مخفية */
   if (!translationVisible) toggleTranslation();
 }
 
+/**
+ * 🏷️ الحصول على اسم اللغة مع علم
+ * @param {string} lang - كود اللغة
+ * @returns {string} اسم اللغة
+ */
 function getLangLabel(lang) {
   return { ar: '🇪🇬 عربي', en: '🇬🇧 English', it: '🇮🇹 Italiano' }[lang] || lang;
 }
 
+/**
+ * 🌐 تغيير لغة الترجمة
+ * @param {string} lang - اللغة الجديدة (ar/en/it)
+ */
 function setTransLang(lang) {
   transLang = lang;
   localStorage.setItem('books-trans-lang', lang);
@@ -670,6 +969,10 @@ function setTransLang(lang) {
   showToast(`🌐 تم تغيير لغة الترجمة إلى ${getLangLabel(lang)}`, 'success', 1800);
 }
 
+/**
+ * 🌐 تغيير اللغة (يُستخدم من الإعدادات)
+ * @param {string} lang - اللغة
+ */
 function switchTransLang(lang) {
   setTransLang(lang);
   const menu = document.getElementById('settingsMenu');
@@ -678,6 +981,9 @@ function switchTransLang(lang) {
   if (btn) btn.classList.remove('active');
 }
 
+/**
+ * 🔄 تحديث أزرار اللغة (إبراز اللغة النشطة)
+ */
 function updateTransButtons() {
   document.querySelectorAll('.trans-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.lang === transLang);
@@ -687,6 +993,9 @@ function updateTransButtons() {
   });
 }
 
+/**
+ * 🗑️ مسح كل الترجمات من اللوحة
+ */
 function clearTranslation() {
   const content = document.getElementById('transContent');
   if (!content) return;
@@ -699,6 +1008,9 @@ function clearTranslation() {
   document.querySelectorAll('.text-span.selected').forEach(s => s.classList.remove('selected'));
 }
 
+/**
+ * ✍️ ترجمة النص المكتوب في مربع الإدخال
+ */
 function translateInput() {
   const input = document.getElementById('transInput');
   if (!input || !input.value.trim()) return;
@@ -706,25 +1018,64 @@ function translateInput() {
   input.value = '';
 }
 
+/**
+ * 👁️ إظهار/إخفاء لوحة الترجمة
+ */
+/**
+ * 👁️ إظهار/إخفاء لوحة الترجمة
+ * - على الموبايل: تُفتح كدرج جانبي مع overlay
+ * - على الديسكتوب: تُخفى/تظهر عادي
+ */
 function toggleTranslation() {
   translationVisible = !translationVisible;
   const panel = document.getElementById('translationPanel');
   const btn = document.getElementById('readerTrans');
+  const overlay = document.getElementById('transOverlay');
 
-  if (panel) {
-    if (window.innerWidth <= 900) {
-      panel.classList.toggle('open', translationVisible);
-    } else {
-      panel.classList.toggle('hidden', !translationVisible);
-    }
+  if (!panel) return;
+
+  if (window.innerWidth <= 900) {
+    /* 📱 موبايل: درج جانبي */
+    panel.classList.toggle('open', translationVisible);
+    if (overlay) overlay.classList.toggle('show', translationVisible);
+  } else {
+    /* 💻 ديسكتوب: إخفاء/إظهار عادي */
+    panel.classList.toggle('hidden', !translationVisible);
+    if (overlay) overlay.classList.remove('show');
   }
 
   if (btn) btn.classList.toggle('active', translationVisible);
 }
 
+/**
+ * 🔊 تفعيل/إلغاء النطق التلقائي
+ */
+function toggleAutoSpeak() {
+  autoSpeakEnabled = !autoSpeakEnabled;
+  localStorage.setItem('books-auto-speak', autoSpeakEnabled ? '1' : '0');
+
+  const btn = document.getElementById('readerAutoSpeak');
+  if (btn) {
+    btn.classList.toggle('active', autoSpeakEnabled);
+    btn.textContent = autoSpeakEnabled ? '🔊' : '🔇';
+  }
+
+  showToast(
+    autoSpeakEnabled ? '🔊 تم تفعيل النطق التلقائي' : '🔇 تم إيقاف النطق التلقائي',
+    'success',
+    1800
+  );
+}
+
 /* ================================================================
-   11) 🖼️ المصغرات
+   11) 🖼️ المصغرات (Thumbnails)
    ================================================================ */
+
+/**
+ * 🖼️ بناء مصغرات كل صفحات الكتاب
+ * - تُعرض أسفل العارض
+ * - عند الضغط على مصغرة: الانتقال للصفحة
+ */
 async function buildThumbs() {
   const wrap = document.getElementById('readerThumbs');
   if (!wrap || !readerPdf) return;
@@ -753,17 +1104,29 @@ async function buildThumbs() {
 }
 
 /* ================================================================
-   12) 🎮 أدوات العارض
+   12) 🎮 أدوات العارض (Reader Controls)
    ================================================================ */
+
+/**
+ * ▶️ التنقل بين الصفحات
+ * @param {number} dir - اتجاه (1 = التالي، -1 = السابق)
+ */
 function readerGo(dir) {
   renderPage(readerPage + dir);
 }
 
+/**
+ * 🔍 تكبير/تصغير العرض
+ * @param {number} dir - اتجاه (1 = تكبير، -1 = تصغير)
+ */
 function readerZoom(dir) {
   bookReaderZoom = Math.max(0.5, Math.min(3, bookReaderZoom + dir * 0.2));
   renderPage(readerPage);
 }
 
+/**
+ * ⛶ ملء الشاشة
+ */
 function readerFullscreen() {
   const viewer = document.getElementById('readerViewer');
   if (!viewer) return;
@@ -777,6 +1140,9 @@ function readerFullscreen() {
   }
 }
 
+/**
+ * ✕ إغلاق العارض
+ */
 function closeReader() {
   const viewer = document.getElementById('readerViewer');
   const overlay = document.getElementById('readerOverlay');
@@ -797,24 +1163,28 @@ function closeReader() {
 }
 
 /* ================================================================
-   13) ⌨️ اختصارات
+   13) ⌨️ اختصارات لوحة المفاتيح
    ================================================================ */
 document.addEventListener('keydown', (e) => {
   const viewer = document.getElementById('readerViewer');
   if (!viewer || !viewer.classList.contains('show')) return;
 
+  /* ➡️ ⬇️ التالي */
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
     e.preventDefault();
     readerGo(1);
   }
+  /* ⬅️ ⬆️ السابق */
   if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
     e.preventDefault();
     readerGo(-1);
   }
+  /* ➕ تكبير */
   if (e.key === '+' || e.key === '=') {
     e.preventDefault();
     readerZoom(1);
   }
+  /* ➖ تصغير */
   if (e.key === '-') {
     e.preventDefault();
     readerZoom(-1);
@@ -822,14 +1192,23 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ================================================================
-   14) 🛠️ أدوات مساعدة
+   14) 🛠️ أدوات مساعدة (Helpers)
    ================================================================ */
+
+/**
+ * 🔒 حماية النص من XSS (تحويل الرموز الخاصة)
+ * @param {string} s - النص
+ * @returns {string} النص الآمن
+ */
 function esc(s) {
   return String(s || '').replace(/[&<>"]/g, m =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m])
   );
 }
 
+/**
+ * 🔄 إعادة رسم الصفحة عند تغيير حجم النافذة
+ */
 window.addEventListener('resize', () => {
   clearTimeout(bookResizeTimer);
   bookResizeTimer = setTimeout(() => {
@@ -838,7 +1217,10 @@ window.addEventListener('resize', () => {
 });
 
 /* ================================================================
-   15) 🚀 الانطلاق
+   15) 🚀 الانطلاق (Bootstrap)
+   ----------------------------------------------------------------
+   - تُنفَّذ تلقائياً عند تحميل الصفحة
+   - تنتظر DOM ثم تشغّل initBooks
    ================================================================ */
 (function bootstrap() {
   if (document.readyState === 'loading') {
