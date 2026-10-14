@@ -1,54 +1,15 @@
 /* ================================================================
    📚 Books Library — JavaScript
-   ----------------------------------------------------------------
-   صفحة المكتبة الرقمية — مع:
-   - عرض المواد والكتب
-   - عارض PDF متكامل
-   - ترجمة نصية (Google Translate)
-   - ترجمة صوتية (Speech Synthesis)
-   - نسخ للحافظة
-   - نطق تلقائي
-
-   تنظيم الملف:
-   1) إعدادات المكتبة (BOOKS_CONFIG)
-   2) حالة التطبيق (State)
-   3) التهيئة (initBooks)
-   4) الفلاتر (Filters)
-   5) عرض المواد (Subjects)
-   6) فتح/إغلاق مادة (Open/Back)
-   7) عرض الكتب (Books Grid)
-   8) عارض PDF (Reader)
-   9) طبقة النص (Text Layer)
-   10) الترجمة (Translation)
-   11) النطق (Speech)
-   12) النسخ (Clipboard)
-   13) الدالة الرئيسية للترجمة (translateText)
-   14) المصغرات (Thumbnails)
-   15) أدوات العارض (Controls)
-   16) اختصارات لوحة المفاتيح
-   17) أدوات مساعدة (Helpers)
-   18) الانطلاق (Bootstrap)
+   صفحة المكتبة الرقمية — مع ترجمة نصية وصوتية
    ================================================================ */
 'use strict';
 
 /* ================================================================
    1) 📋 إعدادات المكتبة
-   ----------------------------------------------------------------
-   كل مادة لها:
-   - name / nameEn: الاسم بالعربي والإنجليزي
-   - icon: أيقونة المادة
-   - color: لون المادة (hex)
-   - folder: مسار الفولدر داخل books/
-   - books: قائمة الكتب
-
-   كل كتاب له:
-   - title / titleEn: عنوان الكتاب
-   - file: اسم ملف PDF
-   - cover: اسم صورة الغلاف
    ================================================================ */
 const BOOKS_CONFIG = {
 
-  /* ---------- 📗 عربي ---------- */
+    /* ---------- 📗 عربي ---------- */
   arabic: {
     name: "لغة عربية",
     nameEn: "Arabic",
@@ -204,9 +165,6 @@ let bookResizeTimer = null;
 /** 🔊 هل النطق التلقائي مفعّل؟ (يُحمَّل من localStorage) */
 let autoSpeakEnabled = localStorage.getItem('books-auto-speak') !== '0';
 
-/** 🎯 رقم الصفحة المسموح عرضها (لمنع تعارض الطلبات السريعة) */
-let renderToken = 0;
-
 /* ================================================================
    3) 🚀 التهيئة (Initialization)
    ----------------------------------------------------------------
@@ -267,6 +225,9 @@ function initBooks() {
 
 /* ================================================================
    4) 🎨 الفلاتر (Filters)
+   ----------------------------------------------------------------
+   - renderFilters: يعرض أزرار تصفية المواد
+   - setFilter: يفعّل فلتر مادة معينة
    ================================================================ */
 
 /**
@@ -316,6 +277,8 @@ function setFilter(subjKey) {
 
 /**
  * 🗂️ عرض شبكة المواد (بطاقات المواد)
+ * - يطبّق فلتر البحث لو موجود
+ * - يخفي شبكة الكتب ويظهر المواد
  */
 function renderSubjects() {
   const grid = document.getElementById('subjectsGrid');
@@ -370,7 +333,7 @@ function renderSubjects() {
 }
 
 /* ================================================================
-   6) 📖 فتح/إغلاق مادة (Open/Back Subject)
+   6) 📖 فتح مادة (Open Subject)
    ================================================================ */
 
 /**
@@ -477,7 +440,7 @@ function renderBooks(subjKey) {
 
   if (emptyState) emptyState.style.display = 'none';
 
-  /* 🎨 إنشاء بطاقات الكتب — encodeURI لتجنب مشاكل المسافات */
+  /* 🎨 إنشاء بطاقات الكتب — مع encodeURI لتجنب مشاكل المسافات */
   grid.innerHTML = books.map((book) => {
     const coverPath = encodeURI(`${subj.folder}/${book.cover}`);
     const filePath  = encodeURI(`${subj.folder}/${book.file}`);
@@ -585,19 +548,15 @@ async function openReader(filePath, title, color) {
  * @param {number} n - رقم الصفحة
  */
 async function renderPage(n) {
-  if (!readerPdf || n < 1 || n > readerPdf.numPages) return;
+  if (!readerPdf) return;
+  if (n < 1 || n > readerPdf.numPages) return;
 
   readerPage = n;
-
-  /* 🎯 token لمنع تعارض الطلبات السريعة */
-  const token = ++renderToken;
 
   const curEl = document.getElementById('readerCur');
   const prevBtn = document.getElementById('readerPrev');
   const nextBtn = document.getElementById('readerNext');
   const canvasWrap = document.getElementById('readerCanvasWrap');
-
-  if (!canvasWrap) return;
 
   if (curEl) curEl.textContent = n;
   if (prevBtn) prevBtn.disabled = n <= 1;
@@ -605,87 +564,44 @@ async function renderPage(n) {
 
   try {
     const page = await readerPdf.getPage(n);
+    const containerW = canvasWrap.clientWidth - 40 || 800;
+    const vp1 = page.getViewport({ scale: 1 });
+    const baseScale = Math.min(containerW / vp1.width, 1.8);
+    const scale = baseScale * bookReaderZoom;
+    const vp = page.getViewport({ scale });
 
-    /* 🚫 لو ظهرت صفحة أحدث، تجاهل هذه */
-    if (token !== renderToken) return;
-
-    const availableWidth = Math.max(200, canvasWrap.clientWidth - 40);
-    const baseViewport = page.getViewport({ scale: 1 });
-
-    const fitScale = Math.min(availableWidth / baseViewport.width, 1.8);
-    const scale = fitScale * bookReaderZoom;
-    const viewport = page.getViewport({ scale });
-
-    const dpr = window.devicePixelRatio || 1;
+    /* 🎨 رسم الصفحة على canvas */
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
 
-    if (!ctx) throw new Error('تعذر إنشاء Canvas Context');
+    canvas.width = Math.floor(vp.width * dpr);
+    canvas.height = Math.floor(vp.height * dpr);
+    canvas.style.width = Math.floor(vp.width) + 'px';
+    canvas.style.height = Math.floor(vp.height) + 'px';
+    canvas.style.maxWidth = '100%';
 
-    canvas.width = Math.ceil(viewport.width * dpr);
-    canvas.height = Math.ceil(viewport.height * dpr);
+    ctx.scale(dpr, dpr);
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
 
-    Object.assign(canvas.style, {
-      display: 'block',
-      width: `${viewport.width}px`,
-      height: `${viewport.height}px`,
-      maxWidth: 'none',
-      flex: 'none',
-      margin: '0',
-      padding: '0',
-      border: '0'
-    });
+    canvasWrap.innerHTML = '';
+    canvasWrap.appendChild(canvas);
 
-    /* الحاوية المشتركة للصفحة وطبقة النص */
-    const pageWrap = document.createElement('div');
-    pageWrap.className = 'reader-page';
+    /* 🔤 بناء طبقة النص للترجمة */
+    await buildTextLayer(page, vp, canvasWrap);
 
-    Object.assign(pageWrap.style, {
-      position: 'relative',
-      width: `${viewport.width}px`,
-      height: `${viewport.height}px`,
-      flex: '0 0 auto',
-      margin: '0 auto',
-      padding: '0',
-      border: '0',
-      overflow: 'hidden',
-      background: '#fff'
-    });
-
-    pageWrap.appendChild(canvas);
-
-    /* ✅ استبدال الصفحة السابقة (طريقة متوافقة مع Safari) */
-    while (canvasWrap.firstChild) {
-      canvasWrap.removeChild(canvasWrap.firstChild);
-    }
-    canvasWrap.appendChild(pageWrap);
-
-    /* رسم الصفحة */
-    await page.render({
-      canvasContext: ctx,
-      viewport,
-      transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null
-    }).promise;
-
-    /* 🚫 لو ظهرت صفحة أحدث، تجاهل هذه */
-    if (token !== renderToken) return;
-
-    /* بناء طبقة النص داخل الحاوية نفسها */
-    await buildTextLayer(page, viewport, pageWrap);
-
-    /* تحديث المصغرات */
-    document.querySelectorAll('.reader-thumb').forEach((thumb, i) => {
-      thumb.classList.toggle('on', i + 1 === n);
+    /* 🎯 تمييز المصغرة الحالية */
+    document.querySelectorAll('.reader-thumb').forEach((t, i) => {
+      t.classList.toggle('on', i + 1 === n);
     });
 
     canvasWrap.scrollTop = 0;
-    canvasWrap.scrollLeft = 0;
 
   } catch (err) {
     console.error('renderPage:', err);
-    if (token !== renderToken) return;
-    canvasWrap.innerHTML =
-      `<div class="reader-loading">❌ فشل عرض الصفحة ${n}</div>`;
+    if (canvasWrap) {
+      canvasWrap.innerHTML = `<div class="reader-loading">❌ فشل عرض الصفحة ${n}</div>`;
+    }
   }
 }
 
@@ -695,167 +611,57 @@ async function renderPage(n) {
    - تضيف طبقة شفافة فوق الـ canvas
    - كل جملة نصية تُصبح قابلة للضغط
    - عند الضغط: ترجمة فورية
-   - تستخدم renderTextLayer الرسمية من PDF.js عند توفرها
    ================================================================ */
 
 /**
- * 🔤 بناء طبقة النص (يستخدم renderTextLayer الرسمية أولاً)
+ * 🔤 بناء طبقة النص القابل للضغط
+ * @param {Object} page - كائن الصفحة من pdfjs
+ * @param {Object} viewport - الأبعاد
+ * @param {HTMLElement} container - الحاوية
  */
 async function buildTextLayer(page, viewport, container) {
   try {
     const textContent = await page.getTextContent();
-
-    /* ✅ فحص توفر renderTextLayer الرسمية */
-    if (typeof pdfjsLib.renderTextLayer !== 'function') {
-      console.warn('⚠️ renderTextLayer غير متوفرة — استخدام الطريقة اليدوية');
-      return buildTextLayerManual(page, viewport, container);
-    }
-
-    const textLayerDiv = document.createElement('div');
-    textLayerDiv.className = 'text-layer';
-
-    Object.assign(textLayerDiv.style, {
-      position: 'absolute',
-      top: '0',
-      left: '0',
-      width: `${viewport.width}px`,
-      height: `${viewport.height}px`,
-      overflow: 'hidden',
-      pointerEvents: 'none',
-      margin: '0',
-      padding: '0',
-      border: '0',
-      transform: 'none',
-      transformOrigin: '0 0'
-    });
-
-    /* ✅✅✅ الحل: تعيين --scale-factor قبل renderTextLayer */
-    /* PDF.js 3.x يحتاج هذا المتغير لضبط المواضع بشكل صحيح */
-    textLayerDiv.style.setProperty('--scale-factor', viewport.scale);
-
-    container.appendChild(textLayerDiv);
-
-    /* 🎯 استخدام renderTextLayer الرسمية */
-    const task = pdfjsLib.renderTextLayer({
-      textContentSource: textContent,
-      container: textLayerDiv,
-      viewport: viewport,
-      textDivs: [],
-      enhanceTextSelection: false
-    });
-
-    await task.promise;
-
-    /* 🎨 تحويل الـ spans إلى قابلة للضغط */
-    const spans = textLayerDiv.querySelectorAll('span');
-    console.log(`🔤 عدد النصوص في الصفحة: ${spans.length}`);
-
-    spans.forEach(span => {
-      span.style.cursor = 'pointer';
-      span.style.pointerEvents = 'auto';
-
-      span.addEventListener('click', event => {
-        event.stopPropagation();
-
-        document.querySelectorAll('.text-span.selected')
-          .forEach(el => el.classList.remove('selected'));
-
-        span.classList.add('selected');
-        translateText(span.textContent);
-      });
-
-      span.classList.add('text-span');
-    });
-
-  } catch (err) {
-    console.warn('⚠️ فشل renderTextLayer:', err);
-    /* 🆘 fallback للطريقة اليدوية */
-    await buildTextLayerManual(page, viewport, container);
-  }
-}
-
-/**
- * 🔤 الطريقة اليدوية (fallback)
- * - تستخدم عند فشل renderTextLayer
- * - تعتمد على item.transform لضبط المواضع
- */
-async function buildTextLayerManual(page, viewport, container) {
-  try {
-    const textContent = await page.getTextContent();
-
     const layer = document.createElement('div');
     layer.className = 'text-layer';
-
-    Object.assign(layer.style, {
-      position: 'absolute',
-      top: '0',
-      left: '0',
-      width: `${viewport.width}px`,
-      height: `${viewport.height}px`,
-      overflow: 'hidden',
-      pointerEvents: 'none',
-      margin: '0',
-      padding: '0',
-      border: '0'
-    });
-
-    const scale = viewport.scale;
+    layer.style.width = viewport.width + 'px';
+    layer.style.height = viewport.height + 'px';
 
     textContent.items.forEach(item => {
-      if (!item.str || !item.str.trim() || !item.transform) return;
+      if (!item.str || !item.str.trim()) return;
 
+      /* 📐 حساب موقع النص */
       const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
       const fontHeight = Math.hypot(tx[2], tx[3]);
-      if (!Number.isFinite(fontHeight) || fontHeight <= 0) return;
+      const left = tx[4];
+      const top = tx[5] - fontHeight;
 
-      const fontStyle = textContent.styles?.[item.fontName] || {};
-      const ascent = Number.isFinite(fontStyle.ascent)
-        ? fontStyle.ascent
-        : 0.8;
-
-      const top = tx[5] - fontHeight * ascent;
-      const width = (item.width || 0) * scale;
-
+      /* 📝 إنشاء span شفاف */
       const span = document.createElement('span');
       span.className = 'text-span';
       span.textContent = item.str;
+      span.style.left = left + 'px';
+      span.style.top = top + 'px';
+      span.style.fontSize = fontHeight + 'px';
+      span.style.fontFamily = 'sans-serif';
+      span.style.lineHeight = '1';
+      span.style.whiteSpace = 'pre';
       span.dataset.text = item.str;
 
-      Object.assign(span.style, {
-        position: 'absolute',
-        left: `${tx[4]}px`,
-        top: `${top}px`,
-        fontSize: `${fontHeight}px`,
-        fontFamily: 'sans-serif',
-        lineHeight: '1',
-        whiteSpace: 'pre',
-        display: 'inline-block',
-        width: `${width}px`,
-        maxWidth: `${width}px`,
-        overflow: 'hidden',
-        color: 'transparent',
-        pointerEvents: 'auto',
-        cursor: 'pointer',
-        fontKerning: 'none',
-        fontVariantLigatures: 'none',
-        letterSpacing: '0'
-      });
-
-      span.addEventListener('click', event => {
-        event.stopPropagation();
-        document.querySelectorAll('.text-span.selected')
-          .forEach(el => el.classList.remove('selected'));
-        span.classList.add('selected');
+      /* 🎯 عند الضغط: ترجمة */
+      span.addEventListener('click', (e) => {
+        e.stopPropagation();
         translateText(item.str);
+        document.querySelectorAll('.text-span.selected').forEach(s => s.classList.remove('selected'));
+        span.classList.add('selected');
       });
 
       layer.appendChild(span);
     });
 
     container.appendChild(layer);
-
   } catch (err) {
-    console.warn('⚠️ فشل الـ fallback:', err);
+    console.warn('⚠️ فشل بناء طبقة النص:', err);
   }
 }
 
@@ -863,8 +669,10 @@ async function buildTextLayerManual(page, viewport, container) {
    10) 🌐 الترجمة (Translation)
    ----------------------------------------------------------------
    - translateWithGoogle: ترجمة عبر API جوجل (مجاني)
-   - SIMPLE_DICT / ITALIAN_DICT: قاموس احتياطي
-   - simpleTranslate: قاموس محلي
+   - simpleTranslate: قاموس احتياطي
+   - translateText: الدالة الرئيسية (مع صوت + نسخ)
+   - speakTranslation: نطق الترجمة
+   - copyToClipboard: نسخ للحافظة
    ================================================================ */
 
 /**
@@ -897,7 +705,7 @@ async function translateWithGoogle(text, targetLang) {
   }
 }
 
-/* 📚 قاموس احتياطي (إنجليزي → عربي) */
+/* 📚 قاموس احتياطي (يُستخدم لو فشل Google) */
 const SIMPLE_DICT = {
   "the": "الـ", "and": "و", "of": "من", "to": "إلى", "in": "في",
   "is": "هو", "are": "هم", "was": "كان", "were": "كانوا", "be": "يكون",
@@ -916,7 +724,6 @@ const SIMPLE_DICT = {
   "proportion": "تناسب", "antecedent": "المقدم", "consequent": "التالي"
 };
 
-/* 📚 قاموس احتياطي (إيطالي → عربي) */
 const ITALIAN_DICT = {
   "il": "الـ", "lo": "الـ", "la": "الـ", "i": "الـ", "gli": "الـ", "le": "الـ",
   "e": "و", "di": "من", "a": "إلى", "in": "في", "è": "هو", "sono": "هم",
@@ -974,7 +781,7 @@ function simpleTranslate(text, targetLang) {
 }
 
 /* ================================================================
-   11) 🔊 النطق (Speech Synthesis)
+   🔊 دالة النطق (Speech Synthesis)
    ================================================================ */
 
 /**
@@ -1020,7 +827,7 @@ function speakTranslation(text, btnEl) {
 }
 
 /* ================================================================
-   12) 📋 النسخ (Clipboard)
+   📋 دالة النسخ (Clipboard)
    ================================================================ */
 
 /**
@@ -1062,7 +869,7 @@ async function copyToClipboard(text, btnEl) {
 }
 
 /* ================================================================
-   13) 🌐 الدالة الرئيسية للترجمة
+   🌐 الدالة الرئيسية للترجمة
    ================================================================ */
 
 /**
@@ -1139,6 +946,8 @@ async function translateText(text) {
 
 /**
  * 🏷️ الحصول على اسم اللغة مع علم
+ * @param {string} lang - كود اللغة
+ * @returns {string} اسم اللغة
  */
 function getLangLabel(lang) {
   return { ar: '🇪🇬 عربي', en: '🇬🇧 English', it: '🇮🇹 Italiano' }[lang] || lang;
@@ -1162,6 +971,7 @@ function setTransLang(lang) {
 
 /**
  * 🌐 تغيير اللغة (يُستخدم من الإعدادات)
+ * @param {string} lang - اللغة
  */
 function switchTransLang(lang) {
   setTransLang(lang);
@@ -1210,35 +1020,28 @@ function translateInput() {
 
 /**
  * 👁️ إظهار/إخفاء لوحة الترجمة
- * - على الموبايل: درج جانبي مع overlay
- * - على الديسكتوب: إخفاء/إظهار
+ */
+/**
+ * 👁️ إظهار/إخفاء لوحة الترجمة
+ * - على الموبايل: تُفتح كدرج جانبي مع overlay
+ * - على الديسكتوب: تُخفى/تظهر عادي
  */
 function toggleTranslation() {
   translationVisible = !translationVisible;
   const panel = document.getElementById('translationPanel');
   const btn = document.getElementById('readerTrans');
   const overlay = document.getElementById('transOverlay');
-  const isMobile = window.innerWidth <= 900;
 
   if (!panel) return;
 
-  /* 🧹 امسح الحالة القديمة */
-  panel.classList.remove('open', 'hidden');
-  if (overlay) overlay.classList.remove('show');
-
-  if (isMobile) {
+  if (window.innerWidth <= 900) {
     /* 📱 موبايل: درج جانبي */
-    if (translationVisible) {
-      panel.classList.add('open');
-      if (overlay) overlay.classList.add('show');
-    } else {
-      panel.classList.add('hidden');
-    }
+    panel.classList.toggle('open', translationVisible);
+    if (overlay) overlay.classList.toggle('show', translationVisible);
   } else {
     /* 💻 ديسكتوب: إخفاء/إظهار عادي */
-    if (!translationVisible) {
-      panel.classList.add('hidden');
-    }
+    panel.classList.toggle('hidden', !translationVisible);
+    if (overlay) overlay.classList.remove('show');
   }
 
   if (btn) btn.classList.toggle('active', translationVisible);
@@ -1265,7 +1068,7 @@ function toggleAutoSpeak() {
 }
 
 /* ================================================================
-   14) 🖼️ المصغرات (Thumbnails)
+   11) 🖼️ المصغرات (Thumbnails)
    ================================================================ */
 
 /**
@@ -1301,7 +1104,7 @@ async function buildThumbs() {
 }
 
 /* ================================================================
-   15) 🎮 أدوات العارض (Reader Controls)
+   12) 🎮 أدوات العارض (Reader Controls)
    ================================================================ */
 
 /**
@@ -1346,13 +1149,10 @@ function closeReader() {
   const canvasWrap = document.getElementById('readerCanvasWrap');
   const thumbs = document.getElementById('readerThumbs');
   const panel = document.getElementById('translationPanel');
-  const transOverlay = document.getElementById('transOverlay');
 
   if (viewer) viewer.classList.remove('show');
   if (overlay) overlay.classList.remove('show');
   if (panel) panel.classList.remove('open');
-  if (transOverlay) transOverlay.classList.remove('show');
-
   document.body.style.overflow = '';
   readerPdf = null;
   readerPage = 1;
@@ -1363,7 +1163,7 @@ function closeReader() {
 }
 
 /* ================================================================
-   16) ⌨️ اختصارات لوحة المفاتيح
+   13) ⌨️ اختصارات لوحة المفاتيح
    ================================================================ */
 document.addEventListener('keydown', (e) => {
   const viewer = document.getElementById('readerViewer');
@@ -1392,11 +1192,13 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ================================================================
-   17) 🛠️ أدوات مساعدة (Helpers)
+   14) 🛠️ أدوات مساعدة (Helpers)
    ================================================================ */
 
 /**
  * 🔒 حماية النص من XSS (تحويل الرموز الخاصة)
+ * @param {string} s - النص
+ * @returns {string} النص الآمن
  */
 function esc(s) {
   return String(s || '').replace(/[&<>"]/g, m =>
@@ -1415,7 +1217,7 @@ window.addEventListener('resize', () => {
 });
 
 /* ================================================================
-   18) 🚀 الانطلاق (Bootstrap)
+   15) 🚀 الانطلاق (Bootstrap)
    ----------------------------------------------------------------
    - تُنفَّذ تلقائياً عند تحميل الصفحة
    - تنتظر DOM ثم تشغّل initBooks
