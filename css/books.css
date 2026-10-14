@@ -1,18 +1,19 @@
 /* ================================================================
-   📚 Books Library — التنسيقات الخاصة
+   1) 🧱 الحاويات العامة
    ================================================================ */
-
 .books-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
   position: relative;
   z-index: 1;
-  
   animation: fadeUp .6s var(--ease) both;
 }
 
-/* ---------- شريط الأدوات ---------- */
+
+/* ================================================================
+   2) 🎨 شريط الأدوات (البحث + الفلاتر)
+   ================================================================ */
 .books-toolbar {
   display: flex;
   flex-direction: column;
@@ -20,6 +21,7 @@
   margin-bottom: 24px;
 }
 
+/* --- 🔍 صندوق البحث --- */
 .books-search {
   display: flex;
   align-items: center;
@@ -37,7 +39,10 @@
   box-shadow: 0 0 0 4px var(--primary-glow);
 }
 
-.books-search span:first-child { font-size: 20px; color: var(--primary); }
+.books-search span:first-child {
+  font-size: 20px;
+  color: var(--primary);
+}
 
 .books-search input {
   flex: 1;
@@ -51,6 +56,7 @@
 
 .books-search input::placeholder { color: var(--gray-2); }
 
+/* --- 🏷️ الفلاتر (Chips) --- */
 .books-filters {
   display: flex;
   gap: 8px;
@@ -86,7 +92,10 @@
   box-shadow: var(--shadow-primary);
 }
 
-/* ---------- شبكة المواد ---------- */
+
+/* ================================================================
+   3) 🗂️ شبكة المواد (Subjects Grid)
+   ================================================================ */
 .subjects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -111,16 +120,22 @@
   text-align: center;
 }
 
+/* الطبقة الملوّنة الخلفية */
 .subject-card::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, var(--sc, #2563eb), color-mix(in srgb, var(--sc, #2563eb) 65%, #000));
+  background: linear-gradient(
+    135deg,
+    var(--sc, #2563eb),
+    color-mix(in srgb, var(--sc, #2563eb) 65%, #000)
+  );
   opacity: 0.92;
   z-index: 0;
   transition: opacity .35s var(--ease);
 }
 
+/* الدائرة الفاتحة الزخرفية */
 .subject-card::after {
   content: "";
   position: absolute;
@@ -150,7 +165,9 @@
   transition: transform .4s var(--ease-bounce);
 }
 
-.subject-card:hover .subj-icon { transform: scale(1.15) rotate(-6deg); }
+.subject-card:hover .subj-icon {
+  transform: scale(1.15) rotate(-6deg);
+}
 
 .subject-card .subj-name {
   position: relative;
@@ -190,11 +207,15 @@
   border-color: rgba(255,255,255,.2);
 }
 
-/* ---------- شبكة الكتب ---------- */
+
+/* ================================================================
+   4) 📚 شبكة الكتب (Books Grid)
+   ================================================================ */
 .books-grid-wrap {
   animation: fadeUp .5s var(--ease) both;
 }
 
+/* --- رأس قسم الكتب --- */
 .books-header {
   display: flex;
   align-items: center;
@@ -246,6 +267,7 @@
   font-weight: 800;
 }
 
+/* --- شبكة الكتب --- */
 .books-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -271,7 +293,11 @@
 .book-cover {
   position: relative;
   aspect-ratio: 3 / 4;
-  background: linear-gradient(135deg, var(--bc, #2563eb), color-mix(in srgb, var(--bc, #2563eb) 55%, #000));
+  background: linear-gradient(
+    135deg,
+    var(--bc, #2563eb),
+    color-mix(in srgb, var(--bc, #2563eb) 55%, #000)
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -355,7 +381,10 @@
 
 .book-meta .dot { color: var(--gray-2); }
 
-/* ---------- الحالة الفارغة ---------- */
+
+/* ================================================================
+   5) 📭 الحالة الفارغة (Empty State)
+   ================================================================ */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -377,8 +406,9 @@
 
 .empty-state p { font-size: 14px; }
 
+
 /* ================================================================
-   📖 عارض الكتاب مع الترجمة
+   6) 📖 عارض الكتاب (Reader Viewer)
    ================================================================ */
 .reader-viewer {
   position: fixed;
@@ -411,7 +441,10 @@
   to { opacity: 1; }
 }
 
-/* ---------- شريط الأدوات ---------- */
+
+/* ================================================================
+   7) 🎛️ شريط أدوات العارض (Reader Bar & Controls)
+   ================================================================ */
 .reader-bar {
   display: flex;
   align-items: center;
@@ -437,7 +470,10 @@
   flex-shrink: 0;
 }
 
-.reader-close:hover { background: #b91c1c; transform: scale(1.08); }
+.reader-close:hover {
+  background: #b91c1c;
+  transform: scale(1.08);
+}
 
 .reader-title {
   flex: 1;
@@ -495,7 +531,10 @@
   white-space: nowrap;
 }
 
-/* ---------- جسم العارض ---------- */
+
+/* ================================================================
+   8) 📐 جسم العارض (Reader Body & Canvas)
+   ================================================================ */
 .reader-body {
   flex: 1;
   display: flex;
@@ -525,43 +564,26 @@
   border-radius: 4px;
 }
 
-/* ✅ طبقة النص للترجمة */
-.text-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  pointer-events: none;
-  transform-origin: 0 0;
+/* --- حاوية الصفحة (Canvas + Text Layer) --- */
+.reader-page {
+  position: relative;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  transform: none;
 }
 
-/* النصوص القابلة للضغط والترجمة */
-.text-span {
-  position: absolute;
-  display: inline-block;
+/* Canvas داخل الحاوية */
+#readerCanvasWrap .reader-page > canvas {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: 100%;
   margin: 0;
   padding: 0;
   border: 0;
-  box-sizing: border-box;
-  color: transparent;
-  cursor: pointer;
-  pointer-events: auto;
-  white-space: pre;
-  line-height: 1;
-  transform-origin: 0 0;
-  transition: background-color 0.15s;
-  border-radius: 2px;
-}
-
-.text-span:hover {
-  background-color: rgba(234, 124, 12, 0.35);
-}
-
-.text-span.selected {
-  background-color: rgba(234, 124, 12, 0.6);
-  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  background: #fff;
+  border-radius: 4px;
 }
 
 .reader-loading {
@@ -573,7 +595,57 @@
   margin: auto;
 }
 
-/* ---------- لوحة الترجمة ---------- */
+
+/* ================================================================
+   9) 🔤 طبقة النص (Text Layer)
+   ================================================================ */
+
+.text-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  transform-origin: 0 0;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* ✅ منطقة الضغط الشفافة */
+.text-hit-area {
+  position: absolute;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  border-radius: 3px;
+  transition: background .15s ease, outline .15s ease;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  z-index: 3;
+}
+
+/* 🎨 عند التحويم — إطار خفيف */
+.text-hit-area:hover {
+  background: rgba(234, 124, 12, 0.15);
+  outline: 1.5px dashed rgba(234, 124, 12, 0.5);
+}
+
+/* 🎯 عند التحديد (بعد الضغط) */
+.text-hit-area.selected {
+  background: rgba(234, 124, 12, 0.25);
+  outline: 2px solid rgba(234, 124, 12, 0.8);
+}
+
+
+/* ================================================================
+   10) 🌐 لوحة الترجمة (Translation Panel)
+   ================================================================ */
 .translation-panel {
   width: 360px;
   flex-shrink: 0;
@@ -590,6 +662,7 @@
   border: none;
 }
 
+/* --- رأس اللوحة --- */
 .trans-header {
   display: flex;
   align-items: center;
@@ -622,6 +695,14 @@
   border-color: var(--red);
 }
 
+/* أزرار الرأس (مسح + إغلاق) */
+.trans-header-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* --- تبويبات اللغة --- */
 .trans-lang-tabs {
   display: flex;
   gap: 4px;
@@ -651,6 +732,7 @@
   box-shadow: 0 3px 10px -3px var(--primary-glow);
 }
 
+/* --- محتوى الترجمات --- */
 .trans-content {
   flex: 1;
   overflow-y: auto;
@@ -675,7 +757,9 @@
   line-height: 1.8;
 }
 
+/* --- بطاقة الترجمة --- */
 .trans-item {
+  position: relative;
   background: var(--surface-2);
   border-radius: 12px;
   padding: 12px 14px;
@@ -697,6 +781,10 @@
   font-weight: 700;
   color: var(--text);
   line-height: 1.6;
+  padding: 8px 10px;
+  background: var(--primary-soft);
+  border-radius: 8px;
+  margin-top: 6px;
 }
 
 .trans-item .lang-badge {
@@ -710,6 +798,13 @@
   margin-top: 6px;
 }
 
+/* حالة التحميل */
+.trans-item.trans-loading {
+  opacity: 0.7;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* --- مربع الإدخال --- */
 .trans-input-wrap {
   padding: 12px;
   border-top: 1px solid var(--border);
@@ -753,123 +848,12 @@
   filter: brightness(1.1);
 }
 
-/* ---------- المصغرات ---------- */
-.reader-thumbs {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 10px 14px;
-  background: rgba(0,0,0,.4);
-  border-top: 1px solid rgba(255,255,255,.08);
-  min-height: 90px;
-  flex-shrink: 0;
-  scrollbar-width: thin;
-}
-
-.reader-thumb {
-  flex-shrink: 0;
-  cursor: pointer;
-  border: 2px solid transparent;
-  border-radius: 6px;
-  background: #fff;
-  overflow: hidden;
-  transition: all .2s var(--ease);
-}
-
-.reader-thumb:hover {
-  transform: scale(1.06);
-  border-color: rgba(234, 124, 12, .5);
-}
-
-.reader-thumb.on {
-  border-color: var(--primary);
-  transform: scale(1.08);
-  box-shadow: 0 0 12px var(--primary-glow);
-}
-
-.reader-thumb canvas {
-  display: block;
-  width: 60px;
-  height: auto;
-}
-
-/* ---------- Responsive ---------- */
-@media (max-width: 900px) {
-  .translation-panel {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 85%;
-    max-width: 360px;
-    z-index: 10;
-    box-shadow: 4px 0 24px rgba(0,0,0,.3);
-    transform: translateX(-100%);
-  }
-
-  .translation-panel.open {
-    transform: translateX(0);
-  }
-
-  .translation-panel.hidden {
-    width: 85%;
-    max-width: 360px;
-  }
-
-  .reader-body { position: relative; }
-}
-
-@media (max-width: 640px) {
-  .books-container { padding: 16px 12px; }
-
-  .subjects-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 12px;
-  }
-
-  .subject-card { padding: 20px 12px; }
-  .subject-card .subj-icon { font-size: 40px; }
-  .subject-card .subj-name { font-size: 14px; }
-  .subject-card .subj-name-en { font-size: 10px; }
-  .subject-card .subj-count { font-size: 10px; padding: 4px 10px; }
-
-  .books-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 14px;
-  }
-
-  .book-title { font-size: 12px; }
-  .book-info { padding: 10px 12px; }
-
-  .reader-bar { padding: 8px 12px; gap: 8px; }
-  .reader-title { font-size: 13px; }
-  .reader-controls button { width: 36px; height: 36px; font-size: 13px; }
-
-  .books-header { flex-wrap: wrap; padding: 12px 14px; }
-  .books-header h2 { font-size: 16px; width: 100%; order: 3; margin-top: 8px; }
-}
-
-/* ---------- الطباعة ---------- */
-@media print {
-  .reader-viewer, .reader-overlay, .books-toolbar { display: none !important; }
-}
-
-/* حالة التحميل */
-.trans-item.trans-loading {
-  opacity: 0.7;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 0.4; }
-}
 
 /* ================================================================
-   🔊 أزرار الترجمة الصوتية
+   11) 🔊 أزرار الترجمة الصوتية + النسخ
    ================================================================ */
 
-/* صف العنوان الأصلي + زر الصوت */
+/* صف العنوان + زر الصوت */
 .trans-header-row {
   display: flex;
   align-items: flex-start;
@@ -882,7 +866,7 @@
   margin-bottom: 0;
 }
 
-/* زر الصوت */
+/* 🔊 زر الصوت */
 .trans-speak-btn {
   flex-shrink: 0;
   width: 32px;
@@ -924,7 +908,7 @@
   }
 }
 
-/* تذييل الترجمة: اللغة + زر النسخ */
+/* تذييل البطاقة: اللغة + النسخ */
 .trans-footer {
   display: flex;
   align-items: center;
@@ -933,7 +917,7 @@
   gap: 8px;
 }
 
-/* زر النسخ */
+/* 📋 زر النسخ */
 .trans-copy-btn {
   flex-shrink: 0;
   width: 28px;
@@ -967,7 +951,7 @@
   opacity: 1;
 }
 
-/* زر النطق التلقائي في شريط الأدوات */
+/* 🔊 زر النطق التلقائي في شريط الأدوات */
 #readerAutoSpeak {
   background: var(--surface);
   color: var(--text-2);
@@ -985,30 +969,55 @@
   color: var(--gray-2);
 }
 
-/* تحسين مظهر trans-item */
-.trans-item {
-  position: relative;
-}
-
-.trans-item .translated {
-  padding: 8px 10px;
-  background: var(--primary-soft);
-  border-radius: 8px;
-  margin-top: 6px;
-}
 
 /* ================================================================
-   📱 إغلاق لوحة الترجمة على الموبايل
+   12) 🖼️ المصغرات (Thumbnails)
    ================================================================ */
-
-/* أزرار الهيدر (مسح + إغلاق) */
-.trans-header-actions {
+.reader-thumbs {
   display: flex;
   gap: 6px;
-  align-items: center;
+  overflow-x: auto;
+  padding: 10px 14px;
+  background: rgba(0,0,0,.4);
+  border-top: 1px solid rgba(255,255,255,.08);
+  min-height: 90px;
+  flex-shrink: 0;
+  scrollbar-width: thin;
 }
 
-/* زر الإغلاق ✕ */
+.reader-thumb {
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: #fff;
+  overflow: hidden;
+  transition: all .2s var(--ease);
+}
+
+.reader-thumb:hover {
+  transform: scale(1.06);
+  border-color: rgba(234, 124, 12, .5);
+}
+
+.reader-thumb.on {
+  border-color: var(--primary);
+  transform: scale(1.08);
+  box-shadow: 0 0 12px var(--primary-glow);
+}
+
+.reader-thumb canvas {
+  display: block;
+  width: 60px;
+  height: auto;
+}
+
+
+/* ================================================================
+   13) 📱 إغلاق لوحة الترجمة على الموبايل
+   ================================================================ */
+
+/* ✕ زر الإغلاق */
 .trans-close-btn {
   width: 36px !important;
   height: 36px !important;
@@ -1031,14 +1040,12 @@
   transform: scale(1.08) !important;
 }
 
-/* زر الإغلاق يظهر فقط على الموبايل */
+/* يظهر فقط على الموبايل */
 @media (min-width: 901px) {
-  .trans-close-btn {
-    display: none !important;
-  }
+  .trans-close-btn { display: none !important; }
 }
 
-/* ✅ overlay يغطي الشاشة على الموبايل */
+/* ✅ Overlay يغطي الشاشة */
 .trans-overlay {
   position: fixed;
   inset: 0;
@@ -1056,20 +1063,40 @@
   pointer-events: auto;
 }
 
-/* على الديسكتوب: overlay مخفي دايماً */
+/* على الديسكتوب: مخفي */
 @media (min-width: 901px) {
-  .trans-overlay {
-    display: none;
-  }
+  .trans-overlay { display: none; }
 }
 
-/* تحسين ظهور لوحة الترجمة على الموبايل */
+
+/* ================================================================
+   14) 📱 Responsive (Tablet ≤ 900px)
+   ================================================================ */
 @media (max-width: 900px) {
+  /* لوحة الترجمة: درج منبثق */
   .translation-panel {
-    z-index: 9999 !important;   /* فوق الـ overlay */
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 85%;
+    max-width: 360px;
+    z-index: 9999;
+    box-shadow: 4px 0 24px rgba(0,0,0,.3);
+    transform: translateX(-100%);
+    transition: transform .35s cubic-bezier(.22, 1, .36, 1);
   }
 
-  /* زر الإغلاق يبقى ثابت في أعلى اللوحة */
+  .translation-panel.open { transform: translateX(0); }
+  .translation-panel.hidden {
+    width: 85%;
+    max-width: 360px;
+    transform: translateX(-100%);
+  }
+
+  .reader-body { position: relative; }
+
+  /* رأس اللوحة يبقى ثابت */
   .trans-header {
     position: sticky;
     top: 0;
@@ -1079,22 +1106,71 @@
   }
 }
 
+
 /* ================================================================
-   📱 إصلاح إضافي: لوحة الترجمة ما تفتحش افتراضياً على الموبايل
+   15) 📱 Responsive (Mobile ≤ 640px)
    ================================================================ */
-@media (max-width: 900px) {
-  .translation-panel {
-    /* تبدأ مغلقة افتراضياً */
-    transform: translateX(-100%);
-    transition: transform .35s cubic-bezier(.22, 1, .36, 1);
+@media (max-width: 640px) {
+  .books-container { padding: 16px 12px; }
+
+  /* المواد */
+  .subjects-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
   }
 
-  .translation-panel.open {
-    transform: translateX(0);
+  .subject-card { padding: 20px 12px; }
+  .subject-card .subj-icon { font-size: 40px; }
+  .subject-card .subj-name { font-size: 14px; }
+  .subject-card .subj-name-en { font-size: 10px; }
+  .subject-card .subj-count { font-size: 10px; padding: 4px 10px; }
+
+  /* الكتب */
+  .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
   }
 
-  /* لو كانت hidden، تفضل مغلقة */
-  .translation-panel.hidden {
-    transform: translateX(-100%);
+  .book-title { font-size: 12px; }
+  .book-info { padding: 10px 12px; }
+
+  /* شريط العارض */
+  .reader-bar { padding: 8px 12px; gap: 8px; }
+  .reader-title { font-size: 13px; }
+  .reader-controls button { width: 36px; height: 36px; font-size: 13px; }
+
+  /* رأس الكتب */
+  .books-header { flex-wrap: wrap; padding: 12px 14px; }
+  .books-header h2 { font-size: 16px; width: 100%; order: 3; margin-top: 8px; }
+}
+
+
+/* ================================================================
+   16) 🖨️ الطباعة
+   ================================================================ */
+@media print {
+  .reader-viewer,
+  .reader-overlay,
+  .books-toolbar {
+    display: none !important;
   }
+}
+
+
+/* ================================================================
+   17) 🎬 Animations
+   ================================================================ */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
 }
