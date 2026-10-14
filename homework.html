@@ -15,6 +15,50 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 
 <link rel="stylesheet" href="css/style.css">
+
+<!-- ============================================================
+     🎨 CSS مدمج لأزرار النطق (إنجليزي + عربي)
+     ============================================================ -->
+<style>
+  .question-actions {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 8px;
+    vertical-align: middle;
+  }
+
+  /* 🔊 زر النطق الإنجليزي */
+  .speak-btn.speak-en {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+  }
+
+  .speak-btn.speak-en:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+  }
+
+  /* 🇪🇬 زر النطق العربي (مترجم) */
+  .speak-btn.speak-ar {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    font-size: 16px;
+    padding: 0;
+    min-width: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .speak-btn.speak-ar:hover {
+    background: linear-gradient(135deg, #15803d, #166534);
+    transform: scale(1.12);
+  }
+
+  /* عند التحميل */
+  .speak-btn.speak-ar.speaking-now {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    animation: speakPulse 1.2s ease-in-out infinite;
+  }
+</style>
 </head>
 <body>
 
@@ -23,24 +67,17 @@
      ============================================================ -->
 <header class="app-header" id="appHeader">
   <div class="header-inner">
-    <!-- الشعار -->
     <a href="index.html" class="brand" aria-label="مدارس حديد عز">
-  <div class="brand-logo" aria-hidden="true">
-    <img src="icons/logo.png" 
-         alt="" 
-         width="44" 
-         height="44"
-         loading="eager"
-         decoding="async"
-         onerror="this.style.display='none'; this.parentElement.textContent='🎓';">
-  </div>
-  <div class="brand-text">
-    <span class="brand-title">مدارس حديد عز</span>
-    <span class="brand-subtitle">Ezz Steel Schools</span>
-  </div>
-</a>
+      <div class="brand-logo" aria-hidden="true">
+        <img src="icons/logo.png" alt="" width="44" height="44" loading="eager" decoding="async"
+             onerror="this.style.display='none'; this.parentElement.textContent='🎓';">
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">مدارس حديد عز</span>
+        <span class="brand-subtitle">Ezz Steel Schools</span>
+      </div>
+    </a>
 
-    <!-- المسار -->
     <nav class="breadcrumb" aria-label="مسار التنقل">
       <a href="index.html">الرئيسية</a>
       <span class="sep">›</span>
@@ -51,34 +88,29 @@
 
     <div class="header-spacer"></div>
 
-    <!-- أدوات الهيدر -->
     <div class="header-tools">
-      <!-- زر العودة -->
       <a href="index.html" class="back-btn" aria-label="العودة للمنصة">
         <span class="arrow" aria-hidden="true">←</span>
         <span class="label">العودة</span>
       </a>
 
-      <!-- زر الوضع الليلي -->
       <button class="icon-btn" id="themeToggle" onclick="toggleTheme()"
               title="تبديل الوضع الليلي" aria-label="تبديل الوضع الليلي">🌙</button>
 
-      <!-- زر الإعدادات -->
       <div class="settings-wrap">
         <button class="icon-btn" id="settingsBtn" onclick="toggleSettings(event)"
                 title="الإعدادات" aria-label="الإعدادات" aria-expanded="false">⚙️</button>
 
         <div class="settings-menu" id="settingsMenu" role="menu">
-          <!-- اللغة -->
           <div class="settings-section">
             <span class="settings-label">🌐 لغة النطق</span>
             <div class="settings-options">
               <button class="opt-pill lang-btn" data-lang="en-US" onclick="switchVoiceLang('en-US')">🇬🇧 إنجليزي</button>
               <button class="opt-pill lang-btn" data-lang="it-IT" onclick="switchVoiceLang('it-IT')">🇮🇹 إيطالي</button>
+              <button class="opt-pill lang-btn" data-lang="ar-EG" onclick="switchVoiceLang('ar-EG')">🇪🇬 عربي</button>
             </div>
           </div>
 
-          <!-- الجنس -->
           <div class="settings-section">
             <span class="settings-label">🎙️ نوع الصوت</span>
             <div class="settings-options">
@@ -92,28 +124,21 @@
     </div>
   </div>
 
-  <!-- شريط التقدم داخل الهيدر -->
   <div class="header-progress" role="progressbar" aria-label="تقدم الإجابة">
     <div class="header-progress-fill" id="progressFill"></div>
   </div>
 </header>
 
-<!-- إشعارات -->
 <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-<!-- ============================================================
-     📚 المحتوى
-     ============================================================ -->
 <main class="container">
 
-  <!-- بطاقة الترحيب -->
   <div class="welcome-card">
     <h1>HOME WORK 2</h1>
-    <p>UNIT ONE — LESSON 2 · 3</p>
+    <p>UNIT ONE — LESSON 1 · 2 · 3</p>
     <div class="welcome-note">تشير إلى أنّ السؤال مطلوب</div>
   </div>
 
-  <!-- لوحة النتيجة -->
   <div class="result-box" id="resultBox" role="status" aria-live="polite">
     <h2>نتيجتك 🎉</h2>
     <div class="score" id="scoreText">0 / 0</div>
@@ -122,7 +147,7 @@
 
   <form id="homeworkForm" novalidate>
 
-    <!-- بيانات الطالب -->
+    <!-- ===== بيانات الطالب ===== -->
     <div class="card question">
       <h3>اسم الطالب — STUDENT'S NAME <span class="req">*</span></h3>
       <input type="text" name="studentName" required placeholder="اكتب اسمك هنا..." autocomplete="name">
@@ -140,86 +165,89 @@
       <label class="option"><input type="radio" name="school" value="24 أكتوبر"> <span class="opt-text">٢٤ أكتوبر</span></label>
     </div>
 
-    <!-- QUESTION 1 -->
+    <!-- ============================================================
+         📝 UNIT 1 — LESSON 2 & 3 : QUESTIONS
+         ============================================================ -->
+
+    <!-- Q1 -->
     <div class="card question" data-correct="𝑋">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 1: If y equals nine X, then y is proportional to what?', null, this)" title="اسمع السؤال" aria-label="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If y equals nine X, then y is proportional to what?', 'en-US', this)" title="اسمع بالإنجليزي" aria-label="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If y equals nine X, then y is proportional to what?', this)" title="اسمع بالعربي" aria-label="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 1
 .......   ∝  If 𝑦=9𝑋, then 𝑦 <span class="req">*</span>
       </h3>
       <div class="points">نقطة واحدة</div>
-      <label class="option">
-        <input type="radio" name="q1" value="𝑋" required>
-        <span class="opt-text">𝑋</span>
-        <button type="button" class="opt-speak" onclick="event.preventDefault();speakText('X', null, this)" aria-label="اسمع الخيار">🔊</button>
-      </label>
-      <label class="option">
-        <input type="radio" name="q1" value="1/x">
-        <span class="opt-text">1/x</span>
-        <button type="button" class="opt-speak" onclick="event.preventDefault();speakText('one over x', null, this)">🔊</button>
-      </label>
-      <label class="option">
-        <input type="radio" name="q1" value="2𝑋+7">
-        <span class="opt-text">2𝑋+7</span>
-        <button type="button" class="opt-speak" onclick="event.preventDefault();speakText('two X plus seven', null, this)">🔊</button>
-      </label>
-      <label class="option">
-        <input type="radio" name="q1" value="all">
-        <span class="opt-text">all</span>
-        <button type="button" class="opt-speak" onclick="event.preventDefault();speakText('all', null, this)">🔊</button>
-      </label>
+      <label class="option"><input type="radio" name="q1" value="𝑋" required><span class="opt-text">𝑋</span></label>
+      <label class="option"><input type="radio" name="q1" value="1/x"><span class="opt-text">1/x</span></label>
+      <label class="option"><input type="radio" name="q1" value="2𝑋+7"><span class="opt-text">2𝑋+7</span></label>
+      <label class="option"><input type="radio" name="q1" value="all"><span class="opt-text">all</span></label>
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 2 -->
+    <!-- Q2 -->
     <div class="card question" data-correct="300">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 2: In a factory, the production of ten workers is two hundred pieces. How many pieces do fifteen workers produce daily?', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('In a factory, the production of ten workers is two hundred pieces. How many pieces do fifteen workers produce daily?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('In a factory, the production of ten workers is two hundred pieces. How many pieces do fifteen workers produce daily?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 2
 In a factory, the production of 10 workers is 200 pieces. How many pieces do 15 workers produce daily <span class="req">*</span>
       </h3>
       <div class="points">نقطة واحدة</div>
-      <label class="option"><input type="radio" name="q2" value="5" required><span class="opt-text">5</span><button type="button" class="opt-speak" onclick="event.preventDefault();speakText('five', null, this)">🔊</button></label>
-      <label class="option"><input type="radio" name="q2" value="300"><span class="opt-text">300</span><button type="button" class="opt-speak" onclick="event.preventDefault();speakText('three hundred', null, this)">🔊</button></label>
-      <label class="option"><input type="radio" name="q2" value="70"><span class="opt-text">70</span><button type="button" class="opt-speak" onclick="event.preventDefault();speakText('seventy', null, this)">🔊</button></label>
-      <label class="option"><input type="radio" name="q2" value="150"><span class="opt-text">150</span><button type="button" class="opt-speak" onclick="event.preventDefault();speakText('one hundred fifty', null, this)">🔊</button></label>
+      <label class="option"><input type="radio" name="q2" value="5" required><span class="opt-text">5</span></label>
+      <label class="option"><input type="radio" name="q2" value="300"><span class="opt-text">300</span></label>
+      <label class="option"><input type="radio" name="q2" value="70"><span class="opt-text">70</span></label>
+      <label class="option"><input type="radio" name="q2" value="150"><span class="opt-text">150</span></label>
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 3 -->
+    <!-- Q3 -->
     <div class="card question" data-correct="120">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 3: If the distance covered by a car varies directly as time, what is the distance it covers in three hours if it covers eighty kilometers in two hours?', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If the distance covered by a car varies directly as time, what is the distance it covers in three hours if it covers eighty kilometers in two hours?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If the distance covered by a car varies directly as time, what is the distance it covers in three hours if it covers eighty kilometers in two hours?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 3
 If the distance covered by a car varies directly as time, what is the distance it covers in 3 hours if it covers 80 km in two hours? <span class="req">*</span>
       </h3>
       <div class="points">نقطة واحدة</div>
-      <label class="option"><input type="radio" name="q3" value="120" required><span class="opt-text">120</span><button type="button" class="opt-speak" onclick="event.preventDefault();speakText('one hundred twenty', null, this)">🔊</button></label>
-      <label class="option"><input type="radio" name="q3" value="240"><span class="opt-text">240</span><button type="button" class="opt-speak" onclick="event.preventDefault();speakText('two hundred forty', null, this)">🔊</button></label>
-      <label class="option"><input type="radio" name="q3" value="160"><span class="opt-text">160</span><button type="button" class="opt-speak" onclick="event.preventDefault();speakText('one hundred sixty', null, this)">🔊</button></label>
-      <label class="option"><input type="radio" name="q3" value="all answer is wrong"><span class="opt-text">all answer is wrong</span><button type="button" class="opt-speak" onclick="event.preventDefault();speakText('all answers are wrong', null, this)">🔊</button></label>
+      <label class="option"><input type="radio" name="q3" value="120" required><span class="opt-text">120</span></label>
+      <label class="option"><input type="radio" name="q3" value="240"><span class="opt-text">240</span></label>
+      <label class="option"><input type="radio" name="q3" value="160"><span class="opt-text">160</span></label>
+      <label class="option"><input type="radio" name="q3" value="all answer is wrong"><span class="opt-text">all answer is wrong</span></label>
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 4 -->
+    <!-- Q4 -->
     <div class="card question" data-correct="y=3x">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 4: If Y varies directly as X, and Y equals fifteen when X equals five, find the relation between them.', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If Y varies directly as X, and Y equals fifteen when X equals five, find the relation between them.', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If Y varies directly as X, and Y equals fifteen when X equals five, find the relation between them.', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 4
 If 𝑦 varies directly as 𝑥, and 𝑦 = 15 when 𝑥 = 5, find the relation between them. <span class="req">*</span>
       </h3>
       <div class="points">نقطة واحدة</div>
-      <label class="option"><input type="radio" name="q4" value="y=x" required><span class="opt-text">y=x</span><button type="button" class="opt-speak" onclick="event.preventDefault();speakText('Y equals X', null, this)">🔊</button></label>
-      <label class="option"><input type="radio" name="q4" value="x=3y"><span class="opt-text">x=3y</span><button type="button" class="opt-speak" onclick="event.preventDefault();speakText('X equals three Y', null, this)">🔊</button></label>
-      <label class="option"><input type="radio" name="q4" value="y=1/3 y"><span class="opt-text">y=1/3 y</span><button type="button" class="opt-speak" onclick="event.preventDefault();speakText('Y equals one third Y', null, this)">🔊</button></label>
-      <label class="option"><input type="radio" name="q4" value="y=3x"><span class="opt-text">y=3x</span><button type="button" class="opt-speak" onclick="event.preventDefault();speakText('Y equals three X', null, this)">🔊</button></label>
+      <label class="option"><input type="radio" name="q4" value="y=x" required><span class="opt-text">y=x</span></label>
+      <label class="option"><input type="radio" name="q4" value="x=3y"><span class="opt-text">x=3y</span></label>
+      <label class="option"><input type="radio" name="q4" value="y=1/3 y"><span class="opt-text">y=1/3 y</span></label>
+      <label class="option"><input type="radio" name="q4" value="y=3x"><span class="opt-text">y=3x</span></label>
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 5 -->
+    <!-- Q5 -->
     <div class="card question" data-correct="y=1/3 x , y=20">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 5: If Y is proportional to X, and Y equals fourteen when X equals forty two. Find the relation between X and Y. And second, the value of Y when X equals sixty.', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If Y is proportional to X, and Y equals fourteen when X equals forty two. Find the relation between X and Y. And second, the value of Y when X equals sixty.', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If Y is proportional to X, and Y equals fourteen when X equals forty two. Find the relation between X and Y. And second, the value of Y when X equals sixty.', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 5
 If 𝑦 ∝ 𝑥, and 𝑦 = 14 when 𝑥 = 42,
 find: First: The relation between 𝑥 and 𝑦
@@ -233,10 +261,13 @@ Second: The value of 𝑦 when 𝑥 = 60 <span class="req">*</span>
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 6 -->
+    <!-- Q6 -->
     <div class="card question" data-correct="4 h">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 6: If the speed of completing a task is inversely proportional to time, and it was completed in eight hours at a certain speed, what is the time if the speed is doubled?', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If the speed of completing a task is inversely proportional to time, and it was completed in eight hours at a certain speed, what is the time if the speed is doubled?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If the speed of completing a task is inversely proportional to time, and it was completed in eight hours at a certain speed, what is the time if the speed is doubled?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 6
 If the speed of completing a task is inversely proportional to time, and it was completed in 8 hours at a certain speed, what is the time if the speed is doubled <span class="req">*</span>
       </h3>
@@ -248,10 +279,13 @@ If the speed of completing a task is inversely proportional to time, and it was 
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 7 -->
+    <!-- Q7 -->
     <div class="card question" data-correct="k=12 , y=12/x">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 7: If Y varies inversely as X, and Y equals six when X equals two, find the constant of variation and the equation.', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If Y varies inversely as X, and Y equals six when X equals two, find the constant of variation and the equation.', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If Y varies inversely as X, and Y equals six when X equals two, find the constant of variation and the equation.', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 7
 If 𝑦 varies inversely as 𝑥, and 𝑦 = 6 when 𝑥 = 2, find the constant of variation and the equation. <span class="req">*</span>
       </h3>
@@ -263,10 +297,13 @@ If 𝑦 varies inversely as 𝑥, and 𝑦 = 6 when 𝑥 = 2, find the constant 
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 8 -->
+    <!-- Q8 -->
     <div class="card question" data-correct="24 kg">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 8: If the weight of a body on the moon W is directly proportional with its weight on the ground R. If the body weighs eighty four kilograms on the ground and its weight on the moon is fourteen kilograms, what will its weight be on the moon if its weight on the ground is one hundred forty four kilograms?', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If the weight of a body on the moon W is directly proportional with its weight on the ground R. If the body weighs eighty four kilograms on the ground and its weight on the moon is fourteen kilograms, what will its weight be on the moon if its weight on the ground is one hundred forty four kilograms?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If the weight of a body on the moon is directly proportional with its weight on the ground. If the body weighs eighty four kilograms on the ground and its weight on the moon is fourteen kilograms, what will its weight be on the moon if its weight on the ground is one hundred forty four kilograms?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 8
 If the weight of a body on the moon (𝑊) is directly proportional with its weight on the ground (𝑅). If the body weighs 84 kg. on the ground and its weight on the moon is 14 kg., what will its weight be on the moon if its weight on the ground is 144 kg.? <span class="req">*</span>
       </h3>
@@ -278,10 +315,13 @@ If the weight of a body on the moon (𝑊) is directly proportional with its wei
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 9 -->
+    <!-- Q9 -->
     <div class="card question" data-correct="128">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 9: If Y squared is proportional to one over square root of X, and X equals eight as Y equals three, find X as Y equals one point five.', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If Y squared is proportional to one over square root of X, and X equals eight as Y equals three, find X as Y equals one point five.', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If Y squared is proportional to one over square root of X, and X equals eight as Y equals three, find X as Y equals one point five.', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 9
 If 𝑦² ∝ 1/√x and 𝑋=8 as 𝑦=3, find 𝑋 as 𝑦=1.5 <span class="req">*</span>
       </h3>
@@ -293,10 +333,13 @@ If 𝑦² ∝ 1/√x and 𝑋=8 as 𝑦=3, find 𝑋 as 𝑦=1.5 <span class="re
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 10 -->
-    <div class="card question" data-correct="y=4">
+    <!-- Q10 -->
+    <div class="card question" data-correct="y=1">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 10: If Y is proportional to X cubed, and Y equals sixty four as X equals two, find the relation between X and Y, and find the value of Y as X equals one half.', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If Y is proportional to X cubed, and Y equals sixty four as X equals two, find the relation between X and Y, and find the value of Y as X equals one half.', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If Y is proportional to X cubed, and Y equals sixty four as X equals two, find the relation between X and Y, and find the value of Y as X equals one half.', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 10
 If 𝑦 ∝ 𝑋³ and 𝑦=64 as 𝑋=2, find the relation between 𝑋 and 𝑦 and find the value of y as 𝑋=1/2 <span class="req">*</span>
       </h3>
@@ -308,10 +351,13 @@ If 𝑦 ∝ 𝑋³ and 𝑦=64 as 𝑋=2, find the relation between 𝑋 and �
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 11 -->
+    <!-- Q11 -->
     <div class="card question" data-correct="5/3">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 11: If Y is proportional to X, and Y equals five when X equals three, then the constant proportional equals what?', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If Y is proportional to X, and Y equals five when X equals three, then the constant proportional equals what?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If Y is proportional to X, and Y equals five when X equals three, then the constant proportional equals what?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 11
 If 𝑦 ∝ 𝑋 and 𝑦=5 when 𝑋=3, then the constant proportional equals ......... <span class="req">*</span>
       </h3>
@@ -323,10 +369,13 @@ If 𝑦 ∝ 𝑋 and 𝑦=5 when 𝑋=3, then the constant proportional equals .
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 12 -->
+    <!-- Q12 -->
     <div class="card question" data-correct="c)5">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 12: If Y is proportional to one over X, Y equals three when X equals twenty, then what is the value of Y when X equals twelve?', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If Y is proportional to one over X, Y equals three when X equals twenty, then what is the value of Y when X equals twelve?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If Y is proportional to one over X, Y equals three when X equals twenty, then what is the value of Y when X equals twelve?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 12
 If 𝑦 ∝ 1/𝑋 , 𝑦=3 when 𝑋=20, then what is the value of 𝑦 when 𝑋=12? <span class="req">*</span>
       </h3>
@@ -338,10 +387,13 @@ If 𝑦 ∝ 1/𝑋 , 𝑦=3 when 𝑋=20, then what is the value of 𝑦 when �
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 13 -->
+    <!-- Q13 -->
     <div class="card question" data-correct="(d) X∝1/Y">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 13: If Y equals M X where M is a constant not equal to zero, which of the following is wrong?', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If Y equals M X where M is a constant not equal to zero, which of the following is wrong?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If Y equals M X where M is a constant not equal to zero, which of the following is wrong?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 13
 If 𝑦=𝑚𝑋 where 𝑚 is a constant ≠0, which of the following is wrong <span class="req">*</span>
       </h3>
@@ -353,10 +405,13 @@ If 𝑦=𝑚𝑋 where 𝑚 is a constant ≠0, which of the following is wrong 
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 14 -->
+    <!-- Q14 -->
     <div class="card question" data-correct="(a) 1/X">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 14: If X times Y equals five, then Y is proportional to what?', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If X times Y equals five, then Y is proportional to what?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If X times Y equals five, then Y is proportional to what?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 14
 If 𝑋𝑦=5, then 𝑦 ∝ ..... <span class="req">*</span>
       </h3>
@@ -368,10 +423,13 @@ If 𝑋𝑦=5, then 𝑦 ∝ ..... <span class="req">*</span>
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 15 -->
+    <!-- Q15 -->
     <div class="card question" data-correct="(d) Xy=11">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 15: Which of the following relations represents an inverse variation between the two variables X and Y?', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('Which of the following relations represents an inverse variation between the two variables X and Y?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('Which of the following relations represents an inverse variation between the two variables X and Y?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 15
 Which of the following relations represents an inverse variation between the two variables 𝑋 and 𝑦? <span class="req">*</span>
       </h3>
@@ -383,10 +441,13 @@ Which of the following relations represents an inverse variation between the two
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 16 -->
+    <!-- Q16 -->
     <div class="card question" data-correct="(d) Xy=4">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 16: If Y is proportional to one over X, X equals one when Y equals four, then the relation between X and Y is what?', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If Y is proportional to one over X, X equals one when Y equals four, then the relation between X and Y is what?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If Y is proportional to one over X, X equals one when Y equals four, then the relation between X and Y is what?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 16
 If 𝑦 ∝ 1/𝑋 , 𝑋=1 when 𝑦=4, then the relation between 𝑋 and 𝑦 is ......... <span class="req">*</span>
       </h3>
@@ -398,10 +459,13 @@ If 𝑦 ∝ 1/𝑋 , 𝑋=1 when 𝑦=4, then the relation between 𝑋 and 𝑦
       <div class="feedback" role="alert"></div>
     </div>
 
-    <!-- QUESTION 17 -->
+    <!-- Q17 -->
     <div class="card question" data-correct="(c) 15/Y">
       <h3>
-        <button type="button" class="speak-btn" onclick="speakText('Question 17: If X over three equals five over Y, then X equals what?', null, this)" title="اسمع السؤال">🔊</button>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If X over three equals five over Y, then X equals what?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If X over three equals five over Y, then X equals what?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
         QUESTION 17
 If 𝑋/3 = 5/𝑦 , then 𝑋 = ..... <span class="req">*</span>
       </h3>
@@ -413,11 +477,292 @@ If 𝑋/3 = 5/𝑦 , then 𝑋 = ..... <span class="req">*</span>
       <div class="feedback" role="alert"></div>
     </div>
 
+    <!-- ============================================================
+         📝 UNIT 1 — LESSON 1 : RATIO AND PROPORTION
+         ============================================================ -->
+
+    <!-- Q18: 7X = 3y → X:y = 3:7 -->
+    <div class="card question" data-correct="3/7">
+      <h3>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If seven X equals three Y, then X to Y equals what?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If seven X equals three Y, then X to Y equals what?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
+        QUESTION 18
+If 7𝑋 = 3𝑦, then 𝑋 : 𝑦 = ....... <span class="req">*</span>
+      </h3>
+      <div class="points">نقطة واحدة</div>
+      <label class="option"><input type="radio" name="q18" value="7/3" required><span class="opt-text">7/3</span></label>
+      <label class="option"><input type="radio" name="q18" value="3/10"><span class="opt-text">3/10</span></label>
+      <label class="option"><input type="radio" name="q18" value="10/3"><span class="opt-text">10/3</span></label>
+      <label class="option"><input type="radio" name="q18" value="3/7"><span class="opt-text">3/7</span></label>
+      <div class="feedback" role="alert"></div>
+    </div>
+
+    <!-- Q19: third proportional to 4, 12 → 36 -->
+    <div class="card question" data-correct="16">
+      <h3>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('The third proportional for the numbers four, twelve, and forty eight is what?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('The third proportional for the numbers four, twelve, and forty eight is what?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
+        QUESTION 19
+The third proportional for the numbers 4, 12, 48 is ....... <span class="req">*</span>
+      </h3>
+      <div class="points">نقطة واحدة</div>
+      <label class="option"><input type="radio" name="q19" value="7" required><span class="opt-text">7</span></label>
+      <label class="option"><input type="radio" name="q19" value="32"><span class="opt-text">32</span></label>
+      <label class="option"><input type="radio" name="q19" value="16"><span class="opt-text">16</span></label>
+      <label class="option"><input type="radio" name="q19" value="36"><span class="opt-text">36</span></label>
+      <div class="feedback" role="alert"></div>
+    </div>
+
+    <!-- Q20: 3a:5b = 1:2 → a:b = 5/6 -->
+    <div class="card question" data-correct="5/6">
+      <h3>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If three A to five B equals one to two, then A to B equals what?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If three A to five B equals one to two, then A to B equals what?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
+        QUESTION 20
+If 3𝑎 : 5𝑏 = 1 : 2, then 𝑎 : 𝑏 = ....... <span class="req">*</span>
+      </h3>
+      <div class="points">نقطة واحدة</div>
+      <label class="option"><input type="radio" name="q20" value="6/5" required><span class="opt-text">6/5</span></label>
+      <label class="option"><input type="radio" name="q20" value="5/6"><span class="opt-text">5/6</span></label>
+      <label class="option"><input type="radio" name="q20" value="2/3"><span class="opt-text">2/3</span></label>
+      <label class="option"><input type="radio" name="q20" value="3/2"><span class="opt-text">3/2</span></label>
+      <div class="feedback" role="alert"></div>
+    </div>
+
+    <!-- Q21: 2X=7y → (X/y)⁻¹ = 2/7 -->
+    <div class="card question" data-correct="2/7">
+      <h3>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If two X equals seven Y, then X over Y to the power minus one equals what?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If two X equals seven Y, then X over Y to the power minus one equals what?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
+        QUESTION 21
+If 2𝑋 = 7𝑦, then (𝑋/𝑦)⁻¹ = ....... <span class="req">*</span>
+      </h3>
+      <div class="points">نقطة واحدة</div>
+      <label class="option"><input type="radio" name="q21" value="2/7" required><span class="opt-text">2/7</span></label>
+      <label class="option"><input type="radio" name="q21" value="7/2"><span class="opt-text">7/2</span></label>
+      <label class="option"><input type="radio" name="q21" value="49/4"><span class="opt-text">49/4</span></label>
+      <label class="option"><input type="radio" name="q21" value="4/49"><span class="opt-text">4/49</span></label>
+      <div class="feedback" role="alert"></div>
+    </div>
+
+    <!-- Q22: a,b,c,d proportional → b/d = a/c -->
+    <div class="card question" data-correct="b/d=a/c">
+      <h3>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If A, B, C and D are proportional quantities, then which relation is correct?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If A, B, C and D are proportional quantities, then which relation is correct?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
+        QUESTION 22
+If 𝑎, 𝑏, 𝑐 and 𝑑 are proportional quantities, then ....... <span class="req">*</span>
+      </h3>
+      <div class="points">نقطة واحدة</div>
+      <label class="option"><input type="radio" name="q22" value="b/d=a/c" required><span class="opt-text">b/d = a/c</span></label>
+      <label class="option"><input type="radio" name="q22" value="a/c=d/b"><span class="opt-text">a/c = d/b</span></label>
+      <label class="option"><input type="radio" name="q22" value="b/c=a/d"><span class="opt-text">b/c = a/d</span></label>
+      <label class="option"><input type="radio" name="q22" value="ab=cd"><span class="opt-text">ab = cd</span></label>
+      <div class="feedback" role="alert"></div>
+    </div>
+
+    <!-- Q23: a:b=2:3, b:c=5:6 → a:c=5:9 -->
+    <div class="card question" data-correct="5:9">
+      <h3>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If A to B equals two to three, and B to C equals five to six, then A to C equals what?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If A to B equals two to three, and B to C equals five to six, then A to C equals what?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
+        QUESTION 23
+If 𝑎 : 𝑏 = 2 : 3, 𝑏 : 𝑐 = 5 : 6, then 𝑎 : 𝑐 = ....... <span class="req">*</span>
+      </h3>
+      <div class="points">نقطة واحدة</div>
+      <label class="option"><input type="radio" name="q23" value="1:3" required><span class="opt-text">1 : 3</span></label>
+      <label class="option"><input type="radio" name="q23" value="3:5"><span class="opt-text">3 : 5</span></label>
+      <label class="option"><input type="radio" name="q23" value="2:3"><span class="opt-text">2 : 3</span></label>
+      <label class="option"><input type="radio" name="q23" value="5:9"><span class="opt-text">5 : 9</span></label>
+      <div class="feedback" role="alert"></div>
+    </div>
+
+    <!-- Q24: a:b:c=5:7:3, a+b=27.6 → 11.5, 16.1, 6.9 -->
+    <div class="card question" data-correct="a=11.5,b=16.1,c=6.9">
+      <h3>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If A to B to C equals five to seven to three, and A plus B equals twenty seven point six, find the value of A, B, and C.', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If A to B to C equals five to seven to three, and A plus B equals twenty seven point six, find the value of A, B, and C.', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
+        QUESTION 24
+If 𝑎 : 𝑏 : 𝑐 = 5 : 7 : 3 and 𝑎 + 𝑏 = 27.6,
+find the value of each of: 𝑎, 𝑏, and 𝑐. <span class="req">*</span>
+      </h3>
+      <div class="points">نقطتان (2)</div>
+      <label class="option"><input type="radio" name="q24" value="a=11.5,b=16.1,c=6.9" required><span class="opt-text">a = 11.5 , b = 16.1 , c = 6.9</span></label>
+      <label class="option"><input type="radio" name="q24" value="a=15,b=16.1,c=8"><span class="opt-text">a = 15 , b = 16.1 , c = 8</span></label>
+      <label class="option"><input type="radio" name="q24" value="a=11.5,b=20,c=6.9"><span class="opt-text">a = 11.5 , b = 20 , c = 6.9</span></label>
+      <label class="option"><input type="radio" name="q24" value="a=14,b=16.1,c=6.9"><span class="opt-text">a = 14 , b = 16.1 , c = 6.9</span></label>
+      <div class="feedback" role="alert"></div>
+    </div>
+
+    <!-- Q25: (7+x)/(11+x)=3/4 → x=5 -->
+    <div class="card question" data-correct="5">
+      <h3>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('Find the number that, when added to both terms of the ratio seven to eleven, makes it three to four.', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('Find the number that, when added to both terms of the ratio seven to eleven, makes it three to four.', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
+        QUESTION 25
+Find the number that, when added to both terms
+of the ratio 7 : 11, makes it 3 : 4. <span class="req">*</span>
+      </h3>
+      <div class="points">نقطتان (2)</div>
+      <label class="option"><input type="radio" name="q25" value="4" required><span class="opt-text">4</span></label>
+      <label class="option"><input type="radio" name="q25" value="5"><span class="opt-text">5</span></label>
+      <label class="option"><input type="radio" name="q25" value="20"><span class="opt-text">20</span></label>
+      <label class="option"><input type="radio" name="q25" value="6"><span class="opt-text">6</span></label>
+      <div class="feedback" role="alert"></div>
+    </div>
+
+    <!-- Q26: (29+x)/(46-x)=3/2 → x=16 -->
+    <div class="card question" data-correct="16">
+      <h3>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('Find the number that, when added to the numerator of the ratio twenty nine over forty six, and subtracted from its denominator, gives the ratio three over two.', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('Find the number that, when added to the numerator of the ratio twenty nine over forty six, and subtracted from its denominator, gives the ratio three over two.', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
+        QUESTION 26
+Find the number that, when added to the antecedent (numerator)
+of the ratio 29/46 and subtracted from its consequent (denominator),
+gives the ratio 3/2. <span class="req">*</span>
+      </h3>
+      <div class="points">نقطتان (2)</div>
+      <label class="option"><input type="radio" name="q26" value="46" required><span class="opt-text">46</span></label>
+      <label class="option"><input type="radio" name="q26" value="16"><span class="opt-text">16</span></label>
+      <label class="option"><input type="radio" name="q26" value="3"><span class="opt-text">3</span></label>
+      <label class="option"><input type="radio" name="q26" value="15"><span class="opt-text">15</span></label>
+      <div class="feedback" role="alert"></div>
+    </div>
+
+    <!-- Q27: 3+x, 5+x, 8+x, 12+x proportional → x=2 -->
+    <div class="card question" data-correct="2">
+      <h3>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('Find the value of X that makes the following numbers proportional: three plus X, five plus X, eight plus X, twelve plus X.', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('Find the value of X that makes the following numbers proportional: three plus X, five plus X, eight plus X, twelve plus X.', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
+        QUESTION 27
+Find the value of 𝑥 that makes the following numbers proportional:
+3 + 𝑥, 5 + 𝑥, 8 + 𝑥, 12 + 𝑥. <span class="req">*</span>
+      </h3>
+      <div class="points">نقطتان (2)</div>
+      <label class="option"><input type="radio" name="q27" value="2" required><span class="opt-text">2</span></label>
+      <label class="option"><input type="radio" name="q27" value="6"><span class="opt-text">6</span></label>
+      <label class="option"><input type="radio" name="q27" value="8"><span class="opt-text">8</span></label>
+      <label class="option"><input type="radio" name="q27" value="19"><span class="opt-text">19</span></label>
+      <div class="feedback" role="alert"></div>
+    </div>
+
+    <!-- Q28: 5a-7b : 2a+3b = 0 → b:a = 5/7 -->
+    <div class="card question" data-correct="5/7">
+      <h3>
+        <div class="question-actions">
+          <button type="button" class="speak-btn speak-en" onclick="speakText('If five A minus seven B to two A plus three B equals zero, then B to A equals what?', 'en-US', this)" title="اسمع بالإنجليزي">🔊</button>
+          <button type="button" class="speak-btn speak-ar" onclick="speakArabicQuestion('If five A minus seven B to two A plus three B equals zero, then B to A equals what?', this)" title="اسمع بالعربي">🇪🇬</button>
+        </div>
+        QUESTION 28
+If 5𝑎 − 7𝑏 : 2𝑎 + 3𝑏 = 0, then 𝑏 : 𝑎 = ....... <span class="req">*</span>
+      </h3>
+      <div class="points">نقطة واحدة</div>
+      <label class="option"><input type="radio" name="q28" value="5/7" required><span class="opt-text">5/7</span></label>
+      <label class="option"><input type="radio" name="q28" value="7/5"><span class="opt-text">7/5</span></label>
+      <label class="option"><input type="radio" name="q28" value="2/10"><span class="opt-text">2/10</span></label>
+      <label class="option"><input type="radio" name="q28" value="10/3"><span class="opt-text">10/3</span></label>
+      <div class="feedback" role="alert"></div>
+    </div>
+
     <div class="card submit-wrap">
       <button type="submit" class="submit-btn">إرسال الإجابات</button>
     </div>
   </form>
 </main>
+
 <script src="js/app.js" defer></script>
+
+<!-- ============================================================
+     🌐 دالة النطق بالعربي (مع ترجمة فورية)
+     ============================================================ -->
+<script>
+/**
+ * 🌐 نطق نص إنجليزي بالعربي (مع ترجمة فورية عبر Google Translate)
+ * @param {string} englishText - النص الإنجليزي
+ * @param {HTMLElement} btnEl - الزر (للتأثير البصري)
+ */
+async function speakArabicQuestion(englishText, btnEl) {
+  if (!englishText || !englishText.trim()) return;
+
+  /* 🎨 حالة تحميل على الزر */
+  const originalText = btnEl ? btnEl.textContent : '🇪🇬';
+  if (btnEl) {
+    btnEl.classList.add('speaking-now');
+    btnEl.textContent = '⏳';
+    btnEl.disabled = true;
+  }
+
+  try {
+    /* 🌐 ترجمة عبر Google Translate */
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ar&dt=t&q=${encodeURIComponent(englishText)}`;
+
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Translation failed ' + response.status);
+
+    const data = await response.json();
+    let arabicText = '';
+
+    if (data && data[0] && Array.isArray(data[0])) {
+      arabicText = data[0].map(item => item[0]).join('');
+    }
+
+    if (!arabicText) {
+      arabicText = englishText;
+    }
+
+    /* 🔊 نطق الترجمة بالعربي */
+    if (typeof speak === 'function') {
+      speak(arabicText, 'ar-EG', 0.85, null);
+    } else if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(arabicText);
+      u.lang = 'ar-EG';
+      u.rate = 0.85;
+      window.speechSynthesis.speak(u);
+    }
+
+    /* ✅ إرجاع الزر لحالته */
+    setTimeout(() => {
+      if (btnEl) {
+        btnEl.textContent = originalText;
+        btnEl.disabled = false;
+        btnEl.classList.remove('speaking-now');
+      }
+    }, 800);
+
+  } catch (err) {
+    console.error('❌ فشل نطق الترجمة:', err);
+    if (typeof showToast === 'function') {
+      showToast('❌ فشل تحميل الترجمة الصوتية', 'error');
+    }
+    if (btnEl) {
+      btnEl.textContent = originalText;
+      btnEl.disabled = false;
+      btnEl.classList.remove('speaking-now');
+    }
+  }
+}
+</script>
+
 </body>
 </html>
