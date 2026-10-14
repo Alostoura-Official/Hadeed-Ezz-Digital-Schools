@@ -607,26 +607,12 @@ async function renderPage(n) {
 
 /* ================================================================
    9) 🔤 طبقة النص (Text Layer)
-   ----------------------------------------------------------------
-   - تضيف طبقة شفافة فوق الـ canvas
-   - كل جملة نصية تُصبح قابلة للضغط
-   - عند الضغط: ترجمة فورية
-   - تستخدم renderTextLayer الرسمية من PDF.js عند توفرها
    ================================================================ */
 
-/**
- * 🔤 بناء طبقة النص (شفافة 100%)
- * ----------------------------------------------------------------
- * - لا تعرض أي نص — فقط مناطق قابلة للضغط
- * - كل منطقة فوق النص الأصلي في PDF
- * - عند الضغط: ترجمة → لوحة جانبية
- * - ✅ صفر تداخل مع النص الأصلي
- */
 async function buildTextLayer(page, viewport, container) {
   try {
     const textContent = await page.getTextContent();
 
-    /* ✅ الحاوية الشفافة */
     const layer = document.createElement('div');
     layer.className = 'text-layer';
 
@@ -637,7 +623,7 @@ async function buildTextLayer(page, viewport, container) {
       width: `${viewport.width}px`,
       height: `${viewport.height}px`,
       overflow: 'hidden',
-      pointerEvents: 'none',        /* ✅ الحاوية شفافة */
+      pointerEvents: 'none',
       margin: '0',
       padding: '0',
       border: '0',
@@ -648,7 +634,6 @@ async function buildTextLayer(page, viewport, container) {
 
     const scale = viewport.scale;
 
-    /* 🎯 إنشاء منطقة ضغط لكل جزء نص */
     textContent.items.forEach(item => {
       if (!item.str || !item.str.trim() || !item.transform) return;
 
@@ -661,10 +646,11 @@ async function buildTextLayer(page, viewport, container) {
         ? fontStyle.ascent
         : 0.8;
 
-      const top = tx[5] - fontHeight * ascent;
+      /* ⬇️ هنا التعديل */
+      const top = tx[5] - fontHeight * ascent - 4;   // ← -4 للرفع
+
       const width = (item.width || 0) * scale;
 
-      /* ✅ منطقة شفافة قابلة للضغط — بدون نص مرئي */
       const hitArea = document.createElement('div');
       hitArea.className = 'text-hit-area';
       hitArea.dataset.text = item.str;
@@ -675,9 +661,9 @@ async function buildTextLayer(page, viewport, container) {
         top: `${top}px`,
         width: `${width}px`,
         height: `${fontHeight}px`,
-        background: 'transparent',       /* ✅ شفاف */
+        background: 'transparent',
         cursor: 'pointer',
-        pointerEvents: 'auto',            /* ✅ قابل للضغط */
+        pointerEvents: 'auto',
         borderRadius: '3px',
         transition: 'background .15s ease',
         zIndex: '3'
