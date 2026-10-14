@@ -609,17 +609,6 @@ async function renderPage(n) {
    9) 🔤 طبقة النص (Text Layer)
    ================================================================ */
 
-/**
- * 🎯 معامل الإزاحة الرأسية لطبقة النص
- * ----------------------------------------------------------------
- * قيمة نسبية من حجم الخط — تتناسب مع كل الأحجام
- * - 0.10 = 10% من حجم الخط (إزاحة بسيطة)
- * - 0.15 = 15% (إزاحة متوسطة — موصى به)
- * - 0.20 = 20% (إزاحة كبيرة)
- * - 0 = بدون إزاحة
- */
-const TEXT_LAYER_OFFSET_RATIO = 0.15;
-
 async function buildTextLayer(page, viewport, container) {
   try {
     const textContent = await page.getTextContent();
@@ -648,18 +637,27 @@ async function buildTextLayer(page, viewport, container) {
     textContent.items.forEach(item => {
       if (!item.str || !item.str.trim() || !item.transform) return;
 
+      // ✅ استخدام transform مباشرة (أدق من Util.transform)
       const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
       const fontHeight = Math.hypot(tx[2], tx[3]);
       if (!Number.isFinite(fontHeight) || fontHeight <= 0) return;
 
+      // ✅ استخدام item.height إن وُجد (أدق)
+      const itemH = Number.isFinite(item.height)
+        ? item.height * scale
+        : fontHeight;
+
+      // ✅ حساب top بدقة: tx[5] هو baseline
+      // نطرح itemH كاملة لأن CSS top يبدأ من أعلى الصندوق
+      // ونضيف تعديل صغير لـ ascent حسب الخط
       const fontStyle = textContent.styles?.[item.fontName] || {};
       const ascent = Number.isFinite(fontStyle.ascent)
         ? fontStyle.ascent
         : 0.8;
 
-      /* ✅ إزاحة نسبية — تتناسب مع حجم الخط */
-      const offsetY = fontHeight * TEXT_LAYER_OFFSET_RATIO;
-      const top = tx[5] - fontHeight * ascent - offsetY;
+      // 🎯 المعادلة المضبوطة:
+      // baseline_y - (ascent * fontHeight) = top الحقيقي
+      const top = tx[5] - (ascent * itemH);
 
       const width = (item.width || 0) * scale;
 
@@ -672,16 +670,20 @@ async function buildTextLayer(page, viewport, container) {
         left: `${tx[4]}px`,
         top: `${top}px`,
         width: `${width}px`,
-        height: `${fontHeight}px`,
+        height: `${itemH}px`,          // ✅ height من item مباشرة
+        lineHeight: `${itemH}px`,      // ✅ يمنع التمدد
+        padding: '0',
+        margin: '0',
+        boxSizing: 'border-box',
         background: 'transparent',
         cursor: 'pointer',
         pointerEvents: 'auto',
-        borderRadius: '3px',
+        borderRadius: '2px',
         transition: 'background .15s ease',
         zIndex: '3'
       });
 
-      /* 🎨 عند التحويم */
+      // 🎨 تأثير التحويم
       hitArea.addEventListener('mouseenter', () => {
         hitArea.style.background = 'rgba(234, 124, 12, 0.15)';
         hitArea.style.outline = '1.5px dashed rgba(234, 124, 12, 0.5)';
@@ -694,7 +696,7 @@ async function buildTextLayer(page, viewport, container) {
         }
       });
 
-      /* 🎯 عند الضغط */
+      // 🎯 عند الضغط: ترجمة
       hitArea.addEventListener('click', (e) => {
         e.stopPropagation();
 
@@ -715,11 +717,94 @@ async function buildTextLayer(page, viewport, container) {
     });
 
     container.appendChild(layer);
-
     console.log(`🔤 عدد مناطق الضغط: ${layer.querySelectorAll('.text-hit-area').length}`);
 
   } catch (err) {
     console.warn('⚠️ فشل بناء طبقة النص:', err);
+  }
+}
+/**
+ * 🔤 الطريقة اليدوية (fallback)
+ * - تستخدم عند فشل renderTextLayer
+ * - تعتمد على item.transform لضبط المواضع
+ */
+async function buildTextLayerManual(page, viewport, container) {
+  try {
+    const textContent = await page.getTextContent();
+
+    const layer = document.createElement('div');
+    layer.className = 'text-layer';
+
+    Object.assign(layer.style, {
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      width: `${viewport.width}px`,
+      height: `${viewport.height}px`,
+      overflow: 'hidden',
+      pointerEvents: 'none',
+      margin: '0',
+      padding: '0',
+      border: '0'
+    });
+
+    const scale = viewport.scale;
+
+    textContent.items.forEach(item => {
+      if (!item.str || !item.str.trim() || !item.transform) return;
+
+      const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+      const fontHeight = Math.hypot(tx[2], tx[3]);
+      if (!Number.isFinite(fontHeight) || fontHeight <= 0) return;
+
+      const fontStyle = textContent.styles?.[item.fontName] || {};
+      const ascent = Number.isFinite(fontStyle.ascent)
+        ? fontStyle.ascent
+        : 0.8;
+
+      const top = tx[5] - fontHeight * ascent;
+      const width = (item.width || 0) * scale;
+
+      const span = document.createElement('span');
+      span.className = 'text-span';
+      span.textContent = item.str;
+      span.dataset.text = item.str;
+
+      Object.assign(span.style, {
+        position: 'absolute',
+        left: `${tx[4]}px`,
+        top: `${top}px`,
+        fontSize: `${fontHeight}px`,
+        fontFamily: 'sans-serif',
+        lineHeight: '1',
+        whiteSpace: 'pre',
+        display: 'inline-block',
+        width: `${width}px`,
+        maxWidth: `${width}px`,
+        overflow: 'hidden',
+        color: 'transparent',
+        pointerEvents: 'auto',
+        cursor: 'pointer',
+        fontKerning: 'none',
+        fontVariantLigatures: 'none',
+        letterSpacing: '0'
+      });
+
+      span.addEventListener('click', event => {
+        event.stopPropagation();
+        document.querySelectorAll('.text-span.selected')
+          .forEach(el => el.classList.remove('selected'));
+        span.classList.add('selected');
+        translateText(item.str);
+      });
+
+      layer.appendChild(span);
+    });
+
+    container.appendChild(layer);
+
+  } catch (err) {
+    console.warn('⚠️ فشل الـ fallback:', err);
   }
 }
 
