@@ -532,18 +532,27 @@
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;
   overflow: hidden;
+  pointer-events: none;
+  transform-origin: 0 0;
 }
 
+/* النصوص القابلة للضغط والترجمة */
 .text-span {
   position: absolute;
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-sizing: border-box;
   color: transparent;
   cursor: pointer;
   pointer-events: auto;
-  transition: background-color .15s;
+  white-space: pre;
+  line-height: 1;
+  transform-origin: 0 0;
+  transition: background-color 0.15s;
   border-radius: 2px;
-  padding: 1px 2px;
 }
 
 .text-span:hover {
@@ -552,7 +561,7 @@
 
 .text-span.selected {
   background-color: rgba(234, 124, 12, 0.6);
-  color: rgba(255,255,255,0.95);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .reader-loading {
