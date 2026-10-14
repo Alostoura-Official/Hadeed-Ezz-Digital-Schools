@@ -133,6 +133,7 @@
       <button id="readerZoomOut" onclick="readerZoom(-1)" title="تصغير">➖</button>
       <button id="readerZoomIn" onclick="readerZoom(1)" title="تكبير">➕</button>
       <button id="readerTrans" onclick="toggleTranslation()" title="الترجمة">🌐</button>
+      <button id="readerAutoSpeak" onclick="toggleAutoSpeak()" title="النطق التلقائي">🔊</button>
       <button id="readerFullscreen" onclick="readerFullscreen()" title="ملء الشاشة">⛶</button>
     </div>
   </div>
@@ -142,9 +143,12 @@
     </div>
     <aside class="translation-panel" id="translationPanel">
       <div class="trans-header">
-        <h3>🌐 الترجمة الفورية</h3>
-        <button onclick="clearTranslation()" title="مسح">🗑️</button>
-      </div>
+  <h3>🌐 الترجمة الفورية</h3>
+  <div class="trans-header-actions">
+    <button onclick="clearTranslation()" title="مسح الكل" aria-label="مسح الكل">🗑️</button>
+    <button class="trans-close-btn" onclick="toggleTranslation()" title="إغلاق" aria-label="إغلاق">✕</button>
+  </div>
+</div>
       <div class="trans-lang-tabs">
         <button class="trans-tab active" data-lang="ar" onclick="setTransLang('ar')">🇪🇬 عربي</button>
         <button class="trans-tab" data-lang="en" onclick="setTransLang('en')">🇬🇧 English</button>
@@ -167,7 +171,8 @@
 
 <!-- Overlay -->
 <div class="reader-overlay" id="readerOverlay" onclick="closeReader()"></div>
-
+<!--  لإغلاق لوحة الترجمة عند الضغط خارجها -->
+<div class="trans-overlay" id="transOverlay" onclick="toggleTranslation()"></div>
 <script src="js/lib/pdf.min.js"></script>
 <script>
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/lib/pdf.worker.min.js';
