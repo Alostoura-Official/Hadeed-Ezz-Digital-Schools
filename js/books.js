@@ -657,7 +657,7 @@ async function buildTextLayer(page, viewport, container) {
 
       // 🎯 المعادلة المضبوطة:
       // baseline_y - (ascent * fontHeight) = top الحقيقي
-      const top = tx[5] - itemH * 0.85 + 10;
+      const top = tx[5] - itemH * 0.85 + 14;
 
       const width = (item.width || 0) * scale;
 
