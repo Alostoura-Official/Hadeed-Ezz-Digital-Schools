@@ -691,20 +691,133 @@ async function renderPage(n) {
 
 /* ================================================================
    9) 🔤 طبقة النص (Text Layer)
+   ----------------------------------------------------------------
+   - تضيف طبقة شفافة فوق الـ canvas
+   - كل جملة نصية تُصبح قابلة للضغط
+   - عند الضغط: ترجمة فورية
+   - تستخدم renderTextLayer الرسمية من PDF.js عند توفرها
    ================================================================ */
 
 /**
- * 🎯 معامل الإزاحة الرأسية لطبقة النص
+ * 🔤 بناء طبقة النص (شفافة 100%)
  * ----------------------------------------------------------------
- * قيمة نسبية من حجم الخط — تتناسب مع كل الأحجام
- * - 0.10 = 10% من حجم الخط (إزاحة بسيطة)
- * - 0.15 = 15% (إزاحة متوسطة — موصى به)
- * - 0.20 = 20% (إزاحة كبيرة)
- * - 0 = بدون إزاحة
+ * - لا تعرض أي نص — فقط مناطق قابلة للضغط
+ * - كل منطقة فوق النص الأصلي في PDF
+ * - عند الضغط: ترجمة → لوحة جانبية
+ * - ✅ صفر تداخل مع النص الأصلي
  */
-const TEXT_LAYER_OFFSET_RATIO = 0.15;
-
 async function buildTextLayer(page, viewport, container) {
+  try {
+    const textContent = await page.getTextContent();
+
+    /* ✅ الحاوية الشفافة */
+    const layer = document.createElement('div');
+    layer.className = 'text-layer';
+
+    Object.assign(layer.style, {
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      width: `${viewport.width}px`,
+      height: `${viewport.height}px`,
+      overflow: 'hidden',
+      pointerEvents: 'none',        /* ✅ الحاوية شفافة */
+      margin: '0',
+      padding: '0',
+      border: '0',
+      transform: 'none',
+      transformOrigin: '0 0',
+      zIndex: '2'
+    });
+
+    const scale = viewport.scale;
+
+    /* 🎯 إنشاء منطقة ضغط لكل جزء نص */
+    textContent.items.forEach(item => {
+      if (!item.str || !item.str.trim() || !item.transform) return;
+
+      const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+      const fontHeight = Math.hypot(tx[2], tx[3]);
+      if (!Number.isFinite(fontHeight) || fontHeight <= 0) return;
+
+      const fontStyle = textContent.styles?.[item.fontName] || {};
+      const ascent = Number.isFinite(fontStyle.ascent)
+        ? fontStyle.ascent
+        : 0.8;
+
+      const top = tx[5] - fontHeight * ascent;
+      const width = (item.width || 0) * scale;
+
+      /* ✅ منطقة شفافة قابلة للضغط — بدون نص مرئي */
+      const hitArea = document.createElement('div');
+      hitArea.className = 'text-hit-area';
+      hitArea.dataset.text = item.str;
+
+      Object.assign(hitArea.style, {
+        position: 'absolute',
+        left: `${tx[4]}px`,
+        top: `${top}px`,
+        width: `${width}px`,
+        height: `${fontHeight}px`,
+        background: 'transparent',       /* ✅ شفاف */
+        cursor: 'pointer',
+        pointerEvents: 'auto',            /* ✅ قابل للضغط */
+        borderRadius: '3px',
+        transition: 'background .15s ease',
+        zIndex: '3'
+      });
+
+      /* 🎨 عند التحويم — إظهار إطار خفيف */
+      hitArea.addEventListener('mouseenter', () => {
+        hitArea.style.background = 'rgba(234, 124, 12, 0.15)';
+        hitArea.style.outline = '1.5px dashed rgba(234, 124, 12, 0.5)';
+      });
+
+      hitArea.addEventListener('mouseleave', () => {
+        if (!hitArea.classList.contains('selected')) {
+          hitArea.style.background = 'transparent';
+          hitArea.style.outline = 'none';
+        }
+      });
+
+      /* 🎯 عند الضغط: ترجمة */
+      hitArea.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        /* إزالة التحديد من كل المناطق */
+        document.querySelectorAll('.text-hit-area.selected').forEach(el => {
+          el.classList.remove('selected');
+          el.style.background = 'transparent';
+          el.style.outline = 'none';
+        });
+
+        /* تمييز المنطقة الحالية */
+        hitArea.classList.add('selected');
+        hitArea.style.background = 'rgba(234, 124, 12, 0.25)';
+        hitArea.style.outline = '2px solid rgba(234, 124, 12, 0.8)';
+
+        /* 🌐 ترجمة النص */
+        translateText(item.str);
+      });
+
+      layer.appendChild(hitArea);
+    });
+
+    container.appendChild(layer);
+
+    console.log(`🔤 عدد مناطق الضغط: ${layer.querySelectorAll('.text-hit-area').length}`);
+
+  } catch (err) {
+    console.warn('⚠️ فشل بناء طبقة النص:', err);
+  }
+}
+
+/**
+ * 🔤 الطريقة اليدوية (fallback)
+ * - تستخدم عند فشل renderTextLayer
+ * - تعتمد على item.transform لضبط المواضع
+ */
+async function buildTextLayerManual(page, viewport, container) {
   try {
     const textContent = await page.getTextContent();
 
@@ -721,10 +834,7 @@ async function buildTextLayer(page, viewport, container) {
       pointerEvents: 'none',
       margin: '0',
       padding: '0',
-      border: '0',
-      transform: 'none',
-      transformOrigin: '0 0',
-      zIndex: '2'
+      border: '0'
     });
 
     const scale = viewport.scale;
@@ -741,72 +851,51 @@ async function buildTextLayer(page, viewport, container) {
         ? fontStyle.ascent
         : 0.8;
 
-      /* ✅ إزاحة نسبية — تتناسب مع حجم الخط */
-      const offsetY = fontHeight * TEXT_LAYER_OFFSET_RATIO;
-      const top = tx[5] - fontHeight * ascent - offsetY;
-
+      const top = tx[5] - fontHeight * ascent;
       const width = (item.width || 0) * scale;
 
-      const hitArea = document.createElement('div');
-      hitArea.className = 'text-hit-area';
-      hitArea.dataset.text = item.str;
+      const span = document.createElement('span');
+      span.className = 'text-span';
+      span.textContent = item.str;
+      span.dataset.text = item.str;
 
-      Object.assign(hitArea.style, {
+      Object.assign(span.style, {
         position: 'absolute',
         left: `${tx[4]}px`,
         top: `${top}px`,
+        fontSize: `${fontHeight}px`,
+        fontFamily: 'sans-serif',
+        lineHeight: '1',
+        whiteSpace: 'pre',
+        display: 'inline-block',
         width: `${width}px`,
-        height: `${fontHeight}px`,
-        background: 'transparent',
-        cursor: 'pointer',
+        maxWidth: `${width}px`,
+        overflow: 'hidden',
+        color: 'transparent',
         pointerEvents: 'auto',
-        borderRadius: '3px',
-        transition: 'background .15s ease',
-        zIndex: '3'
+        cursor: 'pointer',
+        fontKerning: 'none',
+        fontVariantLigatures: 'none',
+        letterSpacing: '0'
       });
 
-      /* 🎨 عند التحويم */
-      hitArea.addEventListener('mouseenter', () => {
-        hitArea.style.background = 'rgba(234, 124, 12, 0.15)';
-        hitArea.style.outline = '1.5px dashed rgba(234, 124, 12, 0.5)';
-      });
-
-      hitArea.addEventListener('mouseleave', () => {
-        if (!hitArea.classList.contains('selected')) {
-          hitArea.style.background = 'transparent';
-          hitArea.style.outline = 'none';
-        }
-      });
-
-      /* 🎯 عند الضغط */
-      hitArea.addEventListener('click', (e) => {
-        e.stopPropagation();
-
-        document.querySelectorAll('.text-hit-area.selected').forEach(el => {
-          el.classList.remove('selected');
-          el.style.background = 'transparent';
-          el.style.outline = 'none';
-        });
-
-        hitArea.classList.add('selected');
-        hitArea.style.background = 'rgba(234, 124, 12, 0.25)';
-        hitArea.style.outline = '2px solid rgba(234, 124, 12, 0.8)';
-
+      span.addEventListener('click', event => {
+        event.stopPropagation();
+        document.querySelectorAll('.text-span.selected')
+          .forEach(el => el.classList.remove('selected'));
+        span.classList.add('selected');
         translateText(item.str);
       });
 
-      layer.appendChild(hitArea);
+      layer.appendChild(span);
     });
 
     container.appendChild(layer);
 
-    console.log(`🔤 عدد مناطق الضغط: ${layer.querySelectorAll('.text-hit-area').length}`);
-
   } catch (err) {
-    console.warn('⚠️ فشل بناء طبقة النص:', err);
+    console.warn('⚠️ فشل الـ fallback:', err);
   }
 }
-
 
 /* ================================================================
    10) 🌐 الترجمة (Translation)
