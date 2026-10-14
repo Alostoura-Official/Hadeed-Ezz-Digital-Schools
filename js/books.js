@@ -649,14 +649,78 @@ async function renderPage(n) {
    - عند الضغط: ترجمة فورية
    ================================================================ */
 
-/**
- * 🔤 بناء طبقة النص القابل للضغط
- * @param {Object} page - كائن الصفحة من pdfjs
- * @param {Object} viewport - الأبعاد
- * @param {HTMLElement} container - الحاوية
- */
-
 async function buildTextLayer(page, viewport, container) {
+  try {
+    const textContent = await page.getTextContent();
+
+    /* ✅ تحميل المكتبة المساعدة */
+    if (typeof pdfjsLib.renderTextLayer !== 'function') {
+      console.warn('⚠️ renderTextLayer غير متوفرة — استخدام الطريقة اليدوية');
+      return buildTextLayerManual(page, viewport, container);
+    }
+
+    const textLayerDiv = document.createElement('div');
+    textLayerDiv.className = 'text-layer';
+
+    Object.assign(textLayerDiv.style, {
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      width: `${viewport.width}px`,
+      height: `${viewport.height}px`,
+      overflow: 'hidden',
+      pointerEvents: 'auto',
+      margin: '0',
+      padding: '0',
+      border: '0',
+      transform: 'none',
+      /* مهم: نفس أبعاد الـ canvas */
+      transformOrigin: '0 0'
+    });
+
+    container.appendChild(textLayerDiv);
+
+    /* 🎯 استخدام renderTextLayer الرسمية */
+    const task = pdfjsLib.renderTextLayer({
+      textContentSource: textContent,
+      container: textLayerDiv,
+      viewport: viewport,
+      textDivs: [],
+      enhanceTextSelection: false
+    });
+
+    await task.promise;
+
+    /* 🎨 تحويل الـ spans إلى قابلة للضغط */
+    const spans = textLayerDiv.querySelectorAll('span');
+    spans.forEach(span => {
+      span.style.cursor = 'pointer';
+      span.style.pointerEvents = 'auto';
+
+      span.addEventListener('click', event => {
+        event.stopPropagation();
+
+        document.querySelectorAll('.text-span.selected')
+          .forEach(el => el.classList.remove('selected'));
+
+        span.classList.add('selected');
+        translateText(span.textContent);
+      });
+
+      span.classList.add('text-span');
+    });
+
+  } catch (err) {
+    console.warn('⚠️ فشل renderTextLayer:', err);
+    /* 🆘 fallback للطريقة اليدوية */
+    await buildTextLayerManual(page, viewport, container);
+  }
+}
+
+/**
+ * 🔤 الطريقة اليدوية (fallback)
+ */
+async function buildTextLayerManual(page, viewport, container) {
   try {
     const textContent = await page.getTextContent();
 
@@ -670,36 +734,25 @@ async function buildTextLayer(page, viewport, container) {
       width: `${viewport.width}px`,
       height: `${viewport.height}px`,
       overflow: 'hidden',
-      pointerEvents: 'none',
-      margin: '0',
-      padding: '0',
-      border: '0',
-      transform: 'none'
+      pointerEvents: 'none'
     });
+
+    const scale = viewport.scale;
 
     textContent.items.forEach(item => {
       if (!item.str || !item.str.trim() || !item.transform) return;
 
-      const tx = pdfjsLib.Util.transform(
-        viewport.transform,
-        item.transform
-      );
-
+      const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
       const fontHeight = Math.hypot(tx[2], tx[3]);
-
       if (!Number.isFinite(fontHeight) || fontHeight <= 0) return;
 
       const fontStyle = textContent.styles?.[item.fontName] || {};
-
-      /* استخدام مقاييس الخط عند توفرها */
       const ascent = Number.isFinite(fontStyle.ascent)
         ? fontStyle.ascent
-        : Number.isFinite(fontStyle.descent)
-          ? 1 + fontStyle.descent
-          : 0.8;
+        : 0.8;
 
       const top = tx[5] - fontHeight * ascent;
-      const angle = Math.atan2(tx[1], tx[0]);
+      const width = (item.width || 0) * scale;
 
       const span = document.createElement('span');
       span.className = 'text-span';
@@ -712,29 +765,24 @@ async function buildTextLayer(page, viewport, container) {
         top: `${top}px`,
         fontSize: `${fontHeight}px`,
         fontFamily: 'sans-serif',
-        fontWeight: '400',
         lineHeight: '1',
         whiteSpace: 'pre',
-        direction: 'ltr',
         display: 'inline-block',
-        width: 'max-content',
-        margin: '0',
-        padding: '0',
-        border: '0',
+        width: `${width}px`,
+        maxWidth: `${width}px`,
+        overflow: 'hidden',
         color: 'transparent',
-        transformOrigin: '0 0',
-        transform: angle ? `rotate(${angle}rad)` : 'none',
         pointerEvents: 'auto',
         cursor: 'pointer',
-        userSelect: 'text'
+        fontKerning: 'none',
+        fontVariantLigatures: 'none',
+        letterSpacing: '0'
       });
 
       span.addEventListener('click', event => {
         event.stopPropagation();
-
         document.querySelectorAll('.text-span.selected')
           .forEach(el => el.classList.remove('selected'));
-
         span.classList.add('selected');
         translateText(item.str);
       });
@@ -745,7 +793,7 @@ async function buildTextLayer(page, viewport, container) {
     container.appendChild(layer);
 
   } catch (err) {
-    console.warn('⚠️ فشل بناء طبقة النص:', err);
+    console.warn('⚠️ فشل الـ fallback:', err);
   }
 }
 
