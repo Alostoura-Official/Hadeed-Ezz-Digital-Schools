@@ -855,3 +855,237 @@
   0%, 100% { opacity: 0.7; }
   50% { opacity: 0.4; }
 }
+
+/* ================================================================
+   🔊 أزرار الترجمة الصوتية
+   ================================================================ */
+
+/* صف العنوان الأصلي + زر الصوت */
+.trans-header-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.trans-header-row .original {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+/* زر الصوت */
+.trans-speak-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .25s var(--ease-bounce);
+  padding: 0;
+}
+
+.trans-speak-btn:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  transform: scale(1.12);
+}
+
+.trans-speak-btn.speaking-now {
+  background: linear-gradient(135deg, var(--primary), var(--primary-700));
+  color: #fff;
+  border-color: transparent;
+  transform: scale(1.15);
+  animation: speakPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes speakPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px var(--primary-glow), 0 0 18px var(--primary-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(234, 124, 12, .15), 0 0 30px rgba(234, 124, 12, .8);
+  }
+}
+
+/* تذييل الترجمة: اللغة + زر النسخ */
+.trans-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  gap: 8px;
+}
+
+/* زر النسخ */
+.trans-copy-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s var(--ease);
+  padding: 0;
+  opacity: 0.6;
+}
+
+.trans-copy-btn:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.trans-copy-btn.copied {
+  background: #22c55e;
+  color: #fff;
+  border-color: #22c55e;
+  opacity: 1;
+}
+
+/* زر النطق التلقائي في شريط الأدوات */
+#readerAutoSpeak {
+  background: var(--surface);
+  color: var(--text-2);
+  border: 1.5px solid var(--border);
+}
+
+#readerAutoSpeak.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-700));
+  color: #fff;
+  border-color: transparent;
+}
+
+#readerAutoSpeak:not(.active) {
+  background: var(--surface-2);
+  color: var(--gray-2);
+}
+
+/* تحسين مظهر trans-item */
+.trans-item {
+  position: relative;
+}
+
+.trans-item .translated {
+  padding: 8px 10px;
+  background: var(--primary-soft);
+  border-radius: 8px;
+  margin-top: 6px;
+}
+
+/* ================================================================
+   📱 إغلاق لوحة الترجمة على الموبايل
+   ================================================================ */
+
+/* أزرار الهيدر (مسح + إغلاق) */
+.trans-header-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* زر الإغلاق ✕ */
+.trans-close-btn {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+  background: var(--red, #dc2626) !important;
+  color: #fff !important;
+  border: none !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all .2s var(--ease) !important;
+  padding: 0 !important;
+}
+
+.trans-close-btn:hover {
+  background: #b91c1c !important;
+  transform: scale(1.08) !important;
+}
+
+/* زر الإغلاق يظهر فقط على الموبايل */
+@media (min-width: 901px) {
+  .trans-close-btn {
+    display: none !important;
+  }
+}
+
+/* ✅ overlay يغطي الشاشة على الموبايل */
+.trans-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+
+.trans-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* على الديسكتوب: overlay مخفي دايماً */
+@media (min-width: 901px) {
+  .trans-overlay {
+    display: none;
+  }
+}
+
+/* تحسين ظهور لوحة الترجمة على الموبايل */
+@media (max-width: 900px) {
+  .translation-panel {
+    z-index: 9999 !important;   /* فوق الـ overlay */
+  }
+
+  /* زر الإغلاق يبقى ثابت في أعلى اللوحة */
+  .trans-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+/* ================================================================
+   📱 إصلاح إضافي: لوحة الترجمة ما تفتحش افتراضياً على الموبايل
+   ================================================================ */
+@media (max-width: 900px) {
+  .translation-panel {
+    /* تبدأ مغلقة افتراضياً */
+    transform: translateX(-100%);
+    transition: transform .35s cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .translation-panel.open {
+    transform: translateX(0);
+  }
+
+  /* لو كانت hidden، تفضل مغلقة */
+  .translation-panel.hidden {
+    transform: translateX(-100%);
+  }
+}
