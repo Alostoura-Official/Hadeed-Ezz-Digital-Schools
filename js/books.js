@@ -606,29 +606,10 @@ async function renderPage(n) {
 }
 
 /* ================================================================
-   9) 🔤 طبقة النص (Text Layer)
-   ----------------------------------------------------------------
-   - تضيف طبقة شفافة فوق الـ canvas
-   - كل جملة نصية تُصبح قابلة للضغط
-   - عند الضغط: ترجمة فورية
-   ================================================================ */
-
-/* ================================================================
-   9) 🔤 طبقة النص (Text Layer)
-   ----------------------------------------------------------------
-   - تضيف منطقة ضغط شفافة فوق كل جزء نص
-   - لا تعرض أي نص مرئي — النص الأصلي يظهر من الـ PDF فقط
-   - ✅ صفر تداخل مع النص الأصلي
-   - عند الضغط: ترجمة → لوحة جانبية
-   ================================================================ */
-
-/* ================================================================
    9) 🔤 طبقة النص (Text Layer) — مناطق ضغط شفافة
    ----------------------------------------------------------------
-   - كل منطقة ضغط فوق جزء نص في PDF بالظبط
-   - ✅ دقة عالية باستخدام item.height من PDF.js
-   - عند التحويم: إطار خفيف
-   - عند الضغط: الترجمة في اللوحة الجانبية
+   - دقة عالية باستخدام viewport.convertToViewportRectangle
+   - كل منطقة ضغط فوق النص الأصلي بالظبط
    ================================================================ */
 
 /**
@@ -661,38 +642,39 @@ async function buildTextLayer(page, viewport, container) {
       zIndex: '2'
     });
 
-    const scale = viewport.scale;
-
     /* 🎯 إنشاء منطقة ضغط لكل جزء نص */
     textContent.items.forEach(item => {
       if (!item.str || !item.str.trim() || !item.transform) return;
 
-      /* 📐 تحويل إحداثيات PDF إلى إحداثيات الشاشة */
-      const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+      /* 📏 العرض والارتفاع بوحدات PDF */
+      const pdfWidth = item.width || 0;
+      const pdfHeight = item.height || 0;
 
-      /* 🔤 حجم الخط الفعلي */
-      const fontHeight = Math.hypot(tx[2], tx[3]);
+      if (pdfWidth <= 0 || pdfHeight <= 0) return;
 
-      if (!Number.isFinite(fontHeight) || fontHeight <= 0) return;
+      /* 🎯 استخدم viewport.convertToViewportRectangle للحصول على البكسل */
+      /* نقاط المستطيل في PDF: [x1, y1, x2, y2] */
+      const [x, y] = [item.transform[4], item.transform[5]];
 
-      /* 📍 موضع النص الأفقي */
-      const left = tx[4];
+      const rect = viewport.convertToViewportRectangle([
+        x,
+        y,
+        x + pdfWidth,
+        y - pdfHeight       /* ← y - pdfHeight لأن PDF إحداثياته من أسفل */
+      ]);
 
-      /* 📍 baseline (الخط السفلي للنص) */
-      const baseline = tx[5];
+      /* rect = [x1, y1, x2, y2] — ممكن يكونوا بترتيب عكسي */
+      const left = Math.min(rect[0], rect[2]);
+      const top = Math.min(rect[1], rect[3]);
+      const width = Math.abs(rect[2] - rect[0]);
+      const height = Math.abs(rect[3] - rect[1]);
 
-      /* 🎯 الحل: استخدام item.height من PDF.js للأدق */
-      /* item.height هو ارتفاع المربع الفعلي للنص في PDF
-         نضربه في viewport.scale للحصول على البكسل بعد التحويل */
-      const realHeight = (item.height || fontHeight) * scale;
-
-      /* 📐 top = baseline - realHeight
-         لأن baseline هو أسفل النص، و realHeight هي المسافة
-         من أعلى النص إلى baseline */
-      const top = baseline - realHeight;
-
-      /* 📏 العرض الفعلي للنص */
-      const width = (item.width || 0) * scale;
+      /* ✅ تحقق من القيم */
+      if (!Number.isFinite(left) || !Number.isFinite(top) ||
+          !Number.isFinite(width) || !Number.isFinite(height) ||
+          width <= 0 || height <= 0) {
+        return;
+      }
 
       /* ✅ منطقة ضغط شفافة */
       const hitArea = document.createElement('div');
@@ -704,7 +686,7 @@ async function buildTextLayer(page, viewport, container) {
         left: `${left}px`,
         top: `${top}px`,
         width: `${width}px`,
-        height: `${realHeight}px`,        /* ✅ الارتفاع الفعلي */
+        height: `${height}px`,
         background: 'transparent',
         cursor: 'pointer',
         pointerEvents: 'auto',
