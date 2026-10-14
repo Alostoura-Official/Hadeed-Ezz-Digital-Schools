@@ -622,6 +622,15 @@ async function renderPage(n) {
    - عند الضغط: ترجمة → لوحة جانبية
    ================================================================ */
 
+/* ================================================================
+   9) 🔤 طبقة النص (Text Layer) — مناطق ضغط شفافة
+   ----------------------------------------------------------------
+   - كل منطقة ضغط فوق جزء نص في PDF بالظبط
+   - ✅ دقة عالية باستخدام item.height من PDF.js
+   - عند التحويم: إطار خفيف
+   - عند الضغط: الترجمة في اللوحة الجانبية
+   ================================================================ */
+
 /**
  * 🔤 بناء طبقة النص — مناطق ضغط شفافة
  * @param {Object} page - كائن الصفحة من pdfjs
@@ -658,19 +667,31 @@ async function buildTextLayer(page, viewport, container) {
     textContent.items.forEach(item => {
       if (!item.str || !item.str.trim() || !item.transform) return;
 
+      /* 📐 تحويل إحداثيات PDF إلى إحداثيات الشاشة */
       const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+
+      /* 🔤 حجم الخط الفعلي */
       const fontHeight = Math.hypot(tx[2], tx[3]);
 
       if (!Number.isFinite(fontHeight) || fontHeight <= 0) return;
 
-      /* 📐 حساب موضع النص بدقة */
-      const fontStyle = textContent.styles?.[item.fontName] || {};
-      const ascent = Number.isFinite(fontStyle.ascent)
-        ? fontStyle.ascent
-        : 0.8;
-
+      /* 📍 موضع النص الأفقي */
       const left = tx[4];
-      const top = tx[5] - fontHeight * ascent;
+
+      /* 📍 baseline (الخط السفلي للنص) */
+      const baseline = tx[5];
+
+      /* 🎯 الحل: استخدام item.height من PDF.js للأدق */
+      /* item.height هو ارتفاع المربع الفعلي للنص في PDF
+         نضربه في viewport.scale للحصول على البكسل بعد التحويل */
+      const realHeight = (item.height || fontHeight) * scale;
+
+      /* 📐 top = baseline - realHeight
+         لأن baseline هو أسفل النص، و realHeight هي المسافة
+         من أعلى النص إلى baseline */
+      const top = baseline - realHeight;
+
+      /* 📏 العرض الفعلي للنص */
       const width = (item.width || 0) * scale;
 
       /* ✅ منطقة ضغط شفافة */
@@ -683,11 +704,11 @@ async function buildTextLayer(page, viewport, container) {
         left: `${left}px`,
         top: `${top}px`,
         width: `${width}px`,
-        height: `${fontHeight}px`,
+        height: `${realHeight}px`,        /* ✅ الارتفاع الفعلي */
         background: 'transparent',
         cursor: 'pointer',
         pointerEvents: 'auto',
-        borderRadius: '3px',
+        borderRadius: '2px',
         transition: 'background .15s ease, outline .15s ease',
         zIndex: '3',
         boxSizing: 'border-box',
@@ -715,19 +736,16 @@ async function buildTextLayer(page, viewport, container) {
       hitArea.addEventListener('click', (e) => {
         e.stopPropagation();
 
-        /* إزالة التحديد من كل المناطق */
         document.querySelectorAll('.text-hit-area.selected').forEach(el => {
           el.classList.remove('selected');
           el.style.background = 'transparent';
           el.style.outline = 'none';
         });
 
-        /* تمييز المنطقة الحالية */
         hitArea.classList.add('selected');
         hitArea.style.background = 'rgba(234, 124, 12, 0.25)';
         hitArea.style.outline = '2px solid rgba(234, 124, 12, 0.8)';
 
-        /* 🌐 ترجمة النص */
         translateText(item.str);
       });
 
