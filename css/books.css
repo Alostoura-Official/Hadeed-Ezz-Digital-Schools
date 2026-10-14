@@ -598,15 +598,8 @@
 
 /* ================================================================
    9) 🔤 طبقة النص (Text Layer)
-   ----------------------------------------------------------------
-   - مناطق ضغط شفافة (بدون نص مرئي)
-   - كل منطقة فوق النص الأصلي بالظبط
-   - عند التحويم: إطار خفيف
-   - عند الضغط: الترجمة في اللوحة الجانبية
-   - ✅ يدعم الماوس + اللمس على الموبايل
    ================================================================ */
 
-/* 🎯 الحاوية الشفافة اللي بتحتوي كل مناطق الضغط */
 .text-layer {
   position: absolute;
   top: 0;
@@ -614,76 +607,39 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  pointer-events: none;    /* ← الحاوية شفافة */
+  pointer-events: none;
   transform-origin: 0 0;
   z-index: 2;
   margin: 0;
   padding: 0;
   border: 0;
-  /* ✅ يمنع تحديد النص بالخطأ */
-  user-select: none;
-  -webkit-user-select: none;
 }
 
-/* ✅ منطقة الضغط الشفافة — لكل جزء نص */
+/* ✅ منطقة الضغط الشفافة */
 .text-hit-area {
   position: absolute;
   background: transparent;
   cursor: pointer;
-  pointer-events: auto;    /* ← المنطقة تقبل النقر */
+  pointer-events: auto;
   border-radius: 3px;
-  transition: background .15s ease, outline .15s ease, transform .1s ease;
+  transition: background .15s ease, outline .15s ease;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   border: 0;
   z-index: 3;
-
-  /* ✅ منع تحديد النص — عشان الضغط يشتغل فوراً */
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;    /* ← يمنع الفلاش الأزرق على الموبايل */
-  touch-action: manipulation;                  /* ← يسرّع الاستجابة على الموبايل */
 }
 
-/* 🎨 عند التحويم (الماوس) */
+/* 🎨 عند التحويم — إطار خفيف */
 .text-hit-area:hover {
-  background: rgba(234, 124, 12, 0.18);
-  outline: 1.5px dashed rgba(234, 124, 12, 0.55);
+  background: rgba(234, 124, 12, 0.15);
+  outline: 1.5px dashed rgba(234, 124, 12, 0.5);
 }
 
 /* 🎯 عند التحديد (بعد الضغط) */
 .text-hit-area.selected {
-  background: rgba(234, 124, 12, 0.3);
-  outline: 2px solid rgba(234, 124, 12, 0.85);
-  box-shadow: 0 0 8px rgba(234, 124, 12, 0.4);
-}
-
-/* ✅ عند الضغط الفعلي (Active) */
-.text-hit-area:active {
-  transform: scale(0.98);
-}
-
-/* ================================================================
-   📱 تحسينات الموبايل — مناطق الضغط تبقى أوضح
-   ================================================================ */
-@media (max-width: 900px) {
-  /* ✅ على الموبايل — الحافة أعرض شوية للراحة */
-  .text-hit-area {
-    border-radius: 4px;
-  }
-
-  /* ✅ لما المستخدم يلمس — يظهر فوراً */
-  .text-hit-area:active {
-    background: rgba(234, 124, 12, 0.35);
-    outline: 2px solid rgba(234, 124, 12, 0.9);
-  }
-
-  /* ✅ إزالة أي تأخير على اللمس */
-  .text-layer,
-  .text-hit-area {
-    -webkit-touch-callout: none;
-  }
+  background: rgba(234, 124, 12, 0.25);
+  outline: 2px solid rgba(234, 124, 12, 0.8);
 }
 
 
