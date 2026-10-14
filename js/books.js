@@ -630,13 +630,28 @@ async function buildTextLayer(page, viewport, container) {
     textContent.items.forEach(item => {
       if (!item.str || !item.str.trim()) return;
 
-      /* 📐 حساب موقع النص */
+      /* 📐 حساب موضع النص في PDF */
       const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
-      const fontHeight = Math.hypot(tx[2], tx[3]);
-      const left = tx[4];
-      const top = tx[5] - fontHeight;
 
-      /* 📝 إنشاء span شفاف */
+      /* 🔤 حجم الخط */
+      const fontHeight = Math.hypot(tx[2], tx[3]);
+
+      /* 📍 موضع البداية (يسار) */
+      const left = tx[4];
+
+      /* 📍 موضع الخط السفلي للحرف (baseline) */
+      const baseline = tx[5];
+
+      /* 📐 الارتفاع الكامل للعنصر حسب PDF.js */
+      const totalHeight = item.height ? item.height * viewport.scale : fontHeight;
+
+      /* ✅ top الصحيح = baseline - ارتفاع الصعود (ascender)
+         نستخدم 0.8 من حجم الخط كـ تقريب آمن لأن معظم الخطوط
+         عندها ascender حوالي 80% من حجم الخط */
+      const ascenderRatio = 0.8;
+      const top = baseline - (fontHeight * ascenderRatio);
+
+      /* 🎨 إنشاء span */
       const span = document.createElement('span');
       span.className = 'text-span';
       span.textContent = item.str;
@@ -646,9 +661,16 @@ async function buildTextLayer(page, viewport, container) {
       span.style.fontFamily = 'sans-serif';
       span.style.lineHeight = '1';
       span.style.whiteSpace = 'pre';
+
+      /* 🎯 ارتفاع النص — لو مش دقيق، استخدم fontHeight */
+      if (totalHeight && totalHeight > 0 && totalHeight < fontHeight * 2) {
+        span.style.height = totalHeight + 'px';
+      } else {
+        span.style.height = fontHeight + 'px';
+      }
+
       span.dataset.text = item.str;
 
-      /* 🎯 عند الضغط: ترجمة */
       span.addEventListener('click', (e) => {
         e.stopPropagation();
         translateText(item.str);
