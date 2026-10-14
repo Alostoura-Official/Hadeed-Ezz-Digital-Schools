@@ -538,25 +538,21 @@
 
 .text-span {
   position: absolute;
-  color: transparent;           /* النص شفاف — الصورة تحته */
+  color: transparent;
   cursor: pointer;
+  pointer-events: auto;
   transition: background-color .15s;
   border-radius: 2px;
   padding: 1px 2px;
-  user-select: none;            /* منع تحديد النص */
-  -webkit-user-select: none;
-  box-sizing: border-box;       /* ← مهم: يشمل الـ padding */
 }
 
 .text-span:hover {
   background-color: rgba(234, 124, 12, 0.35);
-  box-shadow: 0 0 0 1px rgba(234, 124, 12, 0.5);   /* ← حدود مساعدة */
 }
 
 .text-span.selected {
   background-color: rgba(234, 124, 12, 0.6);
-  box-shadow: 0 0 0 2px rgba(234, 124, 12, 0.8);
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255,255,255,0.95);
 }
 
 .reader-loading {
