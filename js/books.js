@@ -560,12 +560,14 @@ async function openReader(filePath, title, color) {
 
   try {
     /* 📥 تحميل PDF — بدون encodeURI إضافي (لأن filePath مُرمَّز مسبقاً) */
-  const loadingTask = pdfjsLib.getDocument({
+    const loadingTask = pdfjsLib.getDocument({
   url: filePath,
   cMapUrl: 'js/lib/cmaps/',
   cMapPacked: true,
   useSystemFonts: true,
-  standardFontDataUrl: 'js/lib/standard_fonts/'
+  standardFontDataUrl: 'js/lib/standard_fonts/',
+  disableRange: true,
+  disableStream: true
 });
 
     readerPdf = await loadingTask.promise;
