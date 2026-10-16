@@ -115,7 +115,59 @@ const BOOKS_CONFIG = {
         cover: "cover.png"
       }
     ]
-  }
+  },
+  
+    /* ---------- 💻 التحول الرقمي ---------- */
+  digital: {
+    name: "التحول الرقمي",
+    nameEn: "Digital Transformation",
+    icon: "💻",
+    color: "#0ea5e9",
+    folder: "books/digital",
+    books: [
+      {
+        title: "التحول الرقمي — الوحدة 1",
+        titleEn: "Digital Transformation - Unit 1",
+        file: "Digital-Transformation-U1-SB.pdf",
+        cover: "cover.png"
+      }
+    ]
+  },
+
+  /* ---------- 🕌 التربية الإسلامية ---------- */
+  islamic: {
+    name: "التربية الإسلامية",
+    nameEn: "Islamic Education",
+    icon: "🕌",
+    color: "#059669",
+    folder: "books/islamic",
+    books: [
+      {
+        title: "التربية الإسلامية — الصف الأول — الترم الأول",
+        titleEn: "Islamic Education - Grade 1 - Term 1",
+        file: "islamic-education-g1-t1.pdf",
+        cover: "cover.png"
+      }
+    ]
+  },
+
+  /* ---------- 🇪🇬 التربية الوطنية ---------- */
+  national: {
+    name: "التربية الوطنية",
+    nameEn: "National Education",
+    icon: "🇪🇬",
+    color: "#dc2626",
+    folder: "books/national",
+    books: [
+      {
+        title: "التربية الوطنية — الصف الأول — الترم الأول والثاني",
+        titleEn: "National Education - Grade 1 - Term 1 & 2",
+        file: "national-education-g1-t1.pdf",
+        cover: "cover.png"
+      }
+    ]
+  },
+
 
 };
 
