@@ -562,7 +562,7 @@ async function openReader(filePath, title, color) {
     /* 📥 تحميل PDF — بدون encodeURI إضافي (لأن filePath مُرمَّز مسبقاً) */
     const loadingTask = pdfjsLib.getDocument({
       url: filePath,
-      cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+      cMapUrl: 'js/lib/cmaps/',
       cMapPacked: true,
       useSystemFonts: true
     });
