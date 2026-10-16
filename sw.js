@@ -1,4 +1,4 @@
-const CACHE = 'hadid-eez-v99';
+const CACHE = 'hadid-eez-v100';
 
 const ASSETS = [
   // ====== الصفحات ======
@@ -28,6 +28,25 @@ const ASSETS = [
   './js/lib/pdf.min.js',
   './js/lib/pdf.worker.min.js',
   './js/lib/qrcode.min.js',
+
+  // ====== PDF.js CMap (ملفات أساسية لدعم اللغات) ======
+  './js/lib/cmaps/Adobe-Japan1-0.bcmap',
+  './js/lib/cmaps/Adobe-GB1-0.bcmap',
+  './js/lib/cmaps/Adobe-CNS1-0.bcmap',
+  './js/lib/cmaps/Adobe-Korea1-0.bcmap',
+  './js/lib/cmaps/LICENSE',
+
+  // ====== PDF.js Standard Fonts ======
+  './js/lib/standard_fonts/FoxitSans.pfb',
+  './js/lib/standard_fonts/FoxitSerif.pfb',
+  './js/lib/standard_fonts/FoxitSymbol.pfb',
+  './js/lib/standard_fonts/FoxitDingbats.pfb',
+  './js/lib/standard_fonts/LiberationSans-Regular.ttf',
+  './js/lib/standard_fonts/LiberationSans-Bold.ttf',
+  './js/lib/standard_fonts/LiberationSans-Italic.ttf',
+  './js/lib/standard_fonts/LiberationSans-BoldItalic.ttf',
+  './js/lib/standard_fonts/LiberationSerif-Regular.ttf',
+  './js/lib/standard_fonts/LiberationSerif-Bold.ttf',
 
   // ====== Manifest ======
   './manifest.json',
