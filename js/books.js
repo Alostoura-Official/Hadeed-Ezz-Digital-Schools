@@ -87,8 +87,14 @@ const BOOKS_CONFIG = {
     books: [
       {
         title: "الوحدة 1",
-        titleEn: "Unit 1 SB 14 Sept 2026 ",
-        file: "Mech-Unit-1-SB-14-Sept2026.pdf",
+        titleEn: "Unit 1 2026 ",
+        file: "Mech-Unit-1.pdf",
+        cover: "cover.png"
+      },
+      {
+        title: "الوحدة 2",
+        titleEn: "Unit 2 2026 ",
+        file: "Mech-Unit-2.pdf",
         cover: "cover.png"
       }
     ]
