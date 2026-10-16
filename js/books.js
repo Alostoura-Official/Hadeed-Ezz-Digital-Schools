@@ -565,9 +565,7 @@ async function openReader(filePath, title, color) {
   cMapUrl: 'js/lib/cmaps/',
   cMapPacked: true,
   useSystemFonts: true,
-  standardFontDataUrl: 'js/lib/standard_fonts/',
-  disableRange: true,
-  disableStream: true
+  standardFontDataUrl: 'js/lib/standard_fonts/'
 });
 
     readerPdf = await loadingTask.promise;
