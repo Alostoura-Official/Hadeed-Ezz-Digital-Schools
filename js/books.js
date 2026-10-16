@@ -86,21 +86,9 @@ const BOOKS_CONFIG = {
     folder: "books/mech",
     books: [
       {
-        title: "الوحدة 1 — الدرس 1",
-        titleEn: "Unit 1 — Lesson 1",
-        file: "mech-g1-t1-l1.pdf",
-        cover: "cover.png"
-      },
-      {
-        title: "الوحدة 1 — الدرس 2",
-        titleEn: "Unit 1 — Lesson 2",
-        file: "mech-g1-t1-l2.pdf",
-        cover: "cover.png"
-      },
-      {
-        title: "الوحدة 1 — الدرس 3",
-        titleEn: "Unit 1 — Lesson 3",
-        file: "mech-g1-t1-l3.pdf",
+        title: "الوحدة 1",
+        titleEn: "Unit 1 SB 14 Sept 2026 ",
+        file: "Mech-Unit-1-SB-14-Sept2026.pdf",
         cover: "cover.png"
       }
     ]
