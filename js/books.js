@@ -35,9 +35,9 @@ const BOOKS_CONFIG = {
     folder: "books/chemistry",
     books: [
       {
-        title: "الكيمياء العامة",
+        title: "chemistry 1st 2nd term",
         titleEn: "General Chemistry",
-        file: "book.pdf",
+        file: "chemistry-1st-2nd-term.pdf",
         cover: "cover.png"
       }
     ]
