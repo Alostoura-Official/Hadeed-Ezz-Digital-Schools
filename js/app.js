@@ -366,7 +366,6 @@ const SUBJECTS = {
   math:      { name: "رياضيات",          icon: "🔢", color: "#7c3aed" },
   physics:   { name: "فيزياء",           icon: "⚛️", color: "#0891b2" },
   chemistry: { name: "كيمياء",           icon: "🧪", color: "#ea580c" },
-  biology:   { name: "أحياء",            icon: "🧬", color: "#059669" },
   social:    { name: "دراسات اجتماعية",   icon: "🌍", color: "#a16207" },
   other:     { name: "مواد أخرى",         icon: "📁", color: "#64748b" }
 };
