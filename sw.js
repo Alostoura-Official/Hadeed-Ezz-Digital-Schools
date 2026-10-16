@@ -1,4 +1,4 @@
-const CACHE = 'hadid-eez-v100';
+const CACHE = 'hadid-eez-v101';
 
 const ASSETS = [
   // ====== الصفحات ======
@@ -29,7 +29,7 @@ const ASSETS = [
   './js/lib/pdf.worker.min.js',
   './js/lib/qrcode.min.js',
 
-  // ====== PDF.js CMap (ملفات أساسية لدعم اللغات) ======
+  // ====== PDF.js CMap ======
   './js/lib/cmaps/Adobe-Japan1-0.bcmap',
   './js/lib/cmaps/Adobe-GB1-0.bcmap',
   './js/lib/cmaps/Adobe-CNS1-0.bcmap',
@@ -117,13 +117,12 @@ self.addEventListener('activate', (e) => {
 });
 
 /* ================================================================
-   📨 MESSAGE — تفعيل فوري
+   📨 MESSAGE
    ================================================================ */
 self.addEventListener('message', (e) => {
   if (e.data && e.data.type === 'SKIP_WAITING') {
-    console.log('⚡ [SW] تفعيل فوري بطلب من الصفحة');
+    console.log('⚡ [SW] تفعيل فوري');
     self.skipWaiting();
-    // 🚀 أبلغ كل التابات المفتوحة تعمل reload
     self.clients.matchAll({ type: 'window' }).then((clients) => {
       clients.forEach((client) => {
         client.postMessage({ type: 'RELOAD' });
@@ -133,7 +132,7 @@ self.addEventListener('message', (e) => {
 });
 
 /* ================================================================
-   🟣 FETCH — استراتيجيات ذكية
+   🟣 FETCH
    ================================================================ */
 self.addEventListener('fetch', (e) => {
   const { request } = e;
@@ -142,10 +141,7 @@ self.addEventListener('fetch', (e) => {
 
   const url = new URL(request.url);
 
-  // تجاهل الطلبات الخارجية
   if (url.origin !== self.location.origin) return;
-
-  // تجاهل قنوات chrome-extension وغيرها
   if (!url.protocol.startsWith('http')) return;
 
   /* ---------- 1) الصفحات: Network First ---------- */
@@ -160,7 +156,6 @@ self.addEventListener('fetch', (e) => {
           return response;
         })
         .catch(() => {
-          // 🔻 فشل الشبكة → من الكاش
           return caches.match(request, { ignoreSearch: true })
             .then((cached) => cached
               || caches.match('./index.html')
@@ -172,8 +167,14 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  /* ---------- 2) CSS / JS / JSON: Stale-While-Revalidate ---------- */
-  // ⬅️ 🔥 ده الحل الأساسي: بيعرض الكاش فوراً + يحدّث في الخلفية
+  /* ---------- 2) PDF Files: Cache First + Range Support ---------- */
+  // 🔥 جديد: معالجة خاصة لملفات PDF
+  if (url.pathname.endsWith('.pdf')) {
+    e.respondWith(handlePdfRequest(request));
+    return;
+  }
+
+  /* ---------- 3) CSS / JS / JSON: Stale-While-Revalidate ---------- */
   const isCodeOrData =
     url.pathname.endsWith('.css') ||
     url.pathname.endsWith('.js') ||
@@ -191,16 +192,15 @@ self.addEventListener('fetch', (e) => {
             }
             return response;
           })
-          .catch(() => cached);   // فشل الشبكة → الكاش
+          .catch(() => cached);
 
-        // لو موجود في الكاش: رجّعه فوراً + حدّث في الخلفية
         return cached || networkFetch;
       })
     );
     return;
   }
 
-  /* ---------- 3) صور / خطوط / باقي الملفات: Cache First ---------- */
+  /* ---------- 4) صور / خطوط / باقي الملفات: Cache First ---------- */
   e.respondWith(
     caches.match(request)
       .then((cached) => {
@@ -223,6 +223,108 @@ self.addEventListener('fetch', (e) => {
       })
   );
 });
+
+/* ================================================================
+   📚 معالجة ملفات PDF مع دعم Range Requests
+   ================================================================
+   - إذا كان الملف في الكاش: نُرجع الجزء المطلوب فقط
+   - إذا لم يكن في الكاش: نُحمّله من الشبكة ونخزّنه
+   ================================================================ */
+async function handlePdfRequest(request) {
+  const url = request.url;
+  const rangeHeader = request.headers.get('range');
+
+  try {
+    // 1. البحث في الكاش أولاً
+    let cached = await caches.match(url, { ignoreSearch: true });
+
+    // 2. إذا لم يكن في الكاش، حاول تحميله من الشبكة
+    if (!cached) {
+      try {
+        console.log('📥 [SW] تحميل PDF من الشبكة:', url);
+        const response = await fetch(request);
+        if (response && response.ok) {
+          const copy = response.clone();
+          const cache = await caches.open(CACHE);
+          await cache.put(url, copy);
+          cached = response;
+          console.log('✅ [SW] تم تخزين PDF:', url);
+        }
+      } catch (netErr) {
+        console.warn('⚠️ [SW] فشل تحميل PDF من الشبكة:', netErr.message);
+        return new Response('', { status: 404 });
+      }
+    }
+
+    // 3. إذا لم نجد الملف في الكاش أو الشبكة
+    if (!cached) {
+      return new Response('', { status: 404 });
+    }
+
+    // 4. إذا لم يكن هناك طلب نطاق، أرجع الملف كاملاً
+    if (!rangeHeader) {
+      return cached;
+    }
+
+    // 5. معالجة طلب النطاق
+    return await handleRangeRequest(cached, request);
+
+  } catch (err) {
+    console.error('❌ [SW] خطأ في معالجة PDF:', err);
+    return new Response('', { status: 500 });
+  }
+}
+
+/* ================================================================
+   📦 معالجة طلبات النطاق (Range Requests)
+   ================================================================ */
+async function handleRangeRequest(cachedResponse, request) {
+  try {
+    const rangeHeader = request.headers.get('range');
+    const blob = await cachedResponse.blob();
+    const total = blob.size;
+
+    // استخراج بداية ونهاية النطاق
+    const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+    if (!match) return cachedResponse;
+
+    const start = parseInt(match[1], 10);
+    let end = match[2] ? parseInt(match[2], 10) : total - 1;
+
+    // تصحيح النهاية إذا تجاوزت الحجم
+    if (end >= total) end = total - 1;
+
+    // إذا كانت البداية أكبر من النهاية، أرجع خطأ
+    if (start > end || start >= total) {
+      return new Response('', {
+        status: 416,
+        statusText: 'Range Not Satisfiable',
+        headers: {
+          'Content-Range': `bytes */${total}`
+        }
+      });
+    }
+
+    // قطع الجزء المطلوب
+    const chunk = blob.slice(start, end + 1);
+
+    // بناء الاستجابة
+    return new Response(chunk, {
+      status: 206,
+      statusText: 'Partial Content',
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Range': `bytes ${start}-${end}/${total}`,
+        'Content-Length': String(chunk.size),
+        'Accept-Ranges': 'bytes'
+      }
+    });
+
+  } catch (err) {
+    console.error('❌ [SW] خطأ في Range Request:', err);
+    return cachedResponse;
+  }
+}
 
 /* ================================================================
    🆘 صفحة عدم الاتصال
