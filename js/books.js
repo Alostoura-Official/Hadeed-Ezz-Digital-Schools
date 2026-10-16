@@ -52,9 +52,9 @@ const BOOKS_CONFIG = {
     folder: "books/english",
     books: [
       {
-        title: "English Grammar",
-        titleEn: "قواعد اللغة الإنجليزية",
-        file: "book.pdf",
+        title: "English",
+        titleEn: "اللغة الإنجليزية",
+        file: "English-U1-SB-Y1-T1.pdf",
         cover: "cover.png"
       }
     ]
