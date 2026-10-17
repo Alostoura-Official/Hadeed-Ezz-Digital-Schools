@@ -57,6 +57,7 @@ const ASSETS = [
   './icons/splash.png',
   './icons/favicon-32x32.png',
   './icons/favicon-16x16.png',
+  './icons/favicon.icon',
   './icons/apple-touch-icon.png',
   './icons/cover.png',
   './icons/logo.png'
