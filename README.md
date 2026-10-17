@@ -134,101 +134,161 @@ npx serve .
 
 📂 هيكل المشروع
 
-📂 Hadeed-Ezz-Digital-Schools/
+📂 hadeed-ezz-platform/
 │
-├── 📄 .nojekyll
-├── ⚖️ LICENSE
-├── 📝 CONTRIBUTING.md
-├── 📖 README.md
-├── 🌐 index.html
-├── 🌐 books.html
-├── 🌐 homework.html
-├── ⚙️ manifest.json
-├── 📜 sw.js
+├── 📄 .nojekyll                          # تعطيل Jekyll في GitHub Pages
+├── ⚙️ .gitignore                         # استثناء الملفات غير المرغوبة
+├── ⚙️ .editorconfig                      # توحيد تنسيق الكود
+├── ⚖️ LICENSE                            # ترخيص MIT
+├── 📖 README.md                          # دليل المشروع الرئيسي
+├── 📝 CONTRIBUTING.md                    # دليل المساهمة
+├── 🤝 CODE_OF_CONDUCT.md                 # قواعد السلوك
+├── 📋 CHANGELOG.md                       # سجل التغييرات
+├── ⚙️ manifest.json                      # إعدادات PWA
+├── 📜 sw.js                              # Service Worker
+├── 🔎 robots.txt                         # إعدادات محركات البحث
+├── 🗺️ sitemap.xml                        # خريطة الموقع
 │
-├── 📂 books/                         # 📚 الكتب والمناهج الدراسية
-│   ├── 📂 arabic/
-│   │   ├── 📕 arabic-grade1-term1.pdf
-│   │   └── 🖼️ cover.png
+├── 📂 .github/
+│   ├── 📂 workflows/
+│   │   ├── ⚙️ deploy.yml                 # نشر تلقائي على GitHub Pages
+│   │   └── 🧪 lighthouse.yml             # فحص الأداء التلقائي
 │   │
-│   ├── 📂 chemistry/
-│   │   ├── 📕 chemistry-1st-2nd-term.pdf
-│   │   └── 🖼️ cover.png
+│   ├── 📂 ISSUE_TEMPLATE/
+│   │   ├── 🐛 bug_report.md               # الإبلاغ عن الأخطاء
+│   │   └── 💡 feature_request.md          # اقتراح ميزة جديدة
 │   │
-│   ├── 📂 digital/
-│   │   ├── 📕 Digital-Transformation-U1-SB.pdf
-│   │   └── 🖼️ cover.png
-│   │
-│   ├── 📂 english/
-│   │   ├── 📕 English-U1-SB-Y1-T1.pdf
-│   │   └── 🖼️ cover.png
-│   │
-│   ├── 📂 islamic/
-│   │   ├── 📕 islamic-education-g1-t1.pdf
-│   │   └── 🖼️ cover.png
-│   │
-│   ├── 📂 math/
-│   │   ├── 📕 math-g1-t1.pdf
-│   │   └── 🖼️ cover.png
-│   │
-│   ├── 📂 mech/
-│   │   ├── 📕 Mech-Unit-1.pdf
-│   │   └── 🖼️ cover.png
-│   │
-│   ├── 📂 national/
-│   │   ├── 📕 national-education-g1-t1.pdf
-│   │   └── 🖼️ cover.png
-│   │
-│   └── 📂 physics/
-│       └── 🖼️ cover.png
+│   └── 📝 PULL_REQUEST_TEMPLATE.md        # قالب طلب دمج التعديلات
 │
-├── 📂 css/                           # 🎨 ملفات التصميم
-│   ├── 🎨 style.css
-│   ├── 🎨 books.css
-│   └── 📂 fonts/                     # 🔤 الخطوط
-│       └── 📄 ملفات الخطوط
+├── 📂 public/                            # الملفات العامة الجذرية
+│   ├── 🌐 index.html                     # 🏠 الصفحة الرئيسية
+│   ├── 🌐 books.html                     # 📚 صفحة الكتب
+│   ├── 🌐 homework.html                  # 📝 صفحة الواجبات
+│   ├── 🌐 about.html                     # ℹ️ عن المدرسة
+│   ├── 🌐 contact.html                   # 📞 تواصل معنا
+│   ├── 🚫 404.html                       # صفحة الخطأ
+│   ├── 📴 offline.html                   # صفحة عدم الاتصال
+│   │
+│   ├── 📂 assets/
+│   │   ├── 📂 css/                       # 🎨 ملفات التصميم
+│   │   │   ├── 🎨 style.css              # التصميم الأساسي
+│   │   │   ├── 🎨 books.css              # تنسيقات الكتب
+│   │   │   ├── 🎨 homework.css           # تنسيقات الواجبات
+│   │   │   ├── 🎨 variables.css          # متغيرات CSS للألوان والخطوط
+│   │   │   └── 🖨️ print.css              # تنسيقات الطباعة
+│   │   │
+│   │   ├── 📂 js/                        # 💻 ملفات JavaScript
+│   │   │   ├── 📜 app.js                 # منطق التطبيق العام
+│   │   │   ├── 📜 books.js               # منطق عرض الكتب
+│   │   │   ├── 📜 homework.js            # منطق الواجبات
+│   │   │   ├── 📜 pwa.js                 # تسجيل Service Worker
+│   │   │   ├── 📜 search.js               # محرك البحث
+│   │   │   ├── 📜 theme.js                # الوضع الليلي والنهاري
+│   │   │   │
+│   │   │   └── 📂 lib/                   # 📦 المكتبات البرمجية
+│   │   │       ├── 📦 pdf.min.js
+│   │   │       ├── 📦 pdf.worker.min.js
+│   │   │       ├── 📦 qrcode.min.js
+│   │   │       ├── 📂 cmaps/             # خرائط الخطوط الخاصة بـ PDF.js
+│   │   │       └── 📂 standard_fonts/    # الخطوط القياسية
+│   │   │
+│   │   ├── 📂 fonts/                     # 🔤 الخطوط
+│   │   │   ├── 🔤 Cairo-Regular.woff2
+│   │   │   ├── 🔤 Cairo-Bold.woff2
+│   │   │   ├── 🔤 Tajawal-Regular.woff2
+│   │   │   └── 🔤 Tajawal-Bold.woff2
+│   │   │
+│   │   ├── 📂 icons/                     # 🖼️ الأيقونات
+│   │   │   ├── 🖼️ favicon.ico
+│   │   │   ├── 🖼️ favicon-16x16.png
+│   │   │   ├── 🖼️ favicon-32x32.png
+│   │   │   ├── 📱 apple-touch-icon.png
+│   │   │   ├── 📱 icon-192.png
+│   │   │   ├── 📱 icon-512.png
+│   │   │   ├── 📱 maskable-192.png
+│   │   │   ├── 📱 maskable-512.png
+│   │   │   ├── 🖼️ logo.png
+│   │   │   ├── 🖼️ logo.svg
+│   │   │   └── 🖼️ splash.png
+│   │   │
+│   │   └── 📂 images/                    # 🖼️ الصور
+│   │       ├── 🖼️ hero-bg.jpg
+│   │       ├── 🖼️ og-image.png           # صورة المشاركة الاجتماعية
+│   │       └── 🖼️ placeholder.png
+│   │
+│   ├── 📂 data/                          # 🗃️ بيانات المشروع بصيغة JSON
+│   │   ├── 🗃️ books.json                 # قائمة الكتب
+│   │   ├── 🗃️ homework.json              # قائمة الواجبات
+│   │   ├── 🗃️ subjects.json              # قائمة المواد
+│   │   └── 🗃️ grades.json                # قائمة الصفوف
+│   │
+│   └── 📂 books/                         # 📚 ملفات PDF والأغلفة
+│       ├── 📂 arabic/
+│       │   ├── 📕 arabic-grade1-term1.pdf
+│       │   ├── 📕 arabic-grade1-term2.pdf
+│       │   └── 🖼️ cover.png
+│       │
+│       ├── 📂 chemistry/
+│       │   ├── 📕 chemistry-1st-2nd-term.pdf
+│       │   └── 🖼️ cover.png
+│       │
+│       ├── 📂 digital/
+│       │   ├── 📕 Digital-Transformation-U1-SB.pdf
+│       │   └── 🖼️ cover.png
+│       │
+│       ├── 📂 english/
+│       │   ├── 📕 English-U1-SB-Y1-T1.pdf
+│       │   └── 🖼️ cover.png
+│       │
+│       ├── 📂 islamic/
+│       │   ├── 📕 islamic-education-g1-t1.pdf
+│       │   └── 🖼️ cover.png
+│       │
+│       ├── 📂 math/
+│       │   ├── 📕 math-g1-t1.pdf
+│       │   └── 🖼️ cover.png
+│       │
+│       ├── 📂 mech/
+│       │   ├── 📕 Mech-Unit-1.pdf
+│       │   └── 🖼️ cover.png
+│       │
+│       ├── 📂 national/
+│       │   ├── 📕 national-education-g1-t1.pdf
+│       │   └── 🖼️ cover.png
+│       │
+│       └── 📂 physics/
+│           ├── 📕 physics-g1-t1.pdf
+│           └── 🖼️ cover.png
 │
-├── 📂 docs/                          # 📖 توثيق المشروع
-│   └── 📝 ADDING_CONTENT.md
+├── 📂 docs/                              # 📖 وثائق المشروع
+│   ├── 📝 ADDING_CONTENT.md              # كيفية إضافة محتوى
+│   ├── 🏗️ ARCHITECTURE.md               # معمارية المشروع
+│   ├── 🚀 DEPLOYMENT.md                  # دليل النشر
+│   ├── 📱 PWA_GUIDE.md                   # دليل تطبيق الويب التقدمي
+│   └── ❓ FAQ.md                         # الأسئلة الشائعة
 │
-├── 📂 icons/                         # 🖼️ الأيقونات والصور
-│   ├── 🖼️ apple-touch-icon.png
-│   ├── 🖼️ cover.png
-│   ├── 🖼️ favicon-16x16.png
-│   ├── 🖼️ favicon-32x32.png
-│   ├── 🖼️ favicon.ico
-│   ├── 📱 icon-192.png
-│   ├── 📱 icon-512.png
-│   ├── 🖼️ logo.png
-│   └── 🖼️ splash.png
-│
-└── 📂 js/                            # 💻 ملفات JavaScript
-    ├── 📜 app.js
-    ├── 📜 books.js
-    │
-    └── 📂 lib/                       # 📦 المكتبات البرمجية
-        ├── 📦 pdf.min.js
-        ├── 📦 pdf.worker.min.js
-        ├── 📦 qrcode.min.js
-        │
-        ├── 📂 cmaps/                 # 🔤 خرائط الخطوط الخاصة بـ PDF.js
-        │   ├── 📄 ملفات BCMap
-        │   └── 📄 LICENSE
-        │
-        └── 📂 standard_fonts/        # 🔤 الخطوط القياسية
-            ├── 📄 ملفات الخطوط
-            └── 📄 ملفات التراخيص
+└── 📂 scripts/                           # 🛠️ سكريبتات مساعدة
+    ├── 🖼️ generate-icons.sh              # توليد أيقونات PWA
+    ├── 📦 optimize-pdf.sh                # ضغط ملفات PDF
+    ├── 📜 generate-sitemap.js             # توليد sitemap.xml
+    └── 🔍 validate-links.js               # فحص الروابط المكسورة
 
-🗂️ دلالة الرموز
+🗂️ مفتاح الرموز
 
-- 📂 مجلد
-- 🌐 صفحة HTML
-- 🎨 ملف CSS
-- 📜 ملف JavaScript
-- 📕 كتاب PDF
-- 🖼️ صورة أو أيقونة
-- 🔤 خطوط
-- 📦 مكتبة برمجية
-- ⚙️ إعدادات التطبيق
-- 📝 ملف مساهمة أو توثيق
-- ⚖️ الترخيص القانوني
+- 📂 المجلدات
+- 📄 الملفات العامة
+- 🌐 صفحات HTML
+- 🎨 ملفات CSS
+- 📜 ملفات JavaScript
+- 📕 ملفات PDF
+- 🖼️ الصور والشعارات
+- 🔤 ملفات الخطوط
+- 📦 المكتبات وأدوات الحزم
+- ⚙️ ملفات الإعدادات
+- 🗃️ ملفات البيانات
+- 📝 التوثيق والمساهمة
+- ⚖️ التراخيص
+- 🧪 الاختبارات وفحص الجودة
+- 🚀 النشر والتشغيل
+- 🔍 البحث والتحقق
+- 🛠️ أدوات التطوير
