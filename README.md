@@ -33,6 +33,7 @@
 **[🎯 المميزات](#-المميزات)** &nbsp;•&nbsp;
 **[📚 المواد](#-المواد-الدراسية)** &nbsp;•&nbsp;
 **[🚀 البدء](#-طريقة-الاستخدام)** &nbsp;•&nbsp;
+**[📂 الهيكل](#-هيكل-المشروع)** &nbsp;•&nbsp;
 **[🤝 المساهمة](#-ساهم-في-المشروع)** &nbsp;•&nbsp;
 **[📞 التواصل](#-تواصل-معنا)**
 
@@ -100,8 +101,6 @@
 
 ## 🚀 طريقة الاستخدام
 
-<div dir="rtl">
-
 ### 👨‍🎓 للطلاب
 
 1. **افتح المنصة** من المتصفح (يعمل دون إنترنت)
@@ -131,9 +130,15 @@ npx serve .
 
 # افتح المتصفح على
 # http://localhost:8000
+```
 
-📂 هيكل المشروع
+---
 
+## 📂 هيكل المشروع
+
+<div dir="ltr" style="text-align: left;">
+
+```text
 📂 hadeed-ezz-platform/
 │
 ├── 📄 .nojekyll                          # تعطيل Jekyll في GitHub Pages
@@ -272,8 +277,11 @@ npx serve .
     ├── 📦 optimize-pdf.sh                # ضغط ملفات PDF
     ├── 📜 generate-sitemap.js             # توليد sitemap.xml
     └── 🔍 validate-links.js               # فحص الروابط المكسورة
+```
 
-🗂️ مفتاح الرموز
+</div>
+
+### 🗂️ مفتاح الرموز
 
 - 📂 المجلدات
 - 📄 الملفات العامة
@@ -292,3 +300,280 @@ npx serve .
 - 🚀 النشر والتشغيل
 - 🔍 البحث والتحقق
 - 🛠️ أدوات التطوير
+
+---
+
+## 🛠️ التقنيات المستخدمة
+
+<div align="center">
+
+| التقنية | الاستخدام |
+|:-------:|-----------|
+| **HTML5** | هيكل الصفحات |
+| **CSS3** | التصميم والتنسيقات |
+| **JavaScript (ES6+)** | منطق التطبيق |
+| **PDF.js** | عرض ملفات PDF |
+| **Service Worker** | العمل دون اتصال |
+| **LocalStorage** | حفظ التقدّم والتفضيلات |
+| **Web Speech API** | النطق الصوتي |
+| **PWA** | تثبيت كتطبيق |
+
+</div>
+
+---
+
+## 📱 تثبيت التطبيق (PWA)
+
+يمكن تثبيت المنصة كتطبيق على الجهاز:
+
+- **Android (Chrome):** اضغط على ⋮ ← "إضافة إلى الشاشة الرئيسية"
+- **iOS (Safari):** اضغط على أيقونة المشاركة ← "إضافة إلى الشاشة الرئيسية"
+- **Windows/Mac (Chrome/Edge):** اضغط على أيقونة التثبيت في شريط العنوان
+
+بعد التثبيت، يعمل التطبيق **دون إنترنت تماماً** بعد أول زيارة.
+
+---
+
+## 🌐 النشر
+
+### GitHub Pages (موصى به)
+
+```bash
+# 1. ارفع المشروع إلى GitHub
+git push origin main
+
+# 2. من إعدادات المستودع:
+#    Settings → Pages → Source: GitHub Actions
+#    أو Branch: main / (root)
+
+# 3. الموقع سيكون على:
+#    https://USERNAME.github.io/hadeed-ezz-platform/
+```
+
+### خادم محلي أو شبكة داخلية
+
+```bash
+# Python
+python -m http.server 8000
+
+# Node.js
+npx serve .
+
+# PHP
+php -S localhost:8000
+```
+
+### استضافة ثابتة (Netlify / Vercel / Cloudflare Pages)
+
+ارفع المجلد الجذري مباشرة، وسيتم التعرف على `index.html` تلقائياً.
+
+---
+
+## 💾 حفظ التقدّم
+
+تُحفظ البيانات التالية محلياً في المتصفح (`localStorage`):
+
+| المفتاح | المحتوى |
+|---------|---------|
+| `theme` | الوضع الليلي / النهاري |
+| `lang` | اللغة المفضلة |
+| `progress` | تقدّم القراءة لكل كتاب |
+| `bestScore` | أفضل نتيجة في الاختبارات |
+| `bookmarks` | العلامات المرجعية |
+
+> ⚠️ **تنبيه:** حذف بيانات المتصفح يؤدي إلى فقدان التقدّم. استخدم زر "تصدير التقدّم" للاحتفاظ بنسخة.
+
+---
+
+## 🤝 ساهم في المشروع
+
+نرحّب بجميع المساهمات! سواء كانت:
+
+- 🐛 **الإبلاغ عن خطأ** — عبر [Issues](../../issues/new?template=bug_report.md)
+- 💡 **اقتراح ميزة** — عبر [Issues](../../issues/new?template=feature_request.md)
+- 📝 **تحسين التوثيق** — عبر Pull Request
+- 🌍 **إضافة ترجمة** — لأي لغة جديدة
+- 📚 **إضافة محتوى تعليمي** — لمواد جديدة
+
+اقرأ [دليل المساهمة](CONTRIBUTING.md) و[قواعد السلوك](CODE_OF_CONDUCT.md) قبل البدء.
+
+### خطوات المساهمة السريعة
+
+```bash
+# 1. اعمل Fork للمشروع
+# 2. استنسخ نسختك
+git clone https://github.com/YOUR-USERNAME/hadeed-ezz-platform.git
+
+# 3. أنشئ فرعاً جديداً
+git checkout -b feature/اسم-الميزة
+
+# 4. اعمل تعديلاتك وارفعها
+git add .
+git commit -m "feat: وصف الميزة"
+git push origin feature/اسم-الميزة
+
+# 5. افتح Pull Request
+```
+
+---
+
+## 📋 خارطة الطريق
+
+- [x] عارض PDF أساسي
+- [x] نظام الترجمة
+- [x] الوضع الليلي
+- [x] حفظ التقدّم
+- [x] PWA وعمل دون اتصال
+- [ ] إضافة مواد: إيطالي، أحياء، دراسات
+- [ ] لوحة تحكم للمعلمين
+- [ ] نظام الواجبات الإلكترونية
+- [ ] تقارير أداء للطلاب
+- [ ] دعم اللغة الإيطالية بالكامل
+- [ ] تطبيق موبايل أصلي (Capacitor)
+
+---
+
+## ❓ الأسئلة الشائعة
+
+<details>
+<summary><strong>هل يعمل التطبيق دون إنترنت فعلاً؟</strong></summary>
+
+نعم، بنسبة 100%. بعد الزيارة الأولى، يُخزّن Service Worker كل الملفات محلياً. فقط تأكد من تحميل كل صفحة مرة واحدة على الأقل وأنت متصل.
+</details>
+
+<details>
+<summary><strong>كيف أضيف كتاباً جديداً؟</strong></summary>
+
+1. ضع ملف PDF في المجلد المناسب داخل `public/books/`
+2. أضف صورة الغلاف `cover.png` (اختياري)
+3. حدّث `BOOKS_CONFIG` في `public/assets/js/books.js`
+4. أعد تحميل الصفحة
+
+راجع [docs/ADDING_CONTENT.md](docs/ADDING_CONTENT.md) للتفاصيل.
+</details>
+
+<details>
+<summary><strong>لماذا لا تظهر ملفات PDF على GitHub Pages مباشرة؟</strong></summary>
+
+لأن GitHub Pages يخدم الملفات كـ static files، لكن عارض PDF.js يعمل عبر JavaScript ويجلب الملفات بـ `fetch` — وهذا يعمل بشكل طبيعي على GitHub Pages.
+</details>
+
+<details>
+<summary><strong>هل يمكن استخدامه على الشبكة الداخلية للمدرسة؟</strong></summary>
+
+نعم. شغّل أي خادم HTTP بسيط على جهاز واحد في الشبكة، وافتح عنوان IP من أي جهاز آخر.
+</details>
+
+<details>
+<summary><strong>كيف أُغيّر الشعار والألوان؟</strong></summary>
+
+- الشعار: استبدل `public/assets/icons/logo.png` و `logo.svg`
+- الألوان: عدّل المتغيرات في `public/assets/css/variables.css`
+</details>
+
+---
+
+## 🐛 الإبلاغ عن مشكلة
+
+قبل فتح issue، تأكد من:
+- [ ] تحديث المتصفح لآخر إصدار
+- [ ] مسح الكاش (`Ctrl + Shift + R`)
+- [ ] تجربة وضع التصفح الخفي
+- [ ] البحث في الـ Issues الموجودة
+
+[**افتح Issue جديدة**](../../issues/new)
+
+---
+
+## 📄 الترخيص
+
+هذا المشروع مرخّص تحت **MIT License** — راجع ملف [LICENSE](LICENSE) للتفاصيل.
+
+```
+MIT License
+
+Copyright (c) 2025 Hadeed Ezz Schools
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions...
+```
+
+---
+
+## 📞 تواصل معنا
+
+<div align="center">
+
+| القناة | الرابط |
+|--------|--------|
+| 💬 الأسئلة والاستفسارات | [GitHub Discussions](../../discussions) |
+| 🐛 الإبلاغ عن خطأ | [فتح Issue](../../issues/new?template=bug_report.md) |
+| 💡 اقتراح ميزة | [فتح Issue](../../issues/new?template=feature_request.md) |
+| 🔀 المساهمة بالكود | [فتح Pull Request](../../pulls) |
+| 📖 دليل المساهمة | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| 📜 سجل التغييرات | [CHANGELOG.md](CHANGELOG.md) |
+
+</div>
+
+> 💡 **ملاحظة:** هذه المنصة مشروع مفتوح المصدر، وجميع التواصل يتم عبر GitHub. لو أنت من إدارة المدرسة أو أولياء الأمور ومحتاج قناة تواصل رسمية، يُرجى التواصل مع إدارة المدرسة مباشرةً.
+
+---
+
+### 🏫 عن المدرسة
+
+<div align="center">
+
+| | |
+|:---:|:---|
+| **الاسم** | مدارس حديد عز |
+| **الموقع** | السويس، مصر 🇪🇬 |
+| **المرحلة** | التعليم الفني — تخصص ميكاترونكس |
+| **نوع المنصة** | مشروع تعليمي مفتوح المصدر |
+
+</div>
+
+---
+
+### 👥 المسؤولون عن المشروع
+
+| الدور | المسؤولية |
+|-------|-----------|
+| 🧑‍💻 **المطوّرون** | تطوير المنصة وصيانتها |
+| 👨‍🏫 **المعلمون** | إضافة المحتوى التعليمي والمراجعة |
+| 🎓 **الطلاب** | الاستخدام والإبلاغ عن المشاكل |
+| 🤝 **المساهمون** | تحسين الكود والتوثيق والترجمة |
+
+> 📌 **للانضمام كمساهم:** راجع [CONTRIBUTING.md](CONTRIBUTING.md) و[قواعد السلوك](CODE_OF_CONDUCT.md) قبل البدء.
+
+---
+
+## 🙏 شكر وتقدير
+
+- [PDF.js](https://mozilla.github.io/pdf.js/) — من Mozilla
+- [Cairo Font](https://fonts.google.com/specimen/Cairo) — خط عربي احترافي
+- [Tajawal Font](https://fonts.google.com/specimen/Tajawal) — خط عربي حديث
+- كل من ساهم في هذا المشروع ❤️
+
+---
+
+<div align="center">
+
+### ⭐ إذا أعجبك المشروع، لا تنسَ منحه نجمة على GitHub!
+
+<span>منصة - مدارس حديد عز الرقمية</span>
+&nbsp;·&nbsp;
+<span>إعداد وتصميم : <strong style="color:#990000">الأسطورة</strong></span>
+&nbsp;·&nbsp;
+<span>© جميع الحقوق محفوظة</span>
+
+<br/>
+
+[⬆ العودة للأعلى](#-منصة-مدارس-حديد-عز-الرقمية)
+
+</div>
+
+</div>
