@@ -1,4 +1,4 @@
-const CACHE = 'hadid-eez-v103';
+const CACHE = 'hadid-eez-v104';
 
 const ASSETS = [
   // ====== الصفحات ======
@@ -58,6 +58,7 @@ const ASSETS = [
   './icons/favicon-32x32.png',
   './icons/favicon-16x16.png',
   './icons/apple-touch-icon.png',
+  './icons/cover.png',
   './icons/logo.png'
 ];
 
