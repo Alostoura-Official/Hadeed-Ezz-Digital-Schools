@@ -1,4 +1,4 @@
-const CACHE = 'hadid-eez-v104';
+const CACHE = 'hadid-eez-v105';
 
 const ASSETS = [
   // ====== الصفحات ======
@@ -60,7 +60,20 @@ const ASSETS = [
   './icons/favicon.icon',
   './icons/apple-touch-icon.png',
   './icons/cover.png',
-  './icons/logo.png'
+  './icons/logo.png',
+  
+    // ====== 📚 أغلفة الكتب ======
+  './books/arabic/cover.png',
+  './books/chemistry/cover.png',
+  './books/digital/cover.png',
+  './books/english/cover.png',
+  './books/islamic/cover.png',
+  './books/math/cover.png',
+  './books/mech/cover.png',
+  './books/national/cover.png',
+  './books/physics/cover.png',
+
+  
 ];
 
 /* ================================================================
