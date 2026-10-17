@@ -135,37 +135,129 @@ npx serve .
 📁 هيكل المشروع
 hadeed-ezz-platform/
 │
-├── 📄 index.html              # الصفحة الرئيسية
-├── 📄 books.html              # صفحة المكتبة الرقمية
-├── 📄 README.md               # هذا الملف
-├── 📄 CONTRIBUTING.md         # دليل المساهمة
-├── 📄 LICENSE                 # الترخيص
+├── 📄 .nojekyll                          # تعطيل Jekyll في GitHub Pages
+├── 📄 .gitignore                         # استثناء الملفات غير المرغوبة
+├── 📄 .editorconfig                      # توحيد تنسيق الكود
+├── 📄 LICENSE                            # ترخيص MIT
+├── 📄 README.md                          # دليل المشروع الرئيسي
+├── 📄 CONTRIBUTING.md                    # دليل المساهمة
+├── 📄 CODE_OF_CONDUCT.md                 # قواعد السلوك
+├── 📄 CHANGELOG.md                       # سجل التغييرات
+├── 📄 manifest.json                      # إعدادات PWA
+├── 📄 sw.js                              # Service Worker
+├── 📄 robots.txt                         # إعدادات محركات البحث
+├── 📄 sitemap.xml                        # خريطة الموقع
 │
-├── 📂 css/
-│   ├── style.css              # الأنماط الرئيسية
-│   └── books.css              # أنماط المكتبة
+├── 📂 .github/
+│   ├── 📂 workflows/
+│   │   ├── 📄 deploy.yml                 # نشر تلقائي على GitHub Pages
+│   │   └── 📄 lighthouse.yml             # فحص الأداء التلقائي
+│   ├── 📂 ISSUE_TEMPLATE/
+│   │   ├── 📄 bug_report.md
+│   │   └── 📄 feature_request.md
+│   └── 📄 PULL_REQUEST_TEMPLATE.md
 │
-├── 📂 js/
-│   ├── app.js                 # منطق التطبيق الرئيسي
-│   ├── books.js               # منطق المكتبة
-│   └── lib/
-│       ├── pdf.min.js         # مكتبة PDF.js
-│       └── pdf.worker.min.js  # عامل PDF
+├── 📂 public/                            # الملفات العامة الجذرية
+│   ├── 📄 index.html                     # 🏠 الصفحة الرئيسية
+│   ├── 📄 books.html                     # 📚 صفحة الكتب
+│   ├── 📄 homework.html                  # 📝 صفحة الواجبات
+│   ├── 📄 about.html                     # ℹ️ عن المدرسة
+│   ├── 📄 contact.html                   # 📞 تواصل معنا
+│   ├── 📄 404.html                       # ❌ صفحة الخطأ
+│   ├── 📄 offline.html                   # 📴 صفحة الأوفلاين
+│   │
+│   ├── 📂 assets/
+│   │   ├── 📂 css/
+│   │   │   ├── 📄 style.css              # التصميم الأساسي
+│   │   │   ├── 📄 books.css              # تنسيقات الكتب
+│   │   │   ├── 📄 homework.css           # تنسيقات الواجبات
+│   │   │   ├── 📄 variables.css          # متغيرات CSS (ألوان، خطوط)
+│   │   │   └── 📄 print.css              # تنسيقات الطباعة
+│   │   │
+│   │   ├── 📂 js/
+│   │   │   ├── 📄 app.js                 # منطق التطبيق العام
+│   │   │   ├── 📄 books.js               # منطق عرض الكتب
+│   │   │   ├── 📄 homework.js            # منطق الواجبات
+│   │   │   ├── 📄 pwa.js                 # تسجيل Service Worker
+│   │   │   ├── 📄 search.js              # محرك البحث
+│   │   │   ├── 📄 theme.js               # الوضع الليلي/النهاري
+│   │   │   └── 📂 lib/
+│   │   │       ├── 📄 pdf.min.js
+│   │   │       ├── 📄 pdf.worker.min.js
+│   │   │       ├── 📄 qrcode.min.js
+│   │   │       ├── 📂 cmaps/
+│   │   │       └── 📂 standard_fonts/
+│   │   │
+│   │   ├── 📂 fonts/
+│   │   │   ├── 📄 Cairo-Regular.woff2
+│   │   │   ├── 📄 Cairo-Bold.woff2
+│   │   │   ├── 📄 Tajawal-Regular.woff2
+│   │   │   └── 📄 Tajawal-Bold.woff2
+│   │   │
+│   │   ├── 📂 icons/
+│   │   │   ├── 📄 favicon.ico
+│   │   │   ├── 📄 favicon-16x16.png
+│   │   │   ├── 📄 favicon-32x32.png
+│   │   │   ├── 📄 apple-touch-icon.png
+│   │   │   ├── 📄 icon-192.png
+│   │   │   ├── 📄 icon-512.png
+│   │   │   ├── 📄 maskable-192.png
+│   │   │   ├── 📄 maskable-512.png
+│   │   │   ├── 📄 logo.png
+│   │   │   ├── 📄 logo.svg
+│   │   │   └── 📄 splash.png
+│   │   │
+│   │   └── 📂 images/
+│   │       ├── 📄 hero-bg.jpg
+│   │       ├── 📄 og-image.png           # صورة المشاركة الاجتماعية
+│   │       └── 📄 placeholder.png
+│   │
+│   ├── 📂 data/                          # بيانات المشروع (JSON)
+│   │   ├── 📄 books.json                 # قائمة الكتب
+│   │   ├── 📄 homework.json              # قائمة الواجبات
+│   │   ├── 📄 subjects.json              # قائمة المواد
+│   │   └── 📄 grades.json                # قائمة الصفوف
+│   │
+│   └── 📂 books/                         # 📚 ملفات PDF + الأغلفة
+│       ├── 📂 arabic/
+│       │   ├── 📄 arabic-grade1-term1.pdf
+│       │   ├── 📄 arabic-grade1-term2.pdf
+│       │   └── 📄 cover.png
+│       ├── 📂 chemistry/
+│       │   ├── 📄 chemistry-1st-2nd-term.pdf
+│       │   └── 📄 cover.png
+│       ├── 📂 digital/
+│       │   ├── 📄 Digital-Transformation-U1-SB.pdf
+│       │   └── 📄 cover.png
+│       ├── 📂 english/
+│       │   ├── 📄 English-U1-SB-Y1-T1.pdf
+│       │   └── 📄 cover.png
+│       ├── 📂 islamic/
+│       │   ├── 📄 islamic-education-g1-t1.pdf
+│       │   └── 📄 cover.png
+│       ├── 📂 math/
+│       │   ├── 📄 math-g1-t1.pdf
+│       │   └── 📄 cover.png
+│       ├── 📂 mech/
+│       │   ├── 📄 Mech-Unit-1.pdf
+│       │   └── 📄 cover.png
+│       ├── 📂 national/
+│       │   ├── 📄 national-education-g1-t1.pdf
+│       │   └── 📄 cover.png
+│       └── 📂 physics/
+│           ├── 📄 physics-g1-t1.pdf
+│           └── 📄 cover.png
 │
-├── 📂 icons/
-│   ├── logo.png
-│   ├── favicon-32x32.png
-│   ├── favicon-16x16.png
-│   └── apple-touch-icon.png
+├── 📂 docs/                              # 📖 وثائق المشروع
+│   ├── 📄 ADDING_CONTENT.md              # كيفية إضافة محتوى
+│   ├── 📄 ARCHITECTURE.md                # معمارية المشروع
+│   ├── 📄 DEPLOYMENT.md                  # دليل النشر
+│   ├── 📄 PWA_GUIDE.md                   # دليل PWA
+│   └── 📄 FAQ.md                         # الأسئلة الشائعة
 │
-└── 📂 books/                  # مكتبة الكتب
-    ├── arabic/
-    ├── chemistry/
-    ├── digital/
-    ├── english/
-    ├── islamic/
-    ├── math/
-    ├── mech/
-    ├── national/
-    └── physics/
+└── 📂 scripts/                           # 🛠️ سكريبتات مساعدة
+    ├── 📄 generate-icons.sh              # توليد أيقونات PWA
+    ├── 📄 optimize-pdf.sh                # ضغط ملفات PDF
+    ├── 📄 generate-sitemap.js            # توليد sitemap.xml
+    └── 📄 validate-links.js              # فحص الروابط المكسورة
     
