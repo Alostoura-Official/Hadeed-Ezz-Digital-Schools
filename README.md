@@ -595,5 +595,3 @@ furnished to do so, subject to the following conditions...
 </div>
 
 </div>
-
-
