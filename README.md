@@ -611,3 +611,10 @@ Contributions are welcome to improve Ezz ATS Learn.
 - Focus on educational improvements.
 - Test changes before submitting a Pull Request.
 - Do not include private information or API keys.
+
+## Student Data Protection
+
+- Protect student privacy and personal information.
+- Never publish student records or private documents.
+- Keep all educational resources safe and accessible.
+- Do not expose credentials or API keys.
