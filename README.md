@@ -595,3 +595,12 @@ furnished to do so, subject to the following conditions...
 </div>
 
 </div>
+
+## Contributing
+
+Contributions are welcome to improve Ezz ATS Learn.
+
+1. Create a feature branch.
+2. Make a useful improvement.
+3. Commit your changes.
+4. Submit a Pull Request.
