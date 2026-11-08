@@ -604,3 +604,10 @@ Contributions are welcome to improve Ezz ATS Learn.
 2. Make a useful improvement.
 3. Commit your changes.
 4. Submit a Pull Request.
+
+### Contribution Guidelines
+
+- Keep the platform free for all students.
+- Focus on educational improvements.
+- Test changes before submitting a Pull Request.
+- Do not include private information or API keys.
