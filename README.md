@@ -594,6 +594,7 @@ furnished to do so, subject to the following conditions...
 
 </div>
 
+
 </div>
 
 ## Contributing
@@ -618,3 +619,4 @@ Contributions are welcome to improve Ezz ATS Learn.
 - Never publish student records or private documents.
 - Keep all educational resources safe and accessible.
 - Do not expose credentials or API keys.
+
