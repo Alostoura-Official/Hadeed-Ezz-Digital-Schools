@@ -588,6 +588,7 @@ furnished to do so, subject to the following conditions...
 &nbsp;·&nbsp;
 <span>© جميع الحقوق محفوظة</span>
 
+
 <br/>
 
 [⬆ العودة للأعلى](#-منصة-مدارس-حديد-عز-الرقمية)
