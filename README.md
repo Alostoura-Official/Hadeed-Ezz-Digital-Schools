@@ -592,7 +592,6 @@ furnished to do so, subject to the following conditions...
 <br/>
 
 [⬆ العودة للأعلى](#-منصة-مدارس-حديد-عز-الرقمية)
-
 </div>
 
 
