@@ -590,6 +590,20 @@ furnished to do so, subject to the following conditions...
 
 
 <br/>
+<div align="center">
+
+<a href="https://alostoura-official.github.io/Hadeed-Ezz-Digital-Schools/index.html" target="_blank">
+  <img src="https://api.microlink.io/?url=https%3A%2F%2Falostoura-official.github.io%2FHadeed-Ezz-Digital-Schools%2Findex.html&screenshot=true&meta=false&embed=screenshot.url&waitForTimeout=8000"
+       width="600" alt="Hadeed Ezz Digital Schools Live Preview"/>
+</a>
+
+<p>
+  <a href="https://alostoura-official.github.io/Hadeed-Ezz-Digital-Schools/index.html">
+    <img src="https://img.shields.io/badge/🎓%20Watch%20Live-0e75b6?style=for-the-badge" alt="Live"/>
+  </a>
+</p>
+
+</div>
 
 [⬆ العودة للأعلى](#-منصة-مدارس-حديد-عز-الرقمية)
 </div>
