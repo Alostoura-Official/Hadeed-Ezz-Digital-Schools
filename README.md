@@ -110,7 +110,7 @@
 | 8 | التربية الإسلامية | 🕌 | `books/islamic/` | ✅ |
 | 9 | التربية الوطنية | 🇪🇬 | `books/national/` | ✅ |
 | 10 | لغة إيطالية | 🇮🇹 | `books/italian/` | ✅ |
-| 11 | دراسات اجتماعية | 🌍 | `books/social/` | 🚧 قريباً |
+
 
 </div>
 
@@ -182,16 +182,15 @@ npx serve .
 │   │
 │   └── 📝 PULL_REQUEST_TEMPLATE.md        # قالب طلب دمج التعديلات
 │
-├── 📂 public/                            # الملفات العامة الجذرية
-│   ├── 🌐 index.html                     # 🏠 الصفحة الرئيسية
-│   ├── 🌐 books.html                     # 📚 صفحة الكتب
-│   ├── 🌐 homework.html                  # 📝 صفحة الواجبات
-│   ├── 🌐 about.html                     # ℹ️ عن المدرسة
-│   ├── 🌐 contact.html                   # 📞 تواصل معنا
-│   ├── 🚫 404.html                       # صفحة الخطأ
-│   ├── 📴 offline.html                   # صفحة عدم الاتصال
-│   │
-│   ├── 📂 assets/
+├── 🌐 index.html                         # 🏠 الصفحة الرئيسية
+├── 🌐 books.html                         # 📚 صفحة الكتب
+├── 🌐 homework.html                      # 📝 صفحة الواجبات
+├── 🌐 about.html                         # ℹ️ عن المدرسة
+├── 🌐 contact.html                       # 📞 تواصل معنا
+├── 🚫 404.html                           # صفحة الخطأ
+├── 📴 offline.html                       # صفحة عدم الاتصال
+│
+├── 📂 assets/
 │   │   ├── 📂 css/                       # 🎨 ملفات التصميم
 │   │   │   ├── 🎨 style.css              # التصميم الأساسي
 │   │   │   ├── 🎨 books.css              # تنسيقات الكتب
@@ -245,41 +244,50 @@ npx serve .
 │   │   └── 🗃️ grades.json                # قائمة الصفوف
 │   │
 │   └── 📂 books/                         # 📚 ملفات PDF والأغلفة
-│       ├── 📂 arabic/
+│       ├── 📂 mech/                      # ⚙️ ميكاترونكس
+│       │   ├── 📕 Mech-Unit-1.pdf
+│       │   ├── 📕 Mech-Unit-2.pdf
+│       │   └── 🖼️ cover.png
+│       │
+│       ├── 📂 english/                   # 🇬🇧 لغة إنجليزية
+│       │   ├── 📕 English-U1-SB-Y1-T1.pdf
+│       │   ├── 📕 English-U1-SB-Y1-T2.pdf
+│       │   └── 🖼️ cover.png
+│       │
+│       ├── 📂 arabic/                    # 📗 لغة عربية
 │       │   ├── 📕 arabic-grade1-term1.pdf
 │       │   ├── 📕 arabic-grade1-term2.pdf
 │       │   └── 🖼️ cover.png
 │       │
-│       ├── 📂 chemistry/
+│       ├── 📂 math/                      # 🔢 رياضيات
+│       │   ├── 📕 math-g1-t1.pdf
+│       │   ├── 📕 math-g1-t2.pdf
+│       │   └── 🖼️ cover.png
+│       │
+│       ├── 📂 physics/                   # ⚛️ فيزياء
+│       │   ├── 📕 physics-g1-t1.pdf
+│       │   ├── 📕 physics-g1-t2.pdf
+│       │   └── 🖼️ cover.png
+│       │
+│       ├── 📂 chemistry/                 # 🧪 كيمياء
 │       │   ├── 📕 chemistry-1st-2nd-term.pdf
 │       │   └── 🖼️ cover.png
 │       │
-│       ├── 📂 digital/
+│       ├── 📂 digital/                   # 💻 التحول الرقمي
 │       │   ├── 📕 Digital-Transformation-U1-SB.pdf
 │       │   └── 🖼️ cover.png
 │       │
-│       ├── 📂 english/
-│       │   ├── 📕 English-U1-SB-Y1-T1.pdf
-│       │   └── 🖼️ cover.png
-│       │
-│       ├── 📂 islamic/
+│       ├── 📂 islamic/                   # 🕌 التربية الإسلامية
 │       │   ├── 📕 islamic-education-g1-t1.pdf
 │       │   └── 🖼️ cover.png
 │       │
-│       ├── 📂 math/
-│       │   ├── 📕 math-g1-t1.pdf
-│       │   └── 🖼️ cover.png
-│       │
-│       ├── 📂 mech/
-│       │   ├── 📕 Mech-Unit-1.pdf
-│       │   └── 🖼️ cover.png
-│       │
-│       ├── 📂 national/
+│       ├── 📂 national/                  # 🇪🇬 التربية الوطنية
 │       │   ├── 📕 national-education-g1-t1.pdf
 │       │   └── 🖼️ cover.png
 │       │
-│       └── 📂 physics/
-│           ├── 📕 physics-g1-t1.pdf
+│       └── 📂 italian/                   # 🇮🇹 لغة إيطالية    
+│           ├── 📕 italian-g1-t1.pdf
+│           ├── 📕 italian-g1-t2.pdf
 │           └── 🖼️ cover.png
 │
 ├── 📂 docs/                              # 📖 وثائق المشروع
@@ -460,9 +468,9 @@ git push origin feature/اسم-الميزة
 <details>
 <summary><strong>كيف أضيف كتاباً جديداً؟</strong></summary>
 
-1. ضع ملف PDF في المجلد المناسب داخل `public/books/`
+1. ضع ملف PDF في المجلد المناسب داخل `/books/`
 2. أضف صورة الغلاف `cover.png` (اختياري)
-3. حدّث `BOOKS_CONFIG` في `public/assets/js/books.js`
+3. حدّث `BOOKS_CONFIG` في `/assets/js/books.js`
 4. أعد تحميل الصفحة
 
 راجع [docs/ADDING_CONTENT.md](docs/ADDING_CONTENT.md) للتفاصيل.
@@ -483,8 +491,8 @@ git push origin feature/اسم-الميزة
 <details>
 <summary><strong>كيف أُغيّر الشعار والألوان؟</strong></summary>
 
-- الشعار: استبدل `public/assets/icons/logo.png` و `logo.svg`
-- الألوان: عدّل المتغيرات في `public/assets/css/variables.css`
+- الشعار: استبدل `/assets/icons/logo.png` و `logo.svg`
+- الألوان: عدّل المتغيرات في `/assets/css/variables.css`
 </details>
 
 ---
@@ -586,7 +594,7 @@ furnished to do so, subject to the following conditions...
   <img src="https://github.githubassets.com/images/modules/profile/achievements/yolo-default.png" width="80" alt="YOLO" title="YOLO">
 </p>
 
-</div>
+
 <hr>
 
 <div align="center">
