@@ -1,96 +1,106 @@
-# Accessibility
+# ♿ إمكانية الوصول — Accessibility
 
-<!--
-Include a brief statement describing why accessibility matters to your
-project, who should be able to use and contribute to it, and what this
-document covers, such as your accessibility commitments, contributor
-expectations, and issue-reporting process.
+نؤمن في **منصة مدارس حديد عز الرقمية** بأن التعليم حق للجميع، وأن التكنولوجيا يجب أن تكون جسراً يعبر عليه كل طالب، بغض النظر عن قدراته. هذا الملف يوضح التزامنا بجعل المنصة سهلة الاستخدام لجميع الطلاب والمعلمين، بما في ذلك ذوو الاحتياجات الخاصة، ويشرح كيف يمكنك مساعدتنا في تحقيق ذلك.
 
-Write for people who may read this after encountering a barrier. Use plain
-language and describe user experiences rather than relying on legal
-language, technical jargon, or standards codes.
--->
+---
 
-## Priorities
+## 🎯 أولوياتنا (Priorities)
 
-<!--
-Describe the outcomes the project prioritizes and how it works toward them.
-If you name a WCAG level as an accessibility target, make clear that it is
-an aspirational goal rather than a verified conformance claim. Only claim
-conformance after an evaluation, and identify the evaluated scope, date,
-method, and evaluator. Also describe the areas you prioritize, such as
-keyboard, screen reader, content, or language support.
--->
+نركز جهودنا على الجوانب التالية لضمان تجربة تعليمية شاملة:
 
-## Contributor expectations
+1.  **التنقل بلوحة المفاتيح (Keyboard Navigation):** يجب أن يكون بإمكان أي طالب تصفح المنصة، وفتح الكتب، والتنقل بين الصفحات، واستخدام البحث، باستخدام لوحة المفاتيح فقط دون الحاجة للفأرة.
+2.  **دعم قارئات الشاشة (Screen Readers):** نهدف إلى أن تكون جميع العناصر التفاعلية (الأزرار، الروابط، الحقول) مفهومة لقارئات الشاشة (مثل NVDA أو VoiceOver) عبر استخدام سمات `aria-label` و `role` المناسبة.
+3.  **التباين اللوني (Color Contrast):** نحرص على أن تكون الألوان (خاصة في الوضع الليلي والنهاري) ذات تباين كافٍ لمساعدة الطلاب ضعاف البصر على قراءة النصوص بوضوح.
+4.  **حجم الخط والتكبير (Zoom):** يجب أن يظل التصميم متماسكاً وسهل القراءة عند تكبير الصفحة حتى 200% من إعدادات المتصفح.
+5.  **اللغة البسيطة (Plain Language):** استخدام لغة عربية واضحة ومباشرة في الواجهات، وتجنب المصطلحات التقنية المعقدة.
 
-<!--
-Describe the accessibility guardrails that apply to contributions,
-including relevant testing, documentation, and continuous integration
-checks. Name specific tools only when the project uses them, and explain
-what evidence contributors should include with user-facing changes.
--->
+> ⚠️ **ملاحظة هامة:** نحن نهدف إلى التوافق مع معايير **WCAG 2.1 (المستوى AA)**، ولكن هذا هدف نسعى إليه (Aspirational Goal) ولم نقم بعد بتقييم رسمي شامل. سنعلن عن أي تقييم رسمي بمجرد إجرائه.
 
-## Reporting accessibility issues
+---
 
-<!--
-Provide a direct, accessible way to report a barrier or request help.
-Invite useful context such as the affected task, URL, observed behavior,
-browser, operating system, and assistive technology. Make screenshots or
-recordings optional and do not require disability disclosure.
--->
+## 🤝 توقعات المساهمين (Contributor Expectations)
 
-### Severity
+إذا كنت مساهماً في الكود، فإن الحفاظ على إمكانية الوصول هو جزء أساسي من مسؤوليتك:
 
-<!--
-If your project uses severity levels, define them and give practical
-examples based on how strongly a barrier affects a user's ability to
-complete a task. Keep labels consistent with your issue template and
-resolution targets if those processes exist. Maintainers can assign or
-confirm severity during triage; reporters do not need to.
--->
+*   **الاختبار:** قبل تقديم أي Pull Request يغير واجهة المستخدم، تأكد من اختبار التغيير باستخدام **لوحة المفاتيح فقط** (Tab, Enter, Esc).
+*   **السمات (Attributes):** عند إضافة أزرار أو روابط جديدة، تأكد من إضافة `aria-label` واضح يشرح وظيفتها.
+*   **التباين:** عند تعديل ملف `assets/css/variables.css`، تأكد من أن الألوان الجديدة تحقق نسبة تباين مناسبة (يمكنك استخدام أداة WebAIM Contrast Checker).
+*   **الصور:** أي صورة جديدة (مثل أغلفة الكتب) يجب أن تحتوي على نص بديل `alt` وصفي.
+*   **التوثيق:** إذا أضفت ميزة جديدة، وثّق كيف يمكن لذوي الاحتياجات الخاصة استخدامها في هذا الملف.
 
-### How we respond
+---
 
-<!--
-Explain what reporters can expect after submitting an accessibility issue,
-including acknowledgement, status updates, workarounds, expected timelines,
-and opportunities to verify a fix. Use commitments your project can
-consistently uphold.
--->
+## 🚨 الإبلاغ عن مشاكل الوصولية (Reporting Accessibility Issues)
 
-## Ownership and maintenance
+إذا واجهت صعوبة في استخدام المنصة (مثلاً: زر لا يعمل بلوحة المفاتيح، أو نص غير مقروء، أو قارئ الشاشة لا ينطق عنصراً)، يُرجى إبلاغنا فوراً.
 
-<!--
-Identify the team, role, or maintainer responsible for accessibility and
-describe their responsibilities to the project. Include the review cadence
-and how ownership transfers when responsibilities change.
--->
+**كيف تبلغ؟**
+*   افتح **Issue جديدة** في المستودع عبر [قالب الإبلاغ عن خطأ](../../issues/new?template=bug_report.md) واذكر في العنوان كلمة **"Accessibility"**.
+*   **أو** راسل مالك المشروع مباشرة عبر GitHub (إذا كانت المشكلة حساسة).
 
-## Supported environments
+**ما الذي يجب أن يتضمنه تقريرك؟**
+*   **المهمة التي كنت تحاول إنجازها:** (مثال: "كنت أحاول فتح كتاب الرياضيات").
+*   **الصفحة/الرابط:** (مثال: `books.html`).
+*   **السلوك الذي لاحظته:** (مثال: "زر الإغلاق لا يستجيب عند الضغط على مفتاح Enter").
+*   **المتصفح ونظام التشغيل:** (مثال: Chrome 120 على Windows 11).
+*   **التكنولوجيا المساعدة (إن وجدت):** (مثال: قارئ شاشة NVDA، أو تكبير الشاشة 200%).
 
-<!--
-List the platforms, devices, browsers, input methods, and assistive
-technologies the project supports or has tested. Include versions where
-useful, note partial support, and avoid implying support for combinations
-that have not been evaluated.
--->
+> 💡 **لا تحتاج** إلى ذكر نوع إعاقتك إذا لم تكن مرتاحاً، ولا تحتاج إلى إرفاق فيديو. وصف المشكلة بالكلمات يكفي.
 
-## Known limitations
+### درجات الخطورة (Severity)
 
-<!--
-Describe known barriers in terms of the affected user experience, such as
-"videos do not have captions," rather than standards codes. Include
-available workarounds or equivalent access and link to tracked issues. If
-no limitations are currently documented, describe what has been tested
-instead of claiming that no barriers exist.
--->
+*   **حرجة (Critical):** تمنع المستخدم تماماً من إنجاز مهمة أساسية (مثل: عدم القدرة على فتح أي كتاب أو التنقل في الصفحات).
+*   **عالية (High):** تجعل المهمة صعبة جداً لكنها ليست مستحيلة (مثل: عدم وضوح النص بسبب ضعف التباين).
+*   **متوسطة (Medium):** إزعاج كبير لكن يوجد حل بديل (مثل: زر لا يعمل بلوحة المفاتيح لكن يمكن النقر عليه بالفأرة).
+*   **منخفضة (Low):** تحسينات تجميلية أو بسيطة.
 
-## Feedback and improvements
+---
 
-<!--
-Explain how users and contributors can suggest improvements to this
-statement or the project's accessibility practices. Direct active
-accessibility barriers to the reporting process above.
--->
+## ⏱️ كيف نستجيب (How We Respond)
 
+*   **خلال 48 ساعة:** نؤكد استلام تقريرك ونبدأ بتقييمه.
+*   **خلال 7 أيام:** نخبرك إذا كنا سنصلح المشكلة ومتى.
+*   **عند الإصلاح:** سنخبرك بالنسخة التي تم الإصلاح فيها، ونطلب منك التأكد من حلها قبل إغلاق الـ Issue.
+
+---
+
+## 🛠️ بيئات التشغيل المدعومة (Supported Environments)
+
+نختبر المنصة (حالياً) على:
+
+*   **المتصفحات:** Google Chrome، Microsoft Edge، Firefox، Safari (أحدث إصدارين).
+*   **الأجهزة:** أجهزة الكمبيوتر (Windows/Mac)، الهواتف الذكية (Android/iOS)، الأجهزة اللوحية.
+*   **التكنولوجيا المساعدة:** نهدف إلى دعم قارئات الشاشة (NVDA على Windows، TalkBack على Android، VoiceOver على iOS).
+*   **إدخال البيانات:** لوحة المفاتيح، الفأرة، شاشات اللمس.
+
+> 📌 **ملاحظة:** بعض المتصفحات القديمة (مثل Internet Explorer) غير مدعومة، وقد لا تعمل بها بعض ميزات الوصولية.
+
+---
+
+## 🚧 القيود المعروفة (Known Limitations)
+
+نحن شفافون بشأن ما لا يعمل بشكل مثالي حتى الآن:
+
+1.  **ملفات PDF:** عارض PDF.js (المكتبة التي نستخدمها) لا يدعم القراءة الصوتية المدمجة لجميع الملفات. **الحل البديل:** استخدم قارئ الشاشة في نظامك مع خاصية "قراءة النص المحدد" أو استخدم زر الترجمة/النطق الموجود داخل المنصة للنصوص المحددة.
+2.  **الترجمة الفورية:** قد لا يعمل النطق الصوتي بشكل صحيح في بعض المتصفحات القديمة. **الحل البديل:** استخدم ميزة الترجمة النصية.
+3.  **الوضع الليلي:** بعض الصور (أغلفة الكتب) قد لا تبدو واضحة في الوضع الليلي بسبب طبيعتها. **الحل البديل:** التبديل إلى الوضع النهاري مؤقتاً.
+
+> إذا وجدت قيداً آخر، يُرجى فتح Issue لنتعلمه ونضيفه هنا.
+
+---
+
+## 💬 ملاحظات وتحسينات (Feedback and Improvements)
+
+هل لديك اقتراح لتحسين هذا الملف أو ممارسات الوصولية في المنصة؟
+*   افتح Issue جديدة بعنوان **"Accessibility Improvement"**.
+*   أو شارك في [GitHub Discussions](../../discussions).
+
+**نحن نتعلم منكم، وكل ملاحظة تجعل المنصة أفضل لآلاف الطلاب.**
+
+---
+
+<div align="center">
+
+**آخر تحديث:** 2027 - 2026
+
+</div>
