@@ -577,6 +577,18 @@ furnished to do so, subject to the following conditions...
 
 ---
 
+<h3 align="center">🏆 إنجازاتي</h3>
+
+<p align="center">
+  <img src="https://github.githubassets.com/images/modules/profile/achievements/galaxy-brain-default.png" width="80" alt="Galaxy Brain" title="Galaxy Brain">
+  <img src="https://github.githubassets.com/images/modules/profile/achievements/pull-shark-default.png" width="80" alt="Pull Shark" title="Pull Shark">
+  <img src="https://github.githubassets.com/images/modules/profile/achievements/quickdraw-default.png" width="80" alt="Quickdraw" title="Quickdraw">
+  <img src="https://github.githubassets.com/images/modules/profile/achievements/yolo-default.png" width="80" alt="YOLO" title="YOLO">
+</p>
+
+</div>
+<hr>
+
 <div align="center">
 
 ### ⭐ إذا أعجبك المشروع، لا تنسَ منحه نجمة على GitHub!
