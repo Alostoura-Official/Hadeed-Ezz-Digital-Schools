@@ -137,8 +137,8 @@
 
 ```bash
 # استنسخ المشروع
-git clone https://github.com/USERNAME/hadeed-ezz-platform.git
-cd hadeed-ezz-platform
+git clone https://github.com/USERNAME/Hadeed-Ezz-Digital-Schools.git
+cd Hadeed-Ezz-Digital-Schools
 
 # شغّل خادم محلي (اختياري — لكن مُفضّل)
 python -m http.server 8000
@@ -156,7 +156,7 @@ npx serve .
 <div dir="ltr" style="text-align: left;">
 
 ```text
-📂 hadeed-ezz-platform/
+📂 Hadeed-Ezz-Digital-Schools/
 │
 ├── 📄 .nojekyll                          # تعطيل Jekyll في GitHub Pages
 ├── ⚙️ .gitignore                         # استثناء الملفات غير المرغوبة
@@ -363,7 +363,7 @@ git push origin main
 #    أو Branch: main / (root)
 
 # 3. الموقع سيكون على:
-#    https://USERNAME.github.io/hadeed-ezz-platform/
+#    https://USERNAME.github.io/Hadeed-Ezz-Digital-Schools/
 ```
 
 ### خادم محلي أو شبكة داخلية
@@ -418,7 +418,7 @@ php -S localhost:8000
 ```bash
 # 1. اعمل Fork للمشروع
 # 2. استنسخ نسختك
-git clone https://github.com/YOUR-USERNAME/hadeed-ezz-platform.git
+git clone https://github.com/YOUR-USERNAME/Hadeed-Ezz-Digital-Schools.git
 
 # 3. أنشئ فرعاً جديداً
 git checkout -b feature/اسم-الميزة
